@@ -383,8 +383,8 @@
         .sidebar {
             position: fixed;
             top: 0;
-            left: -350px;
-            width: 350px;
+            left: -600px;
+            width: 600px;
             height: 100%;
             background: #fff;
             z-index: 1001;
@@ -531,6 +531,112 @@
             text-decoration: underline;
         }
 
+        .instrumentos-section h4 {
+            color: #146666;
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #146666;
+        }
+
+        .instrumentos-section h4:first-child {
+            margin-top: 0;
+        }
+
+        .instrumentos-section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .instrumentos-section .locate-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .instrumentos-section .locate-btn:hover {
+            background: #0056b3;
+        }
+
+        .sidebar-content #search-container {
+            padding: 10px 0;
+        }
+
+        .sidebar-content #search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .sidebar-content #table-container {
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+        }
+
+        .sidebar-content #data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sidebar-content #data-table th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            border-bottom: 2px solid #dee2e6;
+            color: #495057;
+        }
+
+        .sidebar-content #data-table th:last-child {
+            width: 50px;
+            text-align: center;
+        }
+
+        .sidebar-content #data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .sidebar-content #data-table td:last-child {
+            text-align: center;
+        }
+
+        .sidebar-content #data-table tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .sidebar-content #restore-all-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .sidebar-content #restore-all-btn:hover {
+            background: #218838;
+        }
+
         /* Overlay escuro quando sidebar abre */
         .sidebar-overlay {
             display: none;
@@ -628,32 +734,8 @@
         <div id="map">
         </div>
         
-        <button id="toggle-table-btn">📋 Tabela de Leis</button>
-        
-        <div id="table-panel">
-            <div id="table-panel-header">
-                <h3>Instrumentos Legais - Redes de Emalhe</h3>
-                <button id="close-table">×</button>
-            </div>
-            <div id="search-container">
-                <input type="text" id="search-input" placeholder="Pesquisar por nome, descrição ou abrangência...">
-            </div>
-            <div id="table-container">
-                <table id="data-table">
-                    <thead>
-                        <tr>
-                            <th>Instrumento Legal</th>
-                            <th>Descrição</th>
-                            <th>Abrangência</th>
-                            <th>Localizar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
-                    </tbody>
-                </table>
-                <button id="restore-all-btn">🔄 Mostrar Todas as Camadas</button>
-            </div>
         </div>
+
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -954,12 +1036,9 @@
         setBounds();
         
         // Table functionality
-        var tableBody = document.getElementById('table-body');
-        var searchInput = document.getElementById('search-input');
-        var toggleTableBtn = document.getElementById('toggle-table-btn');
-        var tablePanel = document.getElementById('table-panel');
-        var closeTableBtn = document.getElementById('close-table');
-        var restoreAllBtn = document.getElementById('restore-all-btn');
+        var tableBody;
+        var searchInput;
+        var restoreAllBtn;
         var featureLayers = [];
         var allLayersVisible = true;
         
@@ -976,7 +1055,7 @@
                     <td><strong>${instrumentoLegal}</strong></td>
                     <td>${descricao}</td>
                     <td>${abrangencia}</td>
-                    <td><button class="locate-btn" data-index="${index}">📍</button></td>
+                    <td><button class="locate-btn" data-index="${index}">🔍</button></td>
                 `;
                 
                 row.dataset.index = index;
@@ -996,32 +1075,6 @@
                 });
             });
         }
-        
-        // Search functionality
-        searchInput.addEventListener('input', function() {
-            var searchTerm = this.value.toLowerCase();
-            var rows = tableBody.getElementsByTagName('tr');
-            
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var text = row.textContent.toLowerCase();
-                
-                if (text.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        });
-        
-        // Toggle table panel
-        toggleTableBtn.addEventListener('click', function() {
-            tablePanel.classList.toggle('show');
-        });
-        
-        closeTableBtn.addEventListener('click', function() {
-            tablePanel.classList.remove('show');
-        });
         
         // Highlight feature on map when table row is clicked
         function highlightFeature(index) {
@@ -1074,13 +1127,7 @@
             allLayersVisible = true;
         }
         
-        // Restore all button event listener
-        restoreAllBtn.addEventListener('click', function() {
-            restoreAllLayers();
-        });
         
-        // Initialize table
-        populateTable();
         </script>
 
 
@@ -1108,6 +1155,10 @@
                     <i class="fas fa-question-circle"></i>
                     <span>Ajuda</span>
                 </button>
+                <button class="tab-button" data-tab="instrumentos">
+                    <i class="fas fa-gavel"></i>
+                    <span>Instrumentos Legais</span>
+                </button>
             </div>
 
             <div class="sidebar-content">
@@ -1119,7 +1170,7 @@
                         <h4>Funcionalidades</h4>
                         <ul>
                             <li>Navegue pelo mapa usando zoom e arraste</li>
-                            <li>Abra a "Tabela de Leis" para consultar e pesquisar os instrumentos legais</li>
+                            <li>Acesse a aba "Instrumentos Legais" na lateral para consultar e pesquisar os instrumentos legais</li>
                             <li>Use o botão de localizar da tabela para exibir a área de abrangência de cada norma</li>
                             <li>Clique sobre uma área do mapa para ver os detalhes do instrumento legal</li>
                         </ul>
@@ -1134,11 +1185,36 @@
                         <h4>Ajuda do Mapa</h4>
                         <p>A tabela reúne os instrumentos legais que incidem sobre a APABF e suas respectivas áreas de abrangência.</p>
                         <ul>
-                            <li>Toque em "Tabela de Leis" para abrir a lista de normas e usar a pesquisa por nome, descrição ou abrangência.</li>
+                            <li>Toque na aba "Instrumentos Legais" para consultar e pesquisar os instrumentos legais.</li>
                             <li>Toque no botão de localizar de uma linha para exibir apenas a área daquela norma no mapa.</li>
                             <li>Use "Mostrar Todas as Camadas" para voltar à visualização completa.</li>
                             <li>Use a barra inferior para navegar entre os mapas do aplicativo.</li>
                         </ul>
+                    </div>
+                </div>
+
+                <div id="tab-instrumentos" class="tab-content">
+                    <div class="instrumentos-section">
+                        <h4>Instrumentos Legais - Redes de Emalhe</h4>
+                        <p>Confira a lista de instrumentos legais e pesquise por nome, descrição ou abrangência.</p>
+                        <div id="search-container">
+                            <input type="text" id="search-input" placeholder="Pesquisar por nome, descrição ou abrangência...">
+                        </div>
+                        <div id="table-container">
+                            <table id="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Instrumento Legal</th>
+                                        <th>Descrição</th>
+                                        <th>Abrangência</th>
+                                        <th>Localizar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                </tbody>
+                            </table>
+                            <button id="restore-all-btn">Mostrar Todas as Camadas</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1311,6 +1387,36 @@
                     document.getElementById('tab-' + tabId).classList.add('active');
                 });
             });
+
+            // Inicialização da tabela de Instrumentos Legais
+            tableBody = document.getElementById('table-body');
+            searchInput = document.getElementById('search-input');
+            restoreAllBtn = document.getElementById('restore-all-btn');
+
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                var searchTerm = this.value.toLowerCase();
+                var rows = tableBody.getElementsByTagName('tr');
+                
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var text = row.textContent.toLowerCase();
+                    
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+
+            // Restore all button event listener
+            restoreAllBtn.addEventListener('click', function() {
+                restoreAllLayers();
+            });
+
+            // Initialize table
+            populateTable();
 
             // Fechar sidebar com tecla ESC
             document.addEventListener('keydown', function(e) {
