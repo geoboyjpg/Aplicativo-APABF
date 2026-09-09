@@ -414,6 +414,199 @@
                 left: 10px !important;
             }
         }
+
+        /* Popup de Ajuda */
+        #popupAjuda {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .popup-ajuda-conteudo {
+            background: white;
+            width: 90%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        .botao-principal {
+            display: block;
+            width: 80%;
+            margin: 15px auto 0;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            background: #146666;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .botao-principal:hover {
+            background: #0f5252;
+            transform: translateY(-1px);
+        }
+
+        .botao-principal:active {
+            transform: translateY(0);
+        }
+
+        .popup-ajuda-conteudo h3 {
+            margin: 0 0 12px;
+            color: #146666;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .popup-ajuda-conteudo p,
+        .popup-ajuda-conteudo li {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .popup-ajuda-conteudo ul {
+            padding-left: 20px;
+        }
+
+        .popup-ajuda-rodape {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        #popupAjuda .popup-ajuda-rodape a,
+        #popupAjuda .popup-ajuda-rodape a:link,
+        #popupAjuda .popup-ajuda-rodape a:visited,
+        #popupAjuda .popup-ajuda-rodape a:hover,
+        #popupAjuda .popup-ajuda-rodape a:active {
+            color: #1592CF !important;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .popup-ajuda-fechar {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .popup-ajuda-fechar:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .popup-ajuda-header {
+            background: #146666;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-radius: 12px 12px 0 0;
+            margin: -24px -24px 20px -24px;
+        }
+
+        .popup-ajuda-header .popup-ajuda-fechar {
+            position: absolute;
+            right: 20px;
+        }
+
+        .popup-ajuda-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .popup-versao {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 11px;
+            color: #000000;
+            font-style: italic;
+        }
+
+        /* Popup Inicial */
+        #popupInicial {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #popupInicial > div {
+            background: white;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            border-radius: 14px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 0 20px rgba(0,0,0,.3);
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        #popupInicial h2 {
+            margin-top: 0;
+            color: #0d4f4f;
+            text-align: center;
+        }
+
+        #popupInicial .opcao-popup {
+            margin: 20px 0;
+        }
+
+        #popupInicial .opcao-popup h3 {
+            color: #146666;
+            margin: 0 0 10px 0;
+        }
+
+        #popupInicial .opcao-popup p {
+            color: #333;
+            margin: 0 0 15px 0;
+        }
+
+        #popupInicial hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
         </style>
         <title></title>
     </head>
@@ -801,6 +994,10 @@
                             <li>Use os botões + e - para aproximar ou afastar o mapa.</li>
                             <li>Use a barra inferior para navegar entre os mapas do aplicativo.</li>
                         </ul>
+                        <button id="btnAbrirAjuda" class="botao-principal">
+                            <i class="fas fa-book"></i>
+                            Abrir ajuda sobre a tela
+                        </button>
                     </div>
                 </div>
             </div>
@@ -826,6 +1023,39 @@
         <div class="logos-container">
             <img src="../logos/APA da Baleia Franca.png" alt="APA da Baleia Franca" class="logo">
             <img src="../logos/icmbio-logo-1.png" alt="ICMBio" class="logo">
+        </div>
+
+        <!-- Popup de Ajuda -->
+        <div id="popupAjuda" onclick="fecharPopupAjuda(event)">
+            <div class="popup-ajuda-conteudo">
+                <div class="popup-ajuda-header">
+                    <h3>Precisa de ajuda para usar o mapa?</h3>
+                    <button class="popup-ajuda-fechar" type="button" onclick="fecharPopupAjuda()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <p>
+                    Este mapa apresenta o <strong>zoneamento da Área de Proteção Ambiental da Baleia Franca (APABF)</strong>, com as zonas definidas no Plano de Manejo da unidade.
+                </p>
+
+                <ul>
+                    <li>Utilize os botões <strong>+</strong> e <strong>−</strong> para aproximar ou afastar o mapa.</li>
+                    <li>Use o botão de <strong>localização</strong> para centralizar o mapa na sua posição atual.</li>
+                    <li>Acesse o controle de <strong>camadas</strong> no canto superior direito para visualizar a legenda e ligar ou desligar as zonas do mapa.</li>
+                    <li>Escolha uma <strong>zona colorida</strong> para visualizar suas informações detalhadas.</li>
+                    <li>Use a barra inferior para navegar entre os mapas do aplicativo.</li>
+                </ul>
+
+                <div class="popup-ajuda-rodape">
+                    Encontrou algum erro ou tem alguma sugestão?<br>
+                    Entre em contato pelo e-mail:
+                    <a href="mailto:apadabaleiafranca@icmbio.gov.br?subject=Sugestão%20ou%20erro%20no%20mapa%20de%20Zoneamento">apadabaleiafranca@icmbio.gov.br</a>
+                <div class="popup-versao">
+                    Versão 1.0 • Atualizado em julho de 2026
+                </div>
+                </div>
+            </div>
         </div>
 
         <!-- Botão de Centralização -->
@@ -944,6 +1174,7 @@
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
+            const btnAbrirAjuda = document.getElementById('btnAbrirAjuda');
 
             function openSidebar() {
                 sidebar.classList.add('open');
@@ -974,6 +1205,13 @@
                 });
             });
 
+            // Botão de abrir ajuda
+            if (btnAbrirAjuda) {
+                btnAbrirAjuda.addEventListener('click', function() {
+                    document.getElementById('popupAjuda').style.display = 'flex';
+                });
+            }
+
             // Fechar sidebar com tecla ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && sidebar.classList.contains('open')) {
@@ -981,6 +1219,68 @@
                 }
             });
         });
+        </script>
+
+        <script>
+        function fecharPopupAjuda(event) {
+            if (event && event.target.id !== 'popupAjuda') return;
+            document.getElementById('popupAjuda').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') fecharPopupAjuda();
+        });
+        </script>
+
+        <!-- POPUP INICIAL -->
+        <div id="popupInicial">
+            <div>
+                <h2>🗺️ Zoneamento da APABF</h2>
+                <p>
+                    Este mapa apresenta o zoneamento da Área de Proteção Ambiental da Baleia Franca,
+                    dividindo o território em diferentes zonas com características e regras específicas
+                    de uso e ocupação.
+                </p>
+
+                <hr>
+
+                <div class="opcao-popup">
+                    <h3>🔍 Explorar as zonas</h3>
+                    <p>
+                        Clique em qualquer zona do mapa para visualizar informações detalhadas sobre
+                        suas características, restrições e permitido uso dos recursos naturais.
+                    </p>
+
+                    <button class="botao-principal" onclick="FecharPopup()">
+                        🗺️ Explorar mapa
+                    </button>
+                </div>
+
+                <hr>
+
+                <div class="opcao-popup">
+                    <h3>📋 Informações sobre zoneamento</h3>
+                    <p>
+                        Aprenda sobre as diferentes categorias de zoneamento e suas finalidades
+                        de conservação e uso sustentável na APA da Baleia Franca.
+                    </p>
+
+                    <button class="botao-principal" onclick="window.location.href='../sobre-apa.html'">
+                        📋 Ver informações
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        window.onload = function() {
+            document.getElementById("popupInicial").style.display = "flex";
+        }
+
+        function FecharPopup() {
+            document.getElementById("popupInicial").style.display = "none";
+            map.invalidateSize();
+        }
         </script>
     </body>
 </html>
