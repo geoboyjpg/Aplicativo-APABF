@@ -312,7 +312,8 @@
 
                     <div class="form-group">
                         <label for="telefone_solicitante">Telefone com DDD *:</label>
-                        <input type="text" id="telefone_solicitante" name="fi-sender-phone" required placeholder="(00) 00000-0000">
+                        <input type="text" id="telefone_solicitante" name="fi-sender-phone" required placeholder="+55 48 96767-6767">
+                        <small style="color: #666;">Formato internacional: +55 DDD Número (ex: +55 48 96767-6767)</small>
                     </div>
 
                     <div class="form-group">
@@ -543,13 +544,24 @@
             e.target.value = value;
         });
 
-        // Formatação de telefone
+        // Formatação de telefone (formato E.164)
         document.getElementById('telefone_solicitante').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             
-            if (value.length <= 11) {
-                value = value.replace(/(\d{2})(\d)/, '($1) $2');
-                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            // Adicionar +55 se não tiver código de país
+            if (value.length > 0 && !value.startsWith('55')) {
+                value = '55' + value;
+            }
+            
+            // Formatar como +55 DD XXXXX-XXXX
+            if (value.length >= 12) {
+                value = '+' + value.substring(0, 2) + ' ' + value.substring(2, 4) + ' ' + value.substring(4, 9) + '-' + value.substring(9, 13);
+            } else if (value.length >= 7) {
+                value = '+' + value.substring(0, 2) + ' ' + value.substring(2, 4) + ' ' + value.substring(4);
+            } else if (value.length >= 4) {
+                value = '+' + value.substring(0, 2) + ' ' + value.substring(2);
+            } else if (value.length > 0) {
+                value = '+' + value;
             }
             
             e.target.value = value;
