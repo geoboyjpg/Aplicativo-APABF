@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #146666 0%, #0f5252 100%);
+        }
+
+        .services-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 120px 20px;
+        }
+
+        .services-title {
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .service-card h2 {
+            color: #146666;
+            font-size: 24px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-card h2 i {
+            color: #146666;
+        }
+
+        .service-card p {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .service-link {
+            display: inline-block;
+            background: #146666;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .service-link:hover {
+            background: #0f5252;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .form-section h2 {
+            color: #146666;
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section h2 i {
+            color: #146666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #146666;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #146666;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .submit-btn {
+            background: #146666;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: #0f5252;
+        }
+
+        /* Barra de navegação inferior */
+        .nav-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn {
+            background: #146666;
+            color: white !important;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn i {
+            color: white !important;
+        }
+
+        .nav-btn:hover {
+            background: #0f5252;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .services-title {
+                font-size: 28px;
+            }
+
+            .service-card {
+                padding: 20px;
+            }
+
+            .service-card h2 {
+                font-size: 20px;
+            }
+
+            .form-section {
+                padding: 20px;
+            }
+
+            .nav-bar {
+                bottom: 15px;
+                padding: 12px 20px;
+                gap: 15px;
+            }
+
+            .nav-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        </style>
+        <title>Serviços - APABF</title>
+    </head>
+    <body>
+        <div class="services-container">
+            <h1 class="services-title">Serviços</h1>
+
+            <!-- SISBIO -->
+            <div class="service-card">
+                <h2><i class="fas fa-clipboard-list"></i> SISBIO</h2>
+                <p>
+                    O Sistema de Autorização e Informação sobre Biodiversidade (SISBIO) é o sistema oficial do governo brasileiro para emissão de autorizações para atividades com fauna silvestre, incluindo pesquisa científica, coleta, captura e transporte de animais.
+                </p>
+                <p>
+                    Para solicitar autorizações através do SISBIO, você precisa criar uma conta no sistema e preencher os formulários específicos para cada tipo de atividade.
+                </p>
+                <a href="https://www.gov.br/icmbio/pt-br/servicos/servicos-do-icmbio-no-gov.br/autorizacoes/pesquisa-nas-ucs-sisbio" target="_blank" class="service-link">
+                    <i class="fas fa-external-link-alt"></i> Acessar SISBIO
+                </a>
+            </div>
+
+            <!-- Autorização de Eventos -->
+            <div class="service-card">
+                <h2><i class="fas fa-calendar-check"></i> Autorização de Eventos em Unidades de Conservação Federal</h2>
+                <p>
+                    Para realizar eventos em unidades de conservação federais, é necessário obter autorização prévia do ICMBio. O processo varia conforme o tipo de evento e a unidade de conservação.
+                </p>
+                <p>
+                    Os eventos podem incluir shows, competições esportivas, atividades turísticas, festivais culturais, entre outros. Cada tipo de evento possui requisitos específicos de documentação e licenciamento.
+                </p>
+                <a href="https://www.gov.br/pt-br/servicos/solicitar-autorizacao-de-eventos-nas-unidades-de-conservacao-federal-ucs" target="_blank" class="service-link">
+                    <i class="fas fa-external-link-alt"></i> Acessar informações sobre Autorização de Eventos
+                </a>
+            </div>
+
+            <!-- Formulário de Autorização Direta -->
+            <div class="form-section">
+                <h2><i class="fas fa-file-signature"></i> Formulário de Autorização Direta</h2>
+                <p>Preencha o formulário abaixo para solicitar autorização direta:</p>
+                
+                <form id="autorizacaoForm" action="https://formsubmit.co/apadabaleiafranca@icmbio.gov.br" method="POST" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+                    <!-- Campos ocultos para configuração do Formsubmit -->
+                    <input type="hidden" name="_subject" value="Solicitação de Autorização Direta - APABF">
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_template" value="table">
+                    <input type="hidden" name="_next" value="https://www.icmbio.gov.br/apa-baleia-franca/">
+                    <h3 style="color: #146666; margin-top: 0;">Dados do Solicitante (Pessoa Física ou Jurídica)</h3>
+                    
+                    <div class="form-group">
+                        <label for="cpf_cnpj_solicitante">CPF ou CNPJ do Solicitante *:</label>
+                        <input type="text" id="cpf_cnpj_solicitante" name="cpf_cnpj_solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                        <small style="color: #666;">O solicitante de Autorização Direta pode ser uma empresa, uma associação, um órgão governamental, qualquer entidade ou mesmo pessoa física.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nome_solicitante">Nome do Solicitante *:</label>
+                        <input type="text" id="nome_solicitante" name="nome_solicitante" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endereco_solicitante">Endereço *:</label>
+                        <input type="text" id="endereco_solicitante" name="endereco_solicitante" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefone_solicitante">Telefone com DDD *:</label>
+                        <input type="text" id="telefone_solicitante" name="telefone_solicitante" required placeholder="(00) 00000-0000">
+                    </div>
+
+                    <h3 style="color: #146666; margin-top: 30px;">Descrição da Atividade</h3>
+                    
+                    <div class="form-group">
+                        <label for="objetivo">Objetivo *:</label>
+                        <textarea id="objetivo" name="objetivo" required placeholder="Descrever o objetivo da atividade."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_inicio">Data de Início da Atividade *:</label>
+                        <input type="date" id="data_inicio" name="data_inicio" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_fim">Data do Fim da Atividade *:</label>
+                        <input type="date" id="data_fim" name="data_fim" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cronograma">Cronograma (caso a atividade seja realizada em etapas):</label>
+                        <div class="file-upload" onclick="document.getElementById('cronograma').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivo</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="cronograma" name="Cronograma" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="cronogramaList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao_minuciosa">Descrição Minuciosa da Atividade *:</label>
+                        <textarea id="descricao_minuciosa" name="descricao_minuciosa" required placeholder="Descrever de forma com todos os detalhes possíveis como será realizada a atividade." style="min-height: 150px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mapa">Mapa, Croqui ou Planta de Onde Ocorrerá a Atividade *:</label>
+                        <div class="file-upload" onclick="document.getElementById('mapa').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivos</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 5 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="mapa" name="Mapa_Croqui_Planta" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="mapaList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="infraestrutura">Descrição e Dimensionamento da Infraestrutura Utilizada (Materiais, Equipamentos, etc) *:</label>
+                        <textarea id="infraestrutura" name="infraestrutura" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="impactos">Descrição dos Potenciais Impactos à APA da Baleia Franca *:</label>
+                        <textarea id="impactos" name="impactos" required placeholder="Se não forem ocorrer impactos, explicar o motivo."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mitigacao">Propostas para Mitigação/Compensação dos Impactos à APA da Baleia Franca *:</label>
+                        <textarea id="mitigacao" name="mitigacao" required></textarea>
+                    </div>
+
+                    <h3 style="color: #146666; margin-top: 30px;">Dados do Responsável pela Atividade</h3>
+                    
+                    <div class="form-group">
+                        <label for="nome_responsavel">Nome do Responsável *:</label>
+                        <input type="text" id="nome_responsavel" name="nome_responsavel" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_nascimento">Data de Nascimento *:</label>
+                        <input type="date" id="data_nascimento" name="data_nascimento" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cpf_responsavel">CPF do Responsável *:</label>
+                        <input type="text" id="cpf_responsavel" name="cpf_responsavel" required placeholder="000.000.000-00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rg_responsavel">RG do Responsável *:</label>
+                        <input type="text" id="rg_responsavel" name="rg_responsavel" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maquinarios">Descrição dos Maquinários Utilizados:</label>
+                        <textarea id="maquinarios" name="maquinarios" placeholder="Para trator, indicar a marca, fabricante e chassi. Para carros, indicar fabricante, marca e placa. Para demais maquinários, indicar identificação."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="copia_cpf">Cópia do CPF ou CNPJ *:</label>
+                        <div class="file-upload" onclick="document.getElementById('copia_cpf').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivo</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="copia_cpf" name="Copia_CPF_CNPJ" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="copiaCpfList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="copia_rg">Cópia do RG do Responsável *:</label>
+                        <div class="file-upload" onclick="document.getElementById('copia_rg').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivo</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="copia_rg" name="Copia_RG" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="copiaRgList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <h3 style="color: #146666; margin-top: 30px;">Documentos Adicionais</h3>
+                    
+                    <div class="form-group">
+                        <label for="oficio">Ofício Solicitando a Autorização Direta:</label>
+                        <small style="color: #666;">Caso a entidade tenha elaborado um Ofício ou algum requerimento oficial solicitando a Autorização Direta, anexar aqui</small>
+                        <div class="file-upload" onclick="document.getElementById('oficio').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivos</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 2 arquivos, 10MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="oficio" name="Oficio" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="oficioList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="demais_arquivos">Demais arquivos pertinentes:</label>
+                        <small style="color: #666;">Outros arquivos que sejam interessantes para a emissão da Autorização Direta, como fotos, projetos executivos, projetos básicos, etc</small>
+                        <div class="file-upload" onclick="document.getElementById('demais_arquivos').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivos</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 10 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="demais_arquivos" name="Demais_Arquivos" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="demaisArquivosList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="termo">Cópia do Termo de Requerimento de Autorização Direta *:</label>
+                        <small style="color: #666;">O Termo de Solicitação deve ser assinado de forma manual ou digital</small>
+                        <div class="file-upload" onclick="document.getElementById('termo').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar arquivo</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                            </div>
+                            <input type="file" id="termo" name="Termo_Requerimento" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                        </div>
+                        <div id="termoList" style="margin-top: 10px; color: #666;"></div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Enviar Solicitação
+                    </button>
+                    
+                    <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #146666;"></i>
+                        <p style="color: #666; margin-top: 10px;">Enviando formulário...</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Barra de Navegação -->
+        <div class="nav-bar">
+            <a href="index.html" class="nav-btn" title="Menu Principal">
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
+                <i class="fas fa-map"></i>
+            </a>
+            <a href="PMP-na-APABF-main2/index.html" class="nav-btn" title="Monitoramento de Praias">
+                <i class="fas fa-camera"></i>
+            </a>
+            <a href="Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
+                <i class="fas fa-gavel"></i>
+            </a>
+        </div>
+
+        <script>
+        // Formatação de CPF/CNPJ do solicitante
+        document.getElementById('cpf_cnpj_solicitante').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 11) {
+                // CPF
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // CNPJ
+                value = value.replace(/(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1/$2');
+                value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Formatação de CPF do responsável
+        document.getElementById('cpf_responsavel').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 11) {
+                // CPF
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Formatação de telefone
+        document.getElementById('telefone_solicitante').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 11) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Função genérica para mostrar arquivos selecionados
+        function mostrarArquivos(inputId, listId) {
+            document.getElementById(inputId).addEventListener('change', function(e) {
+                const fileList = document.getElementById(listId);
+                const files = e.target.files;
+                
+                if (files.length > 0) {
+                    let fileNames = '<p><strong>Arquivos selecionados:</strong></p><ul>';
+                    for (let i = 0; i < files.length; i++) {
+                        fileNames += '<li>' + files[i].name + '</li>';
+                    }
+                    fileNames += '</ul>';
+                    fileList.innerHTML = fileNames;
+                } else {
+                    fileList.innerHTML = '';
+                }
+            });
+        }
+
+        // Aplicar a função a todos os campos de arquivo
+        mostrarArquivos('cronograma', 'cronogramaList');
+        mostrarArquivos('mapa', 'mapaList');
+        mostrarArquivos('copia_cpf', 'copiaCpfList');
+        mostrarArquivos('copia_rg', 'copiaRgList');
+        mostrarArquivos('oficio', 'oficioList');
+        mostrarArquivos('demais_arquivos', 'demaisArquivosList');
+        mostrarArquivos('termo', 'termoList');
+
+        // Função de validação do formulário
+        function validarFormulario() {
+            const camposObrigatorios = [
+                'cpf_cnpj_solicitante',
+                'nome_solicitante',
+                'endereco_solicitante',
+                'telefone_solicitante',
+                'objetivo',
+                'data_inicio',
+                'data_fim',
+                'descricao_minuciosa',
+                'infraestrutura',
+                'impactos',
+                'mitigacao',
+                'nome_responsavel',
+                'data_nascimento',
+                'cpf_responsavel',
+                'rg_responsavel'
+            ];
+
+            let camposFaltando = [];
+
+            camposObrigatorios.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (!elemento.value.trim()) {
+                    camposFaltando.push(campo);
+                }
+            });
+
+            // Verificar arquivos obrigatórios
+            const arquivosObrigatorios = [
+                { campo: 'mapa', nome: 'Mapa/Croqui/Planta' },
+                { campo: 'copia_cpf', nome: 'Cópia CPF/CNPJ' },
+                { campo: 'copia_rg', nome: 'Cópia RG' },
+                { campo: 'termo', nome: 'Termo de Requerimento' }
+            ];
+
+            arquivosObrigatorios.forEach(arquivo => {
+                const elemento = document.getElementById(arquivo.campo);
+                if (elemento.files.length === 0) {
+                    camposFaltando.push(arquivo.nome);
+                }
+            });
+
+            if (camposFaltando.length > 0) {
+                alert('Por favor, preencha os seguintes campos obrigatórios:\n\n' + camposFaltando.join('\n'));
+                return false;
+            }
+
+            // Validar datas
+            const dataInicio = new Date(document.getElementById('data_inicio').value);
+            const dataFim = new Date(document.getElementById('data_fim').value);
+
+            if (dataFim <= dataInicio) {
+                alert('A data de término deve ser posterior à data de início.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Mostrar loading durante o envio
+        document.getElementById('autorizacaoForm').addEventListener('submit', function() {
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.submit-btn').disabled = true;
+            document.querySelector('.submit-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        });
+        </script>
+    </body>
+</html>
