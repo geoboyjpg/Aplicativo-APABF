@@ -660,11 +660,19 @@
             const form = document.getElementById('autorizacaoForm');
             const formData = new FormData(form);
             
+            // Adicionar header necessário para Forminit
             try {
                 const response = await fetch('https://forminit.com/f/78bz1jsotye', {
                     method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     body: formData
                 });
+                
+                const responseText = await response.text();
+                console.log('Response status:', response.status);
+                console.log('Response text:', responseText);
                 
                 if (response.ok) {
                     alert('Solicitação enviada com sucesso! Você receberá uma confirmação por e-mail.');
@@ -674,9 +682,8 @@
                         list.innerHTML = '';
                     });
                 } else {
-                    const errorText = await response.text();
-                    console.error('Erro response:', errorText);
-                    throw new Error('Erro ao enviar formulário: ' + response.status);
+                    console.error('Erro response:', responseText);
+                    throw new Error('Erro ao enviar formulário: ' + response.status + ' - ' + responseText);
                 }
             } catch (error) {
                 console.error('Erro:', error);
