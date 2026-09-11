@@ -291,69 +291,61 @@
                 <h2><i class="fas fa-file-signature"></i> Formulário de Autorização Direta</h2>
                 <p>Preencha o formulário abaixo para solicitar autorização direta:</p>
                 
-                <form id="autorizacaoForm" action="https://forminit.com/f/78bz1jsotye" method="POST" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+                <form id="autorizacaoForm" action="https://usebasin.com/f/e98cf02c5224" method="POST" enctype="multipart/form-data" accept-charset="UTF-8" data-basin-form data-basin-success-action="render" data-basin-success-id="success-message" data-basin-error-id="error-message" data-basin-capture-url="true">
                     <h3 style="color: #146666; margin-top: 0;">Dados do Solicitante (Pessoa Física ou Jurídica)</h3>
                     
                     <div class="form-group">
                         <label for="cpf_cnpj_solicitante">CPF ou CNPJ do Solicitante *:</label>
-                        <input type="text" id="cpf_cnpj_solicitante" name="fi-text-cpf_cnpj_solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                        <input type="text" id="cpf_cnpj_solicitante" name="cpf_cnpj_solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
                         <small style="color: #666;">O solicitante de Autorização Direta pode ser uma empresa, uma associação, um órgão governamental, qualquer entidade ou mesmo pessoa física.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="nome_solicitante">Nome do Solicitante *:</label>
-                        <input type="text" id="nome_solicitante" name="fi-sender-fullName" required>
+                        <input type="text" id="nome_solicitante" name="nome_solicitante" required>
                     </div>
 
                     <div class="form-group">
                         <label for="endereco_solicitante">Endereço *:</label>
-                        <input type="text" id="endereco_solicitante" name="fi-sender-address" required>
+                        <input type="text" id="endereco_solicitante" name="endereco_solicitante" required>
                     </div>
 
                     <div class="form-group">
                         <label for="telefone_solicitante">Telefone com DDD *:</label>
-                        <input type="text" id="telefone_solicitante" name="fi-sender-phone" required placeholder="+55 48 96767-6767">
+                        <input type="text" id="telefone_solicitante" name="telefone_solicitante" required placeholder="+55 48 96767-6767">
                         <small style="color: #666;">Formato internacional: +55 DDD Número (ex: +55 48 96767-6767)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="email_solicitante">E-mail *:</label>
-                        <input type="email" id="email_solicitante" name="fi-sender-email" required placeholder="seuemail@exemplo.com">
+                        <input type="email" id="email_solicitante" name="email" required placeholder="seuemail@exemplo.com">
                     </div>
 
                     <h3 style="color: #146666; margin-top: 30px;">Descrição da Atividade</h3>
                     
                     <div class="form-group">
                         <label for="objetivo">Objetivo *:</label>
-                        <textarea id="objetivo" name="fi-text-objetivo" required placeholder="Descrever o objetivo da atividade."></textarea>
+                        <textarea id="objetivo" name="objetivo" required placeholder="Descrever o objetivo da atividade."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="data_inicio">Data de Início da Atividade *:</label>
-                        <input type="date" id="data_inicio" name="fi-date-data_inicio" required>
+                        <input type="date" id="data_inicio" name="data_inicio" required>
                     </div>
 
                     <div class="form-group">
                         <label for="data_fim">Data do Fim da Atividade *:</label>
-                        <input type="date" id="data_fim" name="fi-date-data_fim" required>
+                        <input type="date" id="data_fim" name="data_fim" required>
                     </div>
 
                     <div class="form-group">
                         <label for="cronograma">Cronograma (caso a atividade seja realizada em etapas):</label>
-                        <div class="file-upload" onclick="document.getElementById('cronograma').click()">
-                            <div class="file-upload-text">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
-                                <p>Clique para selecionar arquivo</p>
-                                <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
-                            </div>
-                            <input type="file" id="cronograma" name="fi-file-cronograma" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
-                        </div>
-                        <div id="cronogramaList" style="margin-top: 10px; color: #666;"></div>
+                        <small style="color: #666;">Caso a atividade seja realizada em etapas, descreva os prazos e etapas no campo de descrição minuciosa.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="descricao_minuciosa">Descrição Minuciosa da Atividade *:</label>
-                        <textarea id="descricao_minuciosa" name="fi-text-descricao_minuciosa" required placeholder="Descrever de forma com todos os detalhes possíveis como será realizada a atividade." style="min-height: 150px;"></textarea>
+                        <textarea id="descricao_minuciosa" name="descricao_minuciosa" required placeholder="Descrever de forma com todos os detalhes possíveis como será realizada a atividade." style="min-height: 150px;"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -364,51 +356,51 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 5 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="mapa" name="fi-file-mapa" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="mapa" name="mapa[]" multiple required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="mapaList" style="margin-top: 10px; color: #666;"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="infraestrutura">Descrição e Dimensionamento da Infraestrutura Utilizada (Materiais, Equipamentos, etc) *:</label>
-                        <textarea id="infraestrutura" name="fi-text-infraestrutura" required></textarea>
+                        <textarea id="infraestrutura" name="infraestrutura" required></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="impactos">Descrição dos Potenciais Impactos à APA da Baleia Franca *:</label>
-                        <textarea id="impactos" name="fi-text-impactos" required placeholder="Se não forem ocorrer impactos, explicar o motivo."></textarea>
+                        <textarea id="impactos" name="impactos" required placeholder="Se não forem ocorrer impactos, explicar o motivo."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="mitigacao">Propostas para Mitigação/Compensação dos Impactos à APA da Baleia Franca *:</label>
-                        <textarea id="mitigacao" name="fi-text-mitigacao" required></textarea>
+                        <textarea id="mitigacao" name="mitigacao" required></textarea>
                     </div>
 
                     <h3 style="color: #146666; margin-top: 30px;">Dados do Responsável pela Atividade</h3>
                     
                     <div class="form-group">
                         <label for="nome_responsavel">Nome do Responsável *:</label>
-                        <input type="text" id="nome_responsavel" name="fi-text-nome_responsavel" required>
+                        <input type="text" id="nome_responsavel" name="nome_responsavel" required>
                     </div>
 
                     <div class="form-group">
                         <label for="data_nascimento">Data de Nascimento *:</label>
-                        <input type="date" id="data_nascimento" name="fi-date-data_nascimento" required>
+                        <input type="date" id="data_nascimento" name="data_nascimento" required>
                     </div>
 
                     <div class="form-group">
                         <label for="cpf_responsavel">CPF do Responsável *:</label>
-                        <input type="text" id="cpf_responsavel" name="fi-text-cpf_responsavel" required placeholder="000.000.000-00">
+                        <input type="text" id="cpf_responsavel" name="cpf_responsavel" required placeholder="000.000.000-00">
                     </div>
 
                     <div class="form-group">
                         <label for="rg_responsavel">RG do Responsável *:</label>
-                        <input type="text" id="rg_responsavel" name="fi-text-rg_responsavel" required>
+                        <input type="text" id="rg_responsavel" name="rg_responsavel" required>
                     </div>
 
                     <div class="form-group">
                         <label for="maquinarios">Descrição dos Maquinários Utilizados:</label>
-                        <textarea id="maquinarios" name="fi-text-maquinarios" placeholder="Para trator, indicar a marca, fabricante e chassi. Para carros, indicar fabricante, marca e placa. Para demais maquinários, indicar identificação."></textarea>
+                        <textarea id="maquinarios" name="maquinarios" placeholder="Para trator, indicar a marca, fabricante e chassi. Para carros, indicar fabricante, marca e placa. Para demais maquinários, indicar identificação."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -419,7 +411,7 @@
                                 <p>Clique para selecionar arquivo</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="copia_cpf" name="fi-file-copia_cpf" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="copia_cpf" name="copia_cpf" required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="copiaCpfList" style="margin-top: 10px; color: #666;"></div>
                     </div>
@@ -432,7 +424,7 @@
                                 <p>Clique para selecionar arquivo</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="copia_rg" name="fi-file-copia_rg" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="copia_rg" name="copia_rg" required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="copiaRgList" style="margin-top: 10px; color: #666;"></div>
                     </div>
@@ -448,7 +440,7 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 2 arquivos, 10MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="oficio" name="fi-file-oficio" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="oficio" name="oficio[]" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="oficioList" style="margin-top: 10px; color: #666;"></div>
                     </div>
@@ -462,7 +454,7 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 10 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="demais_arquivos" name="fi-file-demais_arquivos" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="demais_arquivos" name="demais_arquivos[]" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="demaisArquivosList" style="margin-top: 10px; color: #666;"></div>
                     </div>
@@ -476,7 +468,7 @@
                                 <p>Clique para selecionar arquivo</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="termo" name="fi-file-termo" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="termo" name="termo" required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="termoList" style="margin-top: 10px; color: #666;"></div>
                     </div>
@@ -485,9 +477,16 @@
                         <i class="fas fa-paper-plane"></i> Enviar Solicitação
                     </button>
                     
-                    <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #146666;"></i>
-                        <p style="color: #666; margin-top: 10px;">Enviando formulário...</p>
+                    <div id="success-message" style="display: none; text-align: center; margin-top: 20px; padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724;">
+                        <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="margin: 0; font-weight: 600;">Formulário enviado com sucesso!</p>
+                        <p style="margin: 5px 0 0; font-size: 14px;">Obrigado pelo seu contato. Em breve entraremos em contato.</p>
+                    </div>
+                    
+                    <div id="error-message" style="display: none; text-align: center; margin-top: 20px; padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; color: #721c24;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="margin: 0; font-weight: 600;">Ocorreu um erro ao enviar o formulário.</p>
+                        <p style="margin: 5px 0 0; font-size: 14px;">Por favor, tente novamente ou entre em contato diretamente por e-mail.</p>
                     </div>
                 </form>
             </div>
@@ -509,7 +508,7 @@
             </a>
         </div>
 
-        <script>
+<script>
         // Formatação de CPF/CNPJ do solicitante
         document.getElementById('cpf_cnpj_solicitante').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -567,102 +566,34 @@
             e.target.value = value;
         });
 
-        // Função genérica para mostrar arquivos selecionados
-        function mostrarArquivos(inputId, listId) {
-            document.getElementById(inputId).addEventListener('change', function(e) {
-                const fileList = document.getElementById(listId);
-                const files = e.target.files;
-                
-                if (files.length > 0) {
-                    let fileNames = '<p><strong>Arquivos selecionados:</strong></p><ul>';
-                    for (let i = 0; i < files.length; i++) {
-                        fileNames += '<li>' + files[i].name + '</li>';
-                    }
-                    fileNames += '</ul>';
-                    fileList.innerHTML = fileNames;
-                } else {
-                    fileList.innerHTML = '';
-                }
-            });
-        }
+        // Feedback visual complementar aos eventos oficiais do Basin.
+        // O envio, inclusive dos anexos, é tratado pelo Basin JS.
+        const autorizacaoForm = document.getElementById('autorizacaoForm');
+        const submitBtn = autorizacaoForm.querySelector('.submit-btn');
+        const submitBtnLabel = '<i class="fas fa-paper-plane"></i> Enviar Solicitação';
 
-        // Aplicar a função a todos os campos de arquivo
-        mostrarArquivos('cronograma', 'cronogramaList');
-        mostrarArquivos('mapa', 'mapaList');
-        mostrarArquivos('copia_cpf', 'copiaCpfList');
-        mostrarArquivos('copia_rg', 'copiaRgList');
-        mostrarArquivos('oficio', 'oficioList');
-        mostrarArquivos('demais_arquivos', 'demaisArquivosList');
-        mostrarArquivos('termo', 'termoList');
+        document.addEventListener('basinjsFormSubmitted', function(event) {
+            if (event.detail.form !== autorizacaoForm) return;
 
-        // Função de validação do formulário
-        function validarFormulario() {
-            const camposObrigatorios = [
-                'cpf_cnpj_solicitante',
-                'nome_solicitante',
-                'endereco_solicitante',
-                'telefone_solicitante',
-                'email_solicitante',
-                'objetivo',
-                'data_inicio',
-                'data_fim',
-                'descricao_minuciosa',
-                'infraestrutura',
-                'impactos',
-                'mitigacao',
-                'nome_responsavel',
-                'data_nascimento',
-                'cpf_responsavel',
-                'rg_responsavel'
-            ];
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        });
 
-            let camposFaltando = [];
+        document.addEventListener('basinjsFormSuccess', function(event) {
+            if (event.detail.form !== autorizacaoForm) return;
 
-            camposObrigatorios.forEach(campo => {
-                const elemento = document.getElementById(campo);
-                if (!elemento.value.trim()) {
-                    camposFaltando.push(campo);
-                }
-            });
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = submitBtnLabel;
+            autorizacaoForm.reset();
+        });
 
-            // Verificar arquivos obrigatórios
-            const arquivosObrigatorios = [
-                { campo: 'mapa', nome: 'Mapa/Croqui/Planta' },
-                { campo: 'copia_cpf', nome: 'Cópia CPF/CNPJ' },
-                { campo: 'copia_rg', nome: 'Cópia RG' },
-                { campo: 'termo', nome: 'Termo de Requerimento' }
-            ];
+        document.addEventListener('basinjsFormError', function(event) {
+            if (event.detail.form !== autorizacaoForm) return;
 
-            arquivosObrigatorios.forEach(arquivo => {
-                const elemento = document.getElementById(arquivo.campo);
-                if (elemento.files.length === 0) {
-                    camposFaltando.push(arquivo.nome);
-                }
-            });
-
-            if (camposFaltando.length > 0) {
-                alert('Por favor, preencha os seguintes campos obrigatórios:\n\n' + camposFaltando.join('\n'));
-                return false;
-            }
-
-            // Validar datas
-            const dataInicio = new Date(document.getElementById('data_inicio').value);
-            const dataFim = new Date(document.getElementById('data_fim').value);
-
-            if (dataFim <= dataInicio) {
-                alert('A data de término deve ser posterior à data de início.');
-                return false;
-            }
-
-            return true;
-        }
-
-        // Mostrar loading durante o envio
-        document.getElementById('autorizacaoForm').addEventListener('submit', function() {
-            document.getElementById('loading').style.display = 'block';
-            document.querySelector('.submit-btn').disabled = true;
-            document.querySelector('.submit-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = submitBtnLabel;
         });
         </script>
+        <script src="https://js.usebasin.com/v2.11.1.min.js" defer></script>
     </body>
 </html>
