@@ -7,7 +7,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+        <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js" onerror="console.error('MSAL library failed to load'); window.msalLoadError = true;"></script>
         <style>
         html, body {
             width: 100%;
@@ -635,6 +635,12 @@
         </div>
 
 <script>
+        // Verificar se MSAL carregou corretamente
+        if (typeof msal === 'undefined') {
+            console.error('MSAL library not loaded. SharePoint integration will not work.');
+            window.msalLoadError = true;
+        }
+
         // Configuração MSAL para autenticação Microsoft
         const msalConfig = {
             auth: {
@@ -644,7 +650,15 @@
             }
         };
 
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
+        let msalInstance;
+        try {
+            if (typeof msal !== 'undefined') {
+                msalInstance = new msal.PublicClientApplication(msalConfig);
+            }
+        } catch (error) {
+            console.error('MSAL initialization error:', error);
+            window.msalLoadError = true;
+        }
 
         // Configuração do SharePoint
         const sharePointConfig = {
@@ -778,6 +792,11 @@
         // Função principal de envio do formulário
         async function submitToSharePoint(formData) {
             try {
+                // Verificar se MSAL está disponível
+                if (window.msalLoadError || !msalInstance) {
+                    throw new Error("MSAL library not loaded. Please check your internet connection or try a different browser.");
+                }
+
                 // Mostrar loading
                 document.getElementById('loading-overlay').classList.add('show');
                 
@@ -840,12 +859,35 @@
                 console.error("Error submitting to SharePoint:", error);
                 document.getElementById('loading-overlay').classList.remove('show');
                 document.getElementById('error-message').style.display = 'block';
+                document.getElementById('error-message').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p style="margin: 0; font-weight: 600;">Ocorreu um erro ao enviar o formulário.</p>
+                    <p style="margin: 5px 0 0; font-size: 14px;">${error.message}</p>
+                    <button type="button" onclick="document.getElementById('error-message').style.display='none'" style="margin-top: 10px; background: #721c24; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Fechar</button>
+                `;
             }
         }
 
         // Modificar o evento de submit do formulário
         document.getElementById('autorizacaoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Verificar se MSAL está disponível
+            if (window.msalLoadError || !msalInstance) {
+                // MSAL não carregou - mostrar erro ao usuário
+                document.getElementById('loading-overlay').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').classList.remove('show');
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').innerHTML = `
+                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="margin: 0; font-weight: 600;">Biblioteca de autenticação não carregada.</p>
+                        <p style="margin: 5px 0 0; font-size: 14px;">Por favor, verifique sua conexão com a internet ou tente outro navegador. A integração com SharePoint não está disponível no momento.</p>
+                        <button type="button" onclick="document.getElementById('error-message').style.display='none'" style="margin-top: 10px; background: #721c24; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Fechar</button>
+                    `;
+                }, 500);
+                return;
+            }
             
             // Coletar dados do formulário
             const formData = {
@@ -1055,17 +1097,36 @@
         }
 
         fileFields.forEach(field => {
-            document.getElementById(field.inputId).addEventListener('change', function() {
-                updateFileList(field);
-            });
+            const input = document.getElementById(field.inputId);
+            console.log(`Configurando listener para ${field.inputId}:`, input);
+            if (input) {
+                input.addEventListener('change', function() {
+                    console.log(`Arquivo selecionado em ${field.inputId}`);
+                    updateFileList(field);
+                });
+            } else {
+                console.error(`Elemento ${field.inputId} não encontrado!`);
+            }
         });
 
-        // Inicializar MSAL
-        msalInstance.initialize().then(() => {
-            console.log("MSAL initialized successfully");
-        }).catch(error => {
-            console.error("MSAL initialization error:", error);
-        });
+        // Inicializar MSAL (não quebra se não carregar)
+        if (msalInstance) {
+            msalInstance.initialize().then(() => {
+                console.log("MSAL initialized successfully");
+            }).catch(error => {
+                console.error("MSAL initialization error:", error);
+            });
+        }
+
+        // Debug: Verificar se elementos existem
+        console.log("Verificando elementos:");
+        console.log("mesmo_responsavel:", document.getElementById('mesmo_responsavel'));
+        console.log("nome_responsavel:", document.getElementById('nome_responsavel'));
+        console.log("cpf_responsavel:", document.getElementById('cpf_responsavel'));
+        console.log("responsavel-info:", document.getElementById('responsavel-info'));
+        console.log("nome_responsavel_group:", document.getElementById('nome_responsavel_group'));
+        console.log("cpf_responsavel_group:", document.getElementById('cpf_responsavel_group'));
+        console.log("MSAL disponível:", !window.msalLoadError);
         </script>
     </body>
 </html>
