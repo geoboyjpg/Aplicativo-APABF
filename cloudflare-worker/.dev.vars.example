@@ -1,0 +1,7 @@
+# Copie este arquivo para .dev.vars somente para desenvolvimento local.
+# Nunca publique .dev.vars nem inclua CLIENT_SECRET no repositório.
+TENANT_ID=
+CLIENT_ID=
+CLIENT_SECRET=
+SITE_ID=
+DRIVE_ID=

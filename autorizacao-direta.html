@@ -7,7 +7,6 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js" onerror="console.error('MSAL library failed to load'); window.msalLoadError = true;"></script>
         <style>
         html, body {
             width: 100%;
@@ -398,7 +397,9 @@
             <h1 class="form-title">Formulário de Autorização Direta - APA da Baleia Franca</h1>
             
             <div class="form-section">
-                <form id="autorizacaoForm" enctype="multipart/form-data">
+                <form id="autorizacaoForm" action="https://usebasin.com/f/e98cf02c5224" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                    <input type="hidden" id="protocolo" name="protocolo">
+                    <input type="hidden" id="submitted_at" name="submitted_at">
                     <h3 style="color: #146666; margin-top: 0;">Dados do Solicitante (Pessoa Física ou Jurídica)</h3>
                     
                     <div class="form-group">
@@ -448,15 +449,9 @@
                     <div class="form-group">
                         <label for="cronograma">Cronograma (caso a atividade seja realizada em etapas):</label>
                         <textarea id="cronograma" name="cronograma" placeholder="Descreva os prazos e etapas do cronograma."></textarea>
-                        <div class="file-upload" onclick="document.getElementById('cronograma_imagens').click()" style="margin-top: 10px;">
-                            <div class="file-upload-text">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
-                                <p>Clique para anexar imagens do cronograma</p>
-                                <p style="font-size: 12px; color: #999;">Limite: 5 arquivos, 10MB cada. Formatos: JPG, JPEG, PNG, GIF</p>
-                            </div>
-                            <input type="file" id="cronograma_imagens" name="cronograma_imagens[]" multiple accept=".jpg,.jpeg,.png,.gif">
+                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px;">
+                            <i class="fas fa-info-circle"></i> <strong>Upload de imagens temporariamente desabilitado:</strong> Por favor, descreva o cronograma detalhadamente no campo de texto. A funcionalidade de upload de imagens será implementada em breve.
                         </div>
-                        <div id="cronogramaImagensList" class="file-list" aria-live="polite"></div>
                     </div>
 
                     <div class="form-group">
@@ -470,7 +465,7 @@
                             <div class="file-upload-text">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
                                 <p>Clique para selecionar arquivos</p>
-                                <p style="font-size: 12px; color: #999;">Limite: 5 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                                <p style="font-size: 12px; color: #999;">Limite total de anexos do formulário: 20 MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
                             <input type="file" id="mapa" name="mapa[]" multiple required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
@@ -577,7 +572,7 @@
                             <div class="file-upload-text">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
                                 <p>Clique para selecionar arquivos</p>
-                                <p style="font-size: 12px; color: #999;">Limite: 10 arquivos, 100MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                                <p style="font-size: 12px; color: #999;">Limite total de anexos do formulário: 20 MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
                             <input type="file" id="demais_arquivos" name="demais_arquivos[]" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
@@ -635,228 +630,53 @@
         </div>
 
 <script>
-        // Verificar se MSAL carregou corretamente
-        if (typeof msal === 'undefined') {
-            console.error('MSAL library not loaded. SharePoint integration will not work.');
-            window.msalLoadError = true;
+        // Endpoint do Basin configurado para receber os dados e anexos.
+        const formularioApiUrl = 'https://usebasin.com/f/e98cf02c5224';
+
+        function gerarProtocolo() {
+            const data = new Date();
+            const dataFormatada = [
+                data.getFullYear(),
+                String(data.getMonth() + 1).padStart(2, '0'),
+                String(data.getDate()).padStart(2, '0')
+            ].join('');
+            const id = crypto.randomUUID().slice(0, 8).toUpperCase();
+            return `APABF-${dataFormatada}-${id}`;
         }
 
-        // Configuração MSAL para autenticação Microsoft
-        const msalConfig = {
-            auth: {
-                clientId: "d3590ed6-52b3-4102-aeff-aad2292ab01c", // Client ID público do Office 365
-                authority: "https://login.microsoftonline.com/common",
-                redirectUri: window.location.origin
-            }
-        };
-
-        let msalInstance;
-        try {
-            if (typeof msal !== 'undefined') {
-                msalInstance = new msal.PublicClientApplication(msalConfig);
-            }
-        } catch (error) {
-            console.error('MSAL initialization error:', error);
-            window.msalLoadError = true;
-        }
-
-        // Configuração do SharePoint
-        const sharePointConfig = {
-            siteUrl: "https://icmbioe5.sharepoint.com/sites/apabf2",
-            listName: "AutorizacoesDiretas",
-            libraryName: "DocumentosAutorizacao"
-        };
-
-        // Função de login
-        async function login() {
+        async function submitFormulario() {
             try {
-                const loginRequest = {
-                    scopes: ["https://icmbioe5.sharepoint.com/.default"]
-                };
-                
-                const response = await msalInstance.loginPopup(loginRequest);
-                console.log("Login successful:", response);
-                return response.accessToken;
-            } catch (error) {
-                console.error("Login error:", error);
-                throw error;
-            }
-        }
-
-        // Função para obter token silenciosamente
-        async function getAccessToken() {
-            const accounts = msalInstance.getAllAccounts();
-            if (accounts.length === 0) {
-                return await login();
-            }
-            
-            const silentRequest = {
-                scopes: ["https://icmbioe5.sharepoint.com/.default"],
-                account: accounts[0]
-            };
-            
-            try {
-                const response = await msalInstance.acquireTokenSilent(silentRequest);
-                return response.accessToken;
-            } catch (error) {
-                return await login();
-            }
-        }
-
-        // Função para criar item na lista SharePoint
-        async function createSharePointItem(formData, accessToken) {
-            const { siteUrl, listName } = sharePointConfig;
-            const endpoint = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
-            
-            const itemData = {
-                Title: formData.nome_solicitante,
-                CPF_CNPJ_Solicitante: formData.cpf_cnpj_solicitante,
-                Nome_Solicitante: formData.nome_solicitante,
-                Endereco_Solicitante: formData.endereco_solicitante,
-                Telefone_Solicitante: formData.telefone_solicitante,
-                Email_Solicitante: formData.email_solicitante,
-                Objetivo: formData.objetivo,
-                Data_Inicio: formData.data_inicio,
-                Data_Fim: formData.data_fim,
-                Cronograma: formData.cronograma,
-                Descricao_Minuciosa: formData.descricao_minuciosa,
-                Infraestrutura: formData.infraestrutura,
-                Impactos: formData.impactos,
-                Mitigacao: formData.mitigacao,
-                Nome_Responsavel: formData.nome_responsavel,
-                Data_Nascimento: formData.data_nascimento,
-                CPF_Responsavel: formData.cpf_responsavel,
-                RG_Responsavel: formData.rg_responsavel,
-                Maquinarios: formData.maquinarios,
-                Status: "Pendente",
-                NomePastaDocumentos: `Protocolo_${Date.now()}` // Será atualizado pelo Power Automate
-            };
-
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json;odata=verbose'
-                },
-                body: JSON.stringify(itemData)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to create item: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            return data.d.Id;
-        }
-
-        // Função para upload de arquivo para biblioteca SharePoint
-        async function uploadFileToSharePoint(file, folderName, accessToken) {
-            const { siteUrl, libraryName } = sharePointConfig;
-            const folderEndpoint = `${siteUrl}/_api/web/lists/getbytitle('${libraryName}')/RootFolder/Folders/add('${folderName}')`;
-            
-            // Criar pasta se não existir
-            try {
-                await fetch(folderEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Accept': 'application/json;odata=verbose'
-                    }
-                });
-            } catch (error) {
-                // Pasta pode já existir
-                console.log("Folder might already exist:", error);
-            }
-
-            // Upload do arquivo
-            const fileEndpoint = `${siteUrl}/_api/web/lists/getbytitle('${libraryName}')/RootFolder/Folders('${folderName}')/Files/add(url='${file.name}', overwrite=true)`;
-            
-            const response = await fetch(fileEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': file.type,
-                    'Accept': 'application/json;odata=verbose'
-                },
-                body: file
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to upload file: ${response.statusText}`);
-            }
-
-            return await response.json();
-        }
-
-        // Função principal de envio do formulário
-        async function submitToSharePoint(formData) {
-            try {
-                // Verificar se MSAL está disponível
-                if (window.msalLoadError || !msalInstance) {
-                    throw new Error("MSAL library not loaded. Please check your internet connection or try a different browser.");
-                }
-
-                // Mostrar loading
                 document.getElementById('loading-overlay').classList.add('show');
-                
-                // Obter token de acesso
-                const accessToken = await getAccessToken();
-                
-                // Criar item na lista
-                const itemId = await createSharePointItem(formData, accessToken);
-                
-                // Upload de arquivos
-                const folderName = `Protocolo_${Date.now()}`;
-                
-                // Upload do mapa
-                if (formData.mapa && formData.mapa.length > 0) {
-                    for (let file of formData.mapa) {
-                        await uploadFileToSharePoint(file, folderName, accessToken);
-                    }
+                const form = document.getElementById('autorizacaoForm');
+                const protocolo = gerarProtocolo();
+                document.getElementById('protocolo').value = protocolo;
+                document.getElementById('submitted_at').value = new Date().toISOString();
+                const payload = new FormData(form);
+
+                const response = await fetch(formularioApiUrl, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: payload
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(result.error || `Erro HTTP ${response.status}`);
                 }
-                
-                // Upload de cronograma imagens
-                if (formData.cronograma_imagens && formData.cronograma_imagens.length > 0) {
-                    for (let file of formData.cronograma_imagens) {
-                        await uploadFileToSharePoint(file, folderName, accessToken);
-                    }
-                }
-                
-                // Upload de cópia CPF
-                if (formData.copia_cpf) {
-                    await uploadFileToSharePoint(formData.copia_cpf, folderName, accessToken);
-                }
-                
-                // Upload de cópia RG
-                if (formData.copia_rg) {
-                    await uploadFileToSharePoint(formData.copia_rg, folderName, accessToken);
-                }
-                
-                // Upload de ofício
-                if (formData.oficio && formData.oficio.length > 0) {
-                    for (let file of formData.oficio) {
-                        await uploadFileToSharePoint(file, folderName, accessToken);
-                    }
-                }
-                
-                // Upload de demais arquivos
-                if (formData.demais_arquivos && formData.demais_arquivos.length > 0) {
-                    for (let file of formData.demais_arquivos) {
-                        await uploadFileToSharePoint(file, folderName, accessToken);
-                    }
-                }
-                
-                // Esconder loading e mostrar sucesso
+
                 document.getElementById('loading-overlay').classList.remove('show');
-                document.getElementById('success-overlay').classList.add('show');
-                
-                // Limpar formulário
-                document.getElementById('autorizacaoForm').reset();
+                const successOverlay = document.getElementById('success-overlay');
+                const successDescription = successOverlay.querySelector('.success-description');
+                successDescription.innerHTML = `
+                    Sua solicitação de Autorização Direta para a APA da Baleia Franca foi recebida. 
+                    Seu protocolo é: <strong>${protocolo}</strong>.
+                    Os dados e anexos foram recebidos para análise.
+                    Entraremos em contato em breve com as informações sobre o andamento do processo.
+                `;
+                successOverlay.classList.add('show');
+                form.reset();
                 clearFileLists();
-                
             } catch (error) {
-                console.error("Error submitting to SharePoint:", error);
+                console.error('Erro ao enviar formulário:', error);
                 document.getElementById('loading-overlay').classList.remove('show');
                 document.getElementById('error-message').style.display = 'block';
                 document.getElementById('error-message').innerHTML = `
@@ -868,57 +688,11 @@
             }
         }
 
-        // Modificar o evento de submit do formulário
         document.getElementById('autorizacaoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            // Verificar se MSAL está disponível
-            if (window.msalLoadError || !msalInstance) {
-                // MSAL não carregou - mostrar erro ao usuário
-                document.getElementById('loading-overlay').classList.add('show');
-                setTimeout(() => {
-                    document.getElementById('loading-overlay').classList.remove('show');
-                    document.getElementById('error-message').style.display = 'block';
-                    document.getElementById('error-message').innerHTML = `
-                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
-                        <p style="margin: 0; font-weight: 600;">Biblioteca de autenticação não carregada.</p>
-                        <p style="margin: 5px 0 0; font-size: 14px;">Por favor, verifique sua conexão com a internet ou tente outro navegador. A integração com SharePoint não está disponível no momento.</p>
-                        <button type="button" onclick="document.getElementById('error-message').style.display='none'" style="margin-top: 10px; background: #721c24; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Fechar</button>
-                    `;
-                }, 500);
-                return;
-            }
-            
-            // Coletar dados do formulário
-            const formData = {
-                cpf_cnpj_solicitante: document.getElementById('cpf_cnpj_solicitante').value,
-                nome_solicitante: document.getElementById('nome_solicitante').value,
-                endereco_solicitante: document.getElementById('endereco_solicitante').value,
-                telefone_solicitante: document.getElementById('telefone_solicitante').value,
-                email_solicitante: document.getElementById('email_solicitante').value,
-                objetivo: document.getElementById('objetivo').value,
-                data_inicio: document.getElementById('data_inicio').value,
-                data_fim: document.getElementById('data_fim').value,
-                cronograma: document.getElementById('cronograma').value,
-                descricao_minuciosa: document.getElementById('descricao_minuciosa').value,
-                infraestrutura: document.getElementById('infraestrutura').value,
-                impactos: document.getElementById('impactos').value,
-                mitigacao: document.getElementById('mitigacao').value,
-                nome_responsavel: document.getElementById('nome_responsavel').value,
-                data_nascimento: document.getElementById('data_nascimento').value,
-                cpf_responsavel: document.getElementById('cpf_responsavel').value,
-                rg_responsavel: document.getElementById('rg_responsavel').value,
-                maquinarios: document.getElementById('maquinarios').value,
-                mapa: document.getElementById('mapa').files,
-                cronograma_imagens: document.getElementById('cronograma_imagens').files,
-                copia_cpf: document.getElementById('copia_cpf').files[0],
-                copia_rg: document.getElementById('copia_rg').files[0],
-                oficio: document.getElementById('oficio').files,
-                demais_arquivos: document.getElementById('demais_arquivos').files
-            };
-            
-            // Enviar para SharePoint
-            await submitToSharePoint(formData);
+            fileFields.forEach(updateFileList);
+            if (!this.reportValidity()) return;
+            await submitFormulario();
         });
 
         // Formatação de CPF/CNPJ do solicitante
@@ -1033,13 +807,14 @@
 
         // Configuração de validação de arquivos
         const megabyte = 1024 * 1024;
+        // Mantém espaço no armazenamento gratuito de 100 MB do Basin.
+        const maxTotalUploadBytes = 20 * megabyte;
         const fileFields = [
-            { inputId: 'mapa', listId: 'mapaList', maxFiles: 5, maxSizeMb: 100 },
+            { inputId: 'mapa', listId: 'mapaList', maxFiles: 5, maxSizeMb: 20 },
             { inputId: 'copia_cpf', listId: 'copiaCpfList', maxFiles: 1, maxSizeMb: 10 },
             { inputId: 'copia_rg', listId: 'copiaRgList', maxFiles: 1, maxSizeMb: 10 },
             { inputId: 'oficio', listId: 'oficioList', maxFiles: 2, maxSizeMb: 10 },
-            { inputId: 'demais_arquivos', listId: 'demaisArquivosList', maxFiles: 10, maxSizeMb: 100 },
-            { inputId: 'cronograma_imagens', listId: 'cronogramaImagensList', maxFiles: 5, maxSizeMb: 10 }
+            { inputId: 'demais_arquivos', listId: 'demaisArquivosList', maxFiles: 10, maxSizeMb: 20 }
         ];
 
         const autorizacaoForm = document.getElementById('autorizacaoForm');
@@ -1060,6 +835,14 @@
                 error = `Selecione no máximo ${field.maxFiles} arquivo(s) neste campo.`;
             } else if (files.some(file => file.size > field.maxSizeMb * megabyte)) {
                 error = `Cada arquivo deve ter no máximo ${field.maxSizeMb} MB.`;
+            }
+
+            const totalBytes = fileFields.reduce((total, currentField) => {
+                const currentInput = document.getElementById(currentField.inputId);
+                return total + Array.from(currentInput.files).reduce((sum, file) => sum + file.size, 0);
+            }, 0);
+            if (!error && totalBytes > maxTotalUploadBytes) {
+                error = 'O total de todos os anexos deve ser de no máximo 20 MB.';
             }
 
             input.setCustomValidity(error);
@@ -1109,15 +892,6 @@
             }
         });
 
-        // Inicializar MSAL (não quebra se não carregar)
-        if (msalInstance) {
-            msalInstance.initialize().then(() => {
-                console.log("MSAL initialized successfully");
-            }).catch(error => {
-                console.error("MSAL initialization error:", error);
-            });
-        }
-
         // Debug: Verificar se elementos existem
         console.log("Verificando elementos:");
         console.log("mesmo_responsavel:", document.getElementById('mesmo_responsavel'));
@@ -1126,7 +900,6 @@
         console.log("responsavel-info:", document.getElementById('responsavel-info'));
         console.log("nome_responsavel_group:", document.getElementById('nome_responsavel_group'));
         console.log("cpf_responsavel_group:", document.getElementById('cpf_responsavel_group'));
-        console.log("MSAL disponível:", !window.msalLoadError);
         </script>
     </body>
 </html>

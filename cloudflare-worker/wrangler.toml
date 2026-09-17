@@ -1,0 +1,8 @@
+name = "apabf-formulario"
+main = "src/index.js"
+compatibility_date = "2026-09-17"
+
+# Defina a origem exata onde o formulário será publicado.
+[vars]
+ALLOWED_ORIGIN = "https://SEU-DOMINIO.gov.br"
+SHAREPOINT_ROOT_FOLDER = "Entradas-Autorizacao-Direta"
