@@ -403,7 +403,7 @@
                     <h3 style="color: #146666; margin-top: 0;">Dados do Solicitante (Pessoa Física ou Jurídica)</h3>
                     
                     <div class="form-group">
-                        <label for="cpf_cnpj_solicitante">CPF ou CNPJ do Solicitante *:</label>
+                        <label for="cpf_cnpj_solicitante">CPF/CNPJ do Solicitante *:</label>
                         <input type="text" id="cpf_cnpj_solicitante" name="cpf_cnpj_solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
                         <small style="color: #666;">O solicitante de Autorização Direta para a APA da Baleia Franca pode ser uma empresa, uma associação, um órgão governamental, qualquer entidade ou mesmo pessoa física.</small>
                     </div>
@@ -414,25 +414,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="endereco_solicitante">Endereço *:</label>
+                        <label for="endereco_solicitante">Endereço do Solicitante *:</label>
                         <input type="text" id="endereco_solicitante" name="endereco_solicitante" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="telefone_solicitante">Telefone com DDD *:</label>
+                        <label for="telefone_solicitante">Telefone com DDD do Solicitante *:</label>
                         <input type="text" id="telefone_solicitante" name="telefone_solicitante" required placeholder="+55 48 96767-6767">
                         <small style="color: #666;">Formato internacional: +55 DDD Número (ex: +55 48 96767-6767)</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="email_solicitante">E-mail *:</label>
+                        <label for="email_solicitante">E-mail do Solicitante *:</label>
                         <input type="email" id="email_solicitante" name="email" required placeholder="seuemail@exemplo.com">
                     </div>
 
                     <h3 style="color: #146666; margin-top: 30px;">Descrição da Atividade</h3>
                     
                     <div class="form-group">
-                        <label for="objetivo">Objetivo *:</label>
+                        <label for="objetivo">Objetivo da Atividade *:</label>
                         <textarea id="objetivo" name="objetivo" required placeholder="Descrever o objetivo da atividade a ser realizada na APA da Baleia Franca."></textarea>
                     </div>
 
@@ -448,10 +448,15 @@
 
                     <div class="form-group">
                         <label for="cronograma">Cronograma (caso a atividade seja realizada em etapas):</label>
-                        <textarea id="cronograma" name="cronograma" placeholder="Descreva os prazos e etapas do cronograma."></textarea>
-                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px;">
-                            <i class="fas fa-info-circle"></i> <strong>Upload de imagens temporariamente desabilitado:</strong> Por favor, descreva o cronograma detalhadamente no campo de texto. A funcionalidade de upload de imagens será implementada em breve.
+                        <div class="file-upload" onclick="document.getElementById('cronograma').click()">
+                            <div class="file-upload-text">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Clique para selecionar imagem(ns) do cronograma</p>
+                                <p style="font-size: 12px; color: #999;">Limite: 10MB. Formatos: Imagem</p>
+                            </div>
+                            <input type="file" id="cronograma" name="cronograma" accept=".jpg,.jpeg,.png,.gif">
                         </div>
+                        <div id="cronogramaList" class="file-list" aria-live="polite"></div>
                     </div>
 
                     <div class="form-group">
@@ -465,7 +470,7 @@
                             <div class="file-upload-text">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
                                 <p>Clique para selecionar arquivos</p>
-                                <p style="font-size: 12px; color: #999;">Limite total de anexos do formulário: 20 MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                                <p style="font-size: 12px; color: #999;">Limite por arquivo: 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
                             <input type="file" id="mapa" name="mapa[]" multiple required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
@@ -509,7 +514,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="data_nascimento">Data de Nascimento *:</label>
+                        <label for="data_nascimento">Data de Nascimento do Responsável *:</label>
                         <input type="date" id="data_nascimento" name="data_nascimento" required>
                     </div>
 
@@ -524,7 +529,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="copia_cpf">Cópia do CPF ou CNPJ *:</label>
+                        <label for="copia_cpf">Cópia do CPF/CNPJ *:</label>
                         <div class="file-upload" onclick="document.getElementById('copia_cpf').click()">
                             <div class="file-upload-text">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
@@ -572,7 +577,7 @@
                             <div class="file-upload-text">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px;"></i>
                                 <p>Clique para selecionar arquivos</p>
-                                <p style="font-size: 12px; color: #999;">Limite total de anexos do formulário: 20 MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
+                                <p style="font-size: 12px; color: #999;">Limite por arquivo: 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
                             <input type="file" id="demais_arquivos" name="demais_arquivos[]" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
@@ -810,11 +815,12 @@
         // Mantém espaço no armazenamento gratuito de 100 MB do Basin.
         const maxTotalUploadBytes = 20 * megabyte;
         const fileFields = [
-            { inputId: 'mapa', listId: 'mapaList', maxFiles: 5, maxSizeMb: 20 },
+            { inputId: 'cronograma', listId: 'cronogramaList', maxFiles: 1, maxSizeMb: 10 },
+            { inputId: 'mapa', listId: 'mapaList', maxFiles: 5, maxSizeMb: 10 },
             { inputId: 'copia_cpf', listId: 'copiaCpfList', maxFiles: 1, maxSizeMb: 10 },
             { inputId: 'copia_rg', listId: 'copiaRgList', maxFiles: 1, maxSizeMb: 10 },
             { inputId: 'oficio', listId: 'oficioList', maxFiles: 2, maxSizeMb: 10 },
-            { inputId: 'demais_arquivos', listId: 'demaisArquivosList', maxFiles: 10, maxSizeMb: 20 }
+            { inputId: 'demais_arquivos', listId: 'demaisArquivosList', maxFiles: 10, maxSizeMb: 10 }
         ];
 
         const autorizacaoForm = document.getElementById('autorizacaoForm');
