@@ -398,52 +398,52 @@
             
             <div class="form-section">
                 <form id="autorizacaoForm" action="https://usebasin.com/f/e98cf02c5224" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
-                    <input type="hidden" id="protocolo" name="protocolo" data-label="Protocolo">
-                    <input type="hidden" id="submitted_at" name="submitted_at" data-label="Data de Envio" data-basin-hide>
+                    <input type="hidden" id="protocolo" name="Protocolo" data-label="Protocolo">
+                    <input type="hidden" id="submitted_at" name="Data de envio" data-label="Data de Envio" data-basin-hide>
                     <h3 style="color: #146666; margin-top: 0;">Dados do Solicitante (Pessoa Física ou Jurídica)</h3>
                     
                     <div class="form-group">
                         <label for="cpf_cnpj_solicitante">CPF/CNPJ do Solicitante *:</label>
-                        <input type="text" id="cpf_cnpj_solicitante" name="cpf_cnpj_solicitante" data-label="CPF/CNPJ do Solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                        <input type="text" id="cpf_cnpj_solicitante" name="CPF/CNPJ do solicitante" data-label="CPF/CNPJ do Solicitante" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
                         <small style="color: #666;">O solicitante de Autorização Direta para a APA da Baleia Franca pode ser uma empresa, uma associação, um órgão governamental, qualquer entidade ou mesmo pessoa física.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="nome_solicitante">Nome do Solicitante *:</label>
-                        <input type="text" id="nome_solicitante" name="nome_solicitante" data-label="Nome do Solicitante" required>
+                        <input type="text" id="nome_solicitante" name="Nome do solicitante" data-label="Nome do Solicitante" required>
                     </div>
 
                     <div class="form-group">
                         <label for="endereco_solicitante">Endereço do Solicitante *:</label>
-                        <input type="text" id="endereco_solicitante" name="endereco_solicitante" data-label="Endereço do Solicitante" required>
+                        <input type="text" id="endereco_solicitante" name="Endereço do solicitante" data-label="Endereço do Solicitante" required>
                     </div>
 
                     <div class="form-group">
                         <label for="telefone_solicitante">Telefone com DDD do Solicitante *:</label>
-                        <input type="text" id="telefone_solicitante" name="telefone_solicitante" data-label="Telefone do Solicitante" required placeholder="(48) 96767-6767">
+                        <input type="text" id="telefone_solicitante" name="Telefone do solicitante" data-label="Telefone do Solicitante" required placeholder="(48) 96767-6767">
                         <small style="color: #666;">Formato: (DDD) XXXXX-XXXX (ex: (48) 96767-6767)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="email_solicitante">E-mail do Solicitante *:</label>
-                        <input type="email" id="email_solicitante" name="email" data-label="E-mail do Solicitante" required placeholder="seuemail@exemplo.com">
+                        <input type="email" id="email_solicitante" name="E-mail" data-label="E-mail do Solicitante" required placeholder="seuemail@exemplo.com">
                     </div>
 
                     <h3 style="color: #146666; margin-top: 30px;">Descrição da Atividade</h3>
                     
                     <div class="form-group">
                         <label for="objetivo">Objetivo da Atividade *:</label>
-                        <textarea id="objetivo" name="objetivo" data-label="Objetivo da Atividade" required placeholder="Descrever o objetivo da atividade a ser realizada na APA da Baleia Franca."></textarea>
+                        <textarea id="objetivo" name="Objetivo da solicitação" data-label="Objetivo da Atividade" required placeholder="Descrever o objetivo da atividade a ser realizada na APA da Baleia Franca."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="data_inicio">Data de Início da Atividade *:</label>
-                        <input type="date" id="data_inicio" name="data_inicio" data-label="Data de Início da Atividade" required>
+                        <input type="date" id="data_inicio" name="Data de início" data-label="Data de Início da Atividade" required>
                     </div>
 
                     <div class="form-group">
                         <label for="data_fim">Data do Fim da Atividade *:</label>
-                        <input type="date" id="data_fim" name="data_fim" data-label="Data do Fim da Atividade" required>
+                        <input type="date" id="data_fim" name="Data de término" data-label="Data do Fim da Atividade" required>
                     </div>
 
                     <div class="form-group">
@@ -454,14 +454,14 @@
                                 <p>Clique para selecionar imagem(ns) do cronograma</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Imagem</p>
                             </div>
-                            <input type="file" id="cronograma" name="cronograma" data-label="Cronograma" accept=".jpg,.jpeg,.png,.gif">
+                            <input type="file" id="cronograma" name="Cronograma" data-label="Cronograma" accept=".jpg,.jpeg,.png,.gif">
                         </div>
                         <div id="cronogramaList" class="file-list" aria-live="polite"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="descricao_minuciosa">Descrição Minuciosa da Atividade *:</label>
-                        <textarea id="descricao_minuciosa" name="descricao_minuciosa" data-label="Descrição Minuciosa da Atividade" required placeholder="Descreva detalhadamente como será realizada a atividade na APA da Baleia Franca, incluindo localização específica, métodos utilizados, período de execução e considerações sobre a proteção do ecossistema marinho e das baleias francas." style="min-height: 150px;"></textarea>
+                        <textarea id="descricao_minuciosa" name="Descrição minuciosa" data-label="Descrição Minuciosa da Atividade" required placeholder="Descreva detalhadamente como será realizada a atividade na APA da Baleia Franca, incluindo localização específica, métodos utilizados, período de execução e considerações sobre a proteção do ecossistema marinho e das baleias francas." style="min-height: 150px;"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -472,30 +472,30 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 5 arquivos, 10MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="mapa" name="mapa[]" data-label="Mapa, Croqui ou Planta" multiple required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="mapa" name="Mapa[]" data-label="Mapa, Croqui ou Planta" multiple required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="mapaList" class="file-list" aria-live="polite"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="infraestrutura">Descrição e Dimensionamento da Infraestrutura Utilizada (Materiais, Equipamentos, etc) *:</label>
-                        <textarea id="infraestrutura" name="infraestrutura" data-label="Infraestrutura Utilizada" required placeholder="Descreva os materiais, equipamentos e estruturas que serão utilizados, incluindo dimensões, quantidades e especificações técnicas relevantes."></textarea>
+                        <textarea id="infraestrutura" name="Infraestrutura" data-label="Infraestrutura Utilizada" required placeholder="Descreva os materiais, equipamentos e estruturas que serão utilizados, incluindo dimensões, quantidades e especificações técnicas relevantes."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="impactos">Descrição dos Potenciais Impactos à APA da Baleia Franca *:</label>
-                        <textarea id="impactos" name="impactos" data-label="Potenciais Impactos à APA" required placeholder="Descreva os possíveis impactos da atividade sobre o ecossistema marinho, a fauna (especialmente baleias francas), flora e as comunidades locais da APA da Baleia Franca. Se não houver impactos, explique o motivo."></textarea>
+                        <textarea id="impactos" name="Impactos" data-label="Potenciais Impactos à APA" required placeholder="Descreva os possíveis impactos da atividade sobre o ecossistema marinho, a fauna (especialmente baleias francas), flora e as comunidades locais da APA da Baleia Franca. Se não houver impactos, explique o motivo."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="mitigacao">Propostas para Mitigação/Compensação dos Impactos à APA da Baleia Franca *:</label>
-                        <textarea id="mitigacao" name="mitigacao" data-label="Propostas de Mitigação/Compensação" required placeholder="Descreva as medidas que serão adotadas para minimizar ou compensar os impactos identificados na APA da Baleia Franca, incluindo cronograma de implementação e responsáveis."></textarea>
+                        <textarea id="mitigacao" name="Medidas de mitigação" data-label="Propostas de Mitigação/Compensação" required placeholder="Descreva as medidas que serão adotadas para minimizar ou compensar os impactos identificados na APA da Baleia Franca, incluindo cronograma de implementação e responsáveis."></textarea>
                     </div>
 
                     <h3 style="color: #146666; margin-top: 30px;">Dados do Responsável pela Atividade</h3>
                     
                     <div class="checkbox-group">
-                        <input type="checkbox" id="mesmo_responsavel" name="mesmo_responsavel" data-label="Solicitante é o Responsável" data-basin-hide>
+                        <input type="checkbox" id="mesmo_responsavel" name="O solicitante é o responsável?" data-label="Solicitante é o Responsável" data-basin-hide>
                         <label for="mesmo_responsavel">O solicitante é o responsável pela atividade</label>
                     </div>
                     
@@ -505,27 +505,27 @@
                     
                     <div class="form-group" id="nome_responsavel_group">
                         <label for="nome_responsavel">Nome do Responsável:</label>
-                        <input type="text" id="nome_responsavel" name="nome_responsavel" data-label="Nome do Responsável">
+                        <input type="text" id="nome_responsavel" name="Nome do responsável" data-label="Nome do Responsável">
                     </div>
 
                     <div class="form-group" id="cpf_responsavel_group">
                         <label for="cpf_responsavel">CPF do Responsável:</label>
-                        <input type="text" id="cpf_responsavel" name="cpf_responsavel" data-label="CPF do Responsável" placeholder="000.000.000-00">
+                        <input type="text" id="cpf_responsavel" name="CPF do responsável" data-label="CPF do Responsável" placeholder="000.000.000-00">
                     </div>
 
                     <div class="form-group">
                         <label for="data_nascimento">Data de Nascimento do Responsável *:</label>
-                        <input type="date" id="data_nascimento" name="data_nascimento" data-label="Data de Nascimento do Responsável" required>
+                        <input type="date" id="data_nascimento" name="Data de nascimento" data-label="Data de Nascimento do Responsável" required>
                     </div>
 
                     <div class="form-group">
                         <label for="rg_responsavel">RG do Responsável *:</label>
-                        <input type="text" id="rg_responsavel" name="rg_responsavel" data-label="RG do Responsável" required placeholder="XX.XXX.XXX-X">
+                        <input type="text" id="rg_responsavel" name="RG do responsável" data-label="RG do Responsável" required placeholder="XX.XXX.XXX-X">
                     </div>
 
                     <div class="form-group">
                         <label for="maquinarios">Descrição dos Maquinários Utilizados:</label>
-                        <textarea id="maquinarios" name="maquinarios" data-label="Maquinários Utilizados" placeholder="Para trator, indicar a marca, fabricante e chassi. Para carros, indicar fabricante, marca e placa. Para demais maquinários, indicar identificação."></textarea>
+                        <textarea id="maquinarios" name="Maquinários" data-label="Maquinários Utilizados" placeholder="Para trator, indicar a marca, fabricante e chassi. Para carros, indicar fabricante, marca e placa. Para demais maquinários, indicar identificação."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -536,7 +536,7 @@
                                 <p>Clique para selecionar arquivo</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="copia_cpf" name="copia_cpf" data-label="Cópia do CPF/CNPJ" required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="copia_cpf" name="Copia_cpf" data-label="Cópia do CPF/CNPJ" required accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="copiaCpfList" class="file-list" aria-live="polite"></div>
                     </div>
@@ -549,7 +549,7 @@
                                 <p>Clique para selecionar arquivo</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 1 arquivo, 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="copia_rg" name="copia_rg" data-label="Cópia do RG do Responsável" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="copia_rg" name="Copia_rg" data-label="Cópia do RG do Responsável" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="copiaRgList" class="file-list" aria-live="polite"></div>
                     </div>
@@ -565,7 +565,7 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite: 2 arquivos, 10MB cada. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="oficio" name="oficio[]" data-label="Ofício Solicitando a Autorização" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="oficio" name="Oficio[]" data-label="Ofício Solicitando a Autorização" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="oficioList" class="file-list" aria-live="polite"></div>
                     </div>
@@ -579,7 +579,7 @@
                                 <p>Clique para selecionar arquivos</p>
                                 <p style="font-size: 12px; color: #999;">Limite por arquivo: 10MB. Formatos: Word, Excel, PPT, PDF, Imagem, Vídeo, Áudio</p>
                             </div>
-                            <input type="file" id="demais_arquivos" name="demais_arquivos[]" data-label="Demais Arquivos Pertinentes" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
+                            <input type="file" id="demais_arquivos" name="Demais_arquivos[]" data-label="Demais Arquivos Pertinentes" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.mp3">
                         </div>
                         <div id="demaisArquivosList" class="file-list" aria-live="polite"></div>
                     </div>
