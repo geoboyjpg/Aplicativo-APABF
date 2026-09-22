@@ -657,6 +657,14 @@
                 document.getElementById('submitted_at').value = new Date().toISOString();
                 const payload = new FormData(form);
 
+                // Remover campos com data-basin-hide do payload antes de enviar ao Basin
+                const fieldsToHide = form.querySelectorAll('[data-basin-hide]');
+                fieldsToHide.forEach(field => {
+                    if (field.name) {
+                        payload.delete(field.name);
+                    }
+                });
+
                 const response = await fetch(formularioApiUrl, {
                     method: 'POST',
                     headers: { 'Accept': 'application/json' },
@@ -671,7 +679,7 @@
                 const successOverlay = document.getElementById('success-overlay');
                 const successDescription = successOverlay.querySelector('.success-description');
                 successDescription.innerHTML = `
-                    Sua solicitação de Autorização Direta para a APA da Baleia Franca foi recebida. 
+                    Sua solicitação de Autorização Direta para a APA da Baleia Franca foi recebida.
                     Seu protocolo é: <strong>${protocolo}</strong>.
                     Os dados e anexos foram recebidos para análise.
                     Entraremos em contato em breve com as informações sobre o andamento do processo.
