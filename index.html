@@ -3,228 +3,585 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-        html, body {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #146666 0%, #0f5252 100%);
-        }
-
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .menu-title {
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 40px;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .menu-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .menu-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 25px 30px;
-            background: white;
-            color: #146666;
-            border: none;
-            border-radius: 15px;
-            font-size: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-decoration: none;
-        }
-
-        .menu-button:hover {
-            background: #f8f8f8;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-
-        .menu-button:active {
-            transform: translateY(-1px);
-        }
-
-        .menu-button i {
-            font-size: 24px;
-            color: #146666;
-        }
-
-        /* Barra de navegação inferior */
-        .nav-bar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-btn {
-            background: #146666;
-            color: white !important;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .nav-btn i {
-            color: white !important;
-        }
-
-        .nav-btn:hover {
-            background: #0f5252;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-btn:active {
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 768px) {
-            .menu-title {
-                font-size: 24px;
-                margin-bottom: 30px;
+            :root {
+                --petroleo: #0d4f55;
+                --verde: #12647a;
+                --azul-oceano: #12647a;
+                --azul-profundo: #125F5F;
+                --branco: #ffffff;
+                --background-image: none;
             }
 
-            .menu-button {
-                padding: 20px 25px;
-                font-size: 18px;
+            * {
+                box-sizing: border-box;
             }
 
-            .menu-button i {
-                font-size: 20px;
+            html {
+                min-height: 100%;
+                background: var(--azul-profundo);
+            }
+
+            body {
+                min-width: 320px;
+                min-height: 100vh;
+                margin: 0;
+                color: var(--branco);
+                font-family: Arial, sans-serif;
+                background-color: var(--azul-profundo);
+                background-image:
+                    linear-gradient(120deg, rgba(5, 35, 44, 0.78), rgba(13, 79, 85, 0.66)),
+                    var(--background-image);
+                background-position: center;
+                background-size: cover;
+                background-attachment: fixed;
+            }
+
+            a {
+                color: inherit;
+            }
+
+            .page-shell {
+                width: min(1180px, 100%);
+                min-height: 100vh;
+                margin: 0 auto;
+                padding: 28px clamp(20px, 4vw, 56px) 132px;
+            }
+
+            .top-bar {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 24px;
+            }
+
+            .brand-logos {
+                display: flex;
+                align-items: center;
+                gap: clamp(5px, 0.8vw, 9px);
+                min-width: 0;
+                padding: 8px 11px;
+                background: rgba(255, 255, 255, 0.22);
+                border: 1px solid rgba(255, 255, 255, 0.52);
+                border-radius: 15px;
+                box-shadow: 0 5px 16px rgba(0, 0, 0, 0.26), inset 0 0 18px rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(7px);
+            }
+
+            .apa-logo {
+                display: block;
+                width: clamp(118px, 14vw, 175px);
+                height: auto;
+                max-height: 108px;
+                object-fit: contain;
+                object-position: left top;
+            }
+
+            .icmbio-logo {
+                display: block;
+                width: clamp(94px, 12vw, 145px);
+                height: auto;
+                max-height: 72px;
+                object-fit: contain;
+            }
+
+            .logo-divider {
+                width: 1px;
+                height: clamp(42px, 5vw, 62px);
+                background: rgba(255, 255, 255, 0.62);
+            }
+
+            .icmbio-motto {
+                max-width: 250px;
+                padding-top: 12px;
+                color: rgba(255, 255, 255, 0.96);
+                font-size: clamp(0.82rem, 1.5vw, 1.05rem);
+                font-style: italic;
+                line-height: 1.35;
+                text-align: right;
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+            }
+
+            .hero {
+                max-width: 850px;
+                margin: clamp(28px, 6vh, 68px) auto 32px;
+                text-align: center;
+            }
+
+            .hero h1 {
+                margin: 0;
+                font-size: clamp(2rem, 5vw, 4rem);
+                line-height: 1.06;
+                letter-spacing: -0.03em;
+                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.55);
+            }
+
+            .hero h1 span {
+                display: block;
+                margin-top: 6px;
+                color: #b9ece3;
+            }
+
+            .hero p {
+                margin: 18px auto 0;
+                max-width: 600px;
+                color: rgba(255, 255, 255, 0.92);
+                font-size: clamp(1rem, 1.8vw, 1.2rem);
+                line-height: 1.5;
+                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+            }
+
+            .main-cards {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 18px;
+                max-width: 920px;
+                margin: 0 auto;
+            }
+
+            .main-card {
+                position: relative;
+                display: flex;
+                min-height: 148px;
+                align-items: center;
+                gap: 18px;
+                width: 100%;
+                padding: 22px 48px 22px 22px;
+                overflow: hidden;
+                color: var(--branco);
+                font: inherit;
+                text-align: left;
+                text-decoration: none;
+                background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(13, 79, 85, 0.86));
+                border: 1px solid rgba(208, 247, 241, 0.35);
+                border-radius: 20px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+                backdrop-filter: blur(5px);
+                cursor: pointer;
+                transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .main-card:hover,
+            .main-card:focus-visible {
+                background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(13, 79, 85, 0.94));
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+                transform: translateY(-4px);
+            }
+
+            .main-card:focus-visible,
+            .secondary-link:focus-visible,
+            .nav-btn:focus-visible {
+                outline: 3px solid #b9ece3;
+                outline-offset: 3px;
+            }
+
+            .card-icon {
+                display: grid;
+                flex: 0 0 58px;
+                width: 58px;
+                height: 58px;
+                place-items: center;
+                color: var(--petroleo);
+                font-size: 1.55rem;
+                background: #d6f4ef;
+                border-radius: 17px;
+            }
+
+            .card-content h2 {
+                margin: 0;
+                font-size: clamp(1.05rem, 2vw, 1.35rem);
+            }
+
+            .card-content p {
+                margin: 7px 0 0;
+                color: rgba(255, 255, 255, 0.78);
+                font-size: 0.92rem;
+                line-height: 1.4;
+            }
+
+            .card-arrow {
+                position: absolute;
+                top: 50%;
+                right: 20px;
+                color: #b9ece3;
+                font-size: 1.35rem;
+                transform: translateY(-50%);
+            }
+
+            .secondary-links {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px 22px;
+                max-width: 920px;
+                margin: 25px auto 0;
+                color: rgba(255, 255, 255, 0.92);
+                font-size: 0.92rem;
+            }
+
+            .secondary-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 8px 13px;
+                color: rgba(255, 255, 255, 0.94);
+                text-decoration: none;
+                background: rgba(8, 49, 59, 0.62);
+                border: 1px solid rgba(208, 247, 241, 0.28);
+                border-radius: 999px;
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+                backdrop-filter: blur(4px);
+                transition: background 0.2s ease, transform 0.2s ease;
+            }
+
+            .secondary-link i {
+                color: #b9ece3;
+                font-size: 0.95rem;
+            }
+
+            .secondary-link:hover {
+                color: #ffffff;
+                background: rgba(18, 100, 122, 0.84);
+                text-decoration: none;
+                transform: translateY(-2px);
+            }
+
+            .secondary-action {
+                border: 0;
+                color: inherit;
+                font: inherit;
+                cursor: pointer;
+                background: transparent;
             }
 
             .nav-bar {
-                bottom: 15px;
-                padding: 12px 20px;
-                gap: 15px;
+                position: fixed;
+                right: 16px;
+                bottom: 18px;
+                left: 16px;
+                z-index: 10;
+                display: flex;
+                justify-content: center;
+                gap: 14px;
+                width: fit-content;
+                max-width: calc(100% - 32px);
+                margin: 0 auto;
+                padding: 12px 18px;
+                background: rgba(255, 255, 255, 0.96);
+                border-radius: 28px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
             }
 
             .nav-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
+                display: flex;
+                min-width: 64px;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                padding: 0 6px;
+                color: var(--branco) !important;
+                text-decoration: none;
+                border-radius: 18px;
             }
-        }
+
+            .nav-btn-icon {
+                display: grid;
+                width: 46px;
+                height: 46px;
+                place-items: center;
+                color: var(--branco);
+                font-size: 1.15rem;
+                background: var(--verde);
+                border-radius: 50%;
+                transition: transform 0.2s ease, background 0.2s ease;
+            }
+
+            .nav-btn-label {
+                display: none;
+                color: var(--petroleo);
+                font-size: 0.74rem;
+                font-weight: 700;
+            }
+
+            .nav-btn:hover .nav-btn-icon {
+                background: var(--azul-profundo);
+                transform: translateY(-3px);
+            }
+
+            @media (min-width: 900px) {
+                .nav-btn {
+                    flex-direction: column;
+                }
+
+                .nav-btn-label {
+                    display: block;
+                }
+            }
+
+            @media (max-width: 700px) {
+                .page-shell {
+                    padding-top: 18px;
+                    padding-right: 16px;
+                    padding-left: 16px;
+                }
+
+                .top-bar {
+                    gap: 14px;
+                }
+
+                .brand-logos {
+                    gap: 5px;
+                }
+
+                .apa-logo {
+                    width: clamp(94px, 28vw, 132px);
+                    max-height: 82px;
+                }
+
+                .icmbio-logo {
+                    width: clamp(78px, 23vw, 112px);
+                    max-height: 58px;
+                }
+
+                .logo-divider {
+                    height: 44px;
+                }
+
+                .icmbio-motto {
+                    max-width: 150px;
+                    padding-top: 5px;
+                    font-size: 0.78rem;
+                }
+
+                .hero {
+                    margin-top: 32px;
+                    margin-bottom: 24px;
+                }
+
+                .hero h1 {
+                    font-size: clamp(1.85rem, 9vw, 2.7rem);
+                }
+
+                .hero p {
+                    margin-top: 14px;
+                    font-size: 0.96rem;
+                }
+
+                .main-cards {
+                    grid-template-columns: 1fr;
+                    gap: 13px;
+                }
+
+                .main-card {
+                    min-height: 112px;
+                    padding: 17px 42px 17px 16px;
+                    border-radius: 16px;
+                }
+
+                .card-icon {
+                    flex-basis: 48px;
+                    width: 48px;
+                    height: 48px;
+                    font-size: 1.25rem;
+                    border-radius: 14px;
+                }
+
+                .whale-tail-icon {
+                    width: 30px;
+                    height: 30px;
+                }
+
+                .card-content p {
+                    margin-top: 5px;
+                    font-size: 0.83rem;
+                }
+
+                .card-arrow {
+                    right: 16px;
+                }
+
+                .secondary-links {
+                    gap: 3px 14px;
+                    margin-top: 19px;
+                    font-size: 0.84rem;
+                }
+
+                .secondary-link {
+                    padding: 7px 10px;
+                }
+
+                .nav-bar {
+                    right: 8px;
+                    bottom: 9px;
+                    left: 8px;
+                    gap: 4px;
+                    max-width: calc(100% - 16px);
+                    padding: 9px 8px;
+                    border-radius: 23px;
+                }
+
+                .nav-btn {
+                    min-width: 48px;
+                    padding: 0 3px;
+                }
+
+                .nav-btn-icon {
+                    width: 42px;
+                    height: 42px;
+                    font-size: 1rem;
+                }
+            }
+
+            @media (max-height: 650px) and (orientation: landscape) {
+                .page-shell {
+                    padding-top: 14px;
+                }
+
+                .hero {
+                    margin-top: 18px;
+                    margin-bottom: 18px;
+                }
+
+                .hero p {
+                    margin-top: 8px;
+                }
+
+                .main-card {
+                    min-height: 96px;
+                    padding-top: 13px;
+                    padding-bottom: 13px;
+                }
+            }
         </style>
-        <title>Menu Principal - APABF</title>
+        <link rel="stylesheet" href="nav.css">
+        <title>APABF - Área de Proteção Ambiental da Baleia Franca</title>
     </head>
     <body>
-        <div class="menu-container">
-            <h1 class="menu-title">Menu Principal</h1>
-            
-            <div class="menu-buttons">
-                <a href="sobre-apa.html" class="menu-button">
-                    <i class="fas fa-info-circle"></i>
-                    Sobre a APA
+        <main class="page-shell">
+            <header class="top-bar">
+                <div class="brand-logos">
+                    <img src="logos/APA da Baleia Franca.png" alt="Logo da Área de Proteção Ambiental da Baleia Franca" class="apa-logo">
+                    <span class="logo-divider" aria-hidden="true"></span>
+                    <img src="logos/icmbio horizontal@1000x-8.png" alt="Logo do ICMBio" class="icmbio-logo">
+                </div>
+                <div class="icmbio-motto">Cuidar da natureza com as pessoas</div>
+            </header>
+
+            <section class="hero" aria-labelledby="page-title">
+                <h1 id="page-title">Bem-vindo à <span>APA da Baleia Franca</span></h1>
+                <p>Conheça, explore e consulte informações da unidade.</p>
+            </section>
+
+            <section class="main-cards" aria-label="Principais opções">
+                <a href="baleia-franca.html" class="main-card">
+                    <span class="card-icon" aria-hidden="true">
+                        <i class="fas fa-water" aria-label="Baleia Franca"></i>
+                    </span>
+                    <span class="card-content">
+                        <h2>A Baleia Franca</h2>
+                        <p>Conheça a espécie e sua relação com a unidade.</p>
+                    </span>
+                    <span class="card-arrow" aria-hidden="true">&gt;</span>
                 </a>
-                
-                <a href="sobre-icmbio.html" class="menu-button">
-                    <i class="fas fa-building"></i>
-                    Sobre o ICMBio
+
+                <a href="sobre-apa.html" class="main-card">
+                    <span class="card-icon" aria-hidden="true"><i class="fas fa-map-marked-alt"></i></span>
+                    <span class="card-content">
+                        <h2>Conheça a APA</h2>
+                        <p>Descubra a área protegida, sua história e seus objetivos.</p>
+                    </span>
+                    <span class="card-arrow" aria-hidden="true">&gt;</span>
                 </a>
-                
-                <a href="baleia-franca.html" class="menu-button">
-                    <i class="fas fa-fish"></i>
-                    A Baleia Franca
+
+                <a href="servicos.html" class="main-card">
+                    <span class="card-icon" aria-hidden="true"><i class="fas fa-concierge-bell"></i></span>
+                    <span class="card-content">
+                        <h2>Serviços</h2>
+                        <p>Acesse orientações, solicitações e serviços disponíveis.</p>
+                    </span>
+                    <span class="card-arrow" aria-hidden="true">&gt;</span>
                 </a>
-                
-                <button class="menu-button" onclick="mostrarMensagem('Download dos shapefiles')">
-                    <i class="fas fa-download"></i>
-                    Download dos shapefiles
+
+                <button class="main-card" type="button" onclick="mostrarMensagem('Download dos shapefiles')">
+                    <span class="card-icon" aria-hidden="true"><i class="fas fa-layer-group"></i></span>
+                    <span class="card-content">
+                        <h2>Dados geográficos</h2>
+                        <p>Consulte os dados e materiais geográficos da APABF.</p>
+                    </span>
+                    <span class="card-arrow" aria-hidden="true">&gt;</span>
                 </button>
-                
-                <a href="mailto:apadabaleiafranca@icmbio.gov.br" class="menu-button">
-                    <i class="fas fa-envelope"></i>
-                    Fale com a APA
-                </a>
-                
-                <a href="https://www.instagram.com/apadabaleiafranca.icmbio/" class="menu-button" target="_blank">
-                    <i class="fab fa-instagram"></i>
-                    Instagram
-                </a>
-                
-                <a href="servicos.html" class="menu-button">
-                    <i class="fas fa-concierge-bell"></i>
-                    Serviços
-                </a>
-                
-                <button class="menu-button" onclick="mostrarMensagem('Educação Ambiental')">
-                    <i class="fas fa-graduation-cap"></i>
-                    Educação Ambiental
-                </button>
-                
-                <button class="menu-button" onclick="mostrarMensagem('Fiscalização')">
-                    <i class="fas fa-shield-alt"></i>
-                    Fiscalização
-                </button>
-            </div>
-        </div>
+            </section>
+
+            <nav class="secondary-links" aria-label="Informações complementares">
+                <a href="sobre-apa.html" class="secondary-link"><i class="fas fa-info-circle" aria-hidden="true"></i> Sobre a APA</a>
+                <a href="sobre-icmbio.html" class="secondary-link"><i class="fas fa-building" aria-hidden="true"></i> Sobre o ICMBio</a>
+                <a href="mailto:apadabaleiafranca@icmbio.gov.br" class="secondary-link"><i class="fas fa-envelope" aria-hidden="true"></i> Fale com a APA</a>
+                <a href="https://www.instagram.com/apadabaleiafranca.icmbio/" class="secondary-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i> Instagram</a>
+            </nav>
+        </main>
+
+        <nav class="nav-bar" aria-label="Navegação principal">
+            <a href="index.html" class="nav-btn" title="Início" aria-label="Início">
+                <span class="nav-btn-icon"><i class="fas fa-home" aria-hidden="true"></i></span>
+                <span class="nav-btn-label">Início</span>
+            </a>
+            <a href="Zoneamento APABF/index.html" class="nav-btn" title="Mapa" aria-label="Mapa">
+                <span class="nav-btn-icon"><i class="fas fa-map" aria-hidden="true"></i></span>
+                <span class="nav-btn-label">Mapa</span>
+            </a>
+            <a href="Fiscalização/index.html" class="nav-btn" title="Fiscalização" aria-label="Fiscalização">
+                <span class="nav-btn-icon"><i class="fas fa-shield-alt" aria-hidden="true"></i></span>
+                <span class="nav-btn-label">Fiscalização</span>
+            </a>
+            <a href="PMP-na-APABF-main2/index.html" class="nav-btn" title="PMP" aria-label="PMP">
+                <span class="nav-btn-icon"><i class="fas fa-camera" aria-hidden="true"></i></span>
+                <span class="nav-btn-label">Ocorrências</span>
+            </a>
+            <a href="Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais" aria-label="Instrumentos Legais">
+                <span class="nav-btn-icon"><i class="fas fa-gavel" aria-hidden="true"></i></span>
+                <span class="nav-btn-label">Instrumentos Legais</span>
+            </a>
+        </nav>
 
         <script>
-        function mostrarMensagem(titulo) {
-            alert('Página "' + titulo + '" em desenvolvimento.\n\nEsta funcionalidade será implementada em breve.');
-        }
-        </script>
+            const fotosDisponiveis = [
+                'Baleias Siriú.JPG',
+                'Barra de Ibiraquera.JPG',
+                'Costao Rosa Sul.JPG',
+                'Farol de Sta Marta.JPG',
+                'Ilha das Araras.JPG',
+                'Ilhote do Ouvidor.JPG',
+                'Ilhote do Ouvidor2.JPG',
+                'Ilhote do Siriú.JPG',
+                'Ilhote do Siriú2.JPG',
+                'Lagoa do Paes Leme.JPG',
+                'Mangue Laguna.JPG',
+                'Praia da Gamboa.JPG',
+                'Praia do Ouvidor.JPG',
+                'Ranchos Praia do Ouvidor.JPG',
+                'Sambaqui Farol Santa Marta.JPG'
+            ];
 
-        <!-- Barra de Navegação -->
-        <div class="nav-bar">
-            <a href="index.html" class="nav-btn" title="Menu Principal">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
-                <i class="fas fa-map"></i>
-            </a>
-            <a href="PMP-na-APABF-main2/index.html" class="nav-btn" title="Monitoramento de Praias">
-                <i class="fas fa-camera"></i>
-            </a>
-            <a href="Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
-                <i class="fas fa-gavel"></i>
-            </a>
-        </div>
+            function selecionarFotoDeFundo() {
+                if (!fotosDisponiveis.length) {
+                    return;
+                }
+
+                const foto = fotosDisponiveis[Math.floor(Math.random() * fotosDisponiveis.length)];
+                document.body.style.setProperty('--background-image', `url("${encodeURI(`fotos/${foto}`)}")`);
+            }
+
+            function mostrarMensagem(titulo) {
+                alert('Página "' + titulo + '" em desenvolvimento.\n\nEsta funcionalidade será implementada em breve.');
+            }
+
+            selecionarFotoDeFundo();
+        </script>
+        <script src="nav.js" data-base=""></script>
     </body>
 </html>

@@ -35,7 +35,7 @@
         }
 
         .nav-btn {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white !important;
             border: none;
             border-radius: 50%;
@@ -56,7 +56,7 @@
         }
 
         .nav-btn:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
@@ -85,7 +85,7 @@
         }
 
         .btn-centralizar:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             color: white;
             transform: translateX(-50%) translateY(-2px);
             box-shadow: 0 6px 16px rgba(0,0,0,0.4);
@@ -400,7 +400,7 @@
         }
 
         .sidebar-header {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 20px;
             display: flex;
@@ -766,7 +766,7 @@
             padding: 14px 20px;
             border: none;
             border-radius: 10px;
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             font-size: 18px;
             font-weight: 600;
@@ -776,7 +776,7 @@
         }
 
         .botao-principal:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             transform: translateY(-1px);
         }
 
@@ -835,7 +835,7 @@
         }
 
         .popup-ajuda-header {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 20px;
             display: flex;
@@ -922,6 +922,7 @@
         }
         </style>
         <title></title>
+            <link rel="stylesheet" href="../nav.css">
     </head>
     <body>
         <div id="map">
@@ -1425,8 +1426,8 @@
             <a href="../Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
                 <i class="fas fa-map"></i>
             </a>
-            <a href="../PMP-na-APABF-main2/index.html" class="nav-btn" title="Monitoramento de Praias">
-                <i class="fas fa-camera"></i>
+            <a href="../Fiscalização/index.html" class="nav-btn" title="Fiscalização">
+                <i class="fas fa-shield-alt"></i>
             </a>
             <a href="index.html" class="nav-btn" title="Instrumentos Legais">
                 <i class="fas fa-gavel"></i>
@@ -1726,5 +1727,6 @@
             map.invalidateSize();
         }
         </script>
+            <script src="../nav.js" data-base=".."></script>
     </body>
 </html>

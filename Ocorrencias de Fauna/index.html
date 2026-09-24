@@ -1,0 +1,2542 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        #popupAjuda {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .popup-ajuda-conteudo {
+            background: white;
+            width: 90%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        .botao-principal {
+    display: block;
+    width: 80%;              /* largura do botão */
+    margin: 15px auto 0;     /* centraliza horizontalmente */
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #146666;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+
+
+.botao-principal:hover {
+    background: #0f5252;
+    transform: translateY(-1px);
+}
+
+.botao-principal:active {
+    transform: translateY(0);
+}
+
+        .popup-ajuda-conteudo h3 {
+            margin: 0 0 12px;
+            color: #146666;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .popup-ajuda-conteudo p,
+        .popup-ajuda-conteudo li {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .popup-ajuda-conteudo ul {
+            padding-left: 20px;
+        }
+
+        .popup-ajuda-rodape {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        #popupAjuda .popup-ajuda-rodape a,
+        #popupAjuda .popup-ajuda-rodape a:link,
+        #popupAjuda .popup-ajuda-rodape a:visited,
+        #popupAjuda .popup-ajuda-rodape a:hover,
+        #popupAjuda .popup-ajuda-rodape a:active {
+            color: #1592CF !important;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .popup-ajuda-fechar {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .popup-ajuda-fechar:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .popup-ajuda-header {
+            background: #146666;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-radius: 12px 12px 0 0;
+            margin: -24px -24px 20px -24px;
+        }
+
+        .popup-ajuda-header .popup-ajuda-fechar {
+            position: absolute;
+            right: 20px;
+        }
+
+        .popup-ajuda-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .popup-versao{
+    margin-top:12px;
+    padding-top:8px;
+    border-top:1px solid #ddd;
+    text-align:center;
+    font-size:11px;
+    color:#000000;
+    font-style:italic;
+}
+
+        .popup-foto{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:10002;
+    justify-content:center;
+    align-items:center;
+}
+
+        .popup-foto-conteudo{
+    background:white;
+    width:90%;
+    max-width:500px;
+    padding:25px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 0 20px rgba(0,0,0,.3);
+    font-family: Arial, sans-serif;
+}
+
+        #previewFoto{
+    width:100%;
+    max-height:400px;
+    object-fit:contain;
+    border-radius:10px;
+    margin:20px 0;
+}
+
+        .botoes-foto{
+    display:flex;
+    gap:15px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+        .botao-secundario{
+    background:#888;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:12px 20px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+        .botao-secundario:hover{
+    background:#666;
+}
+
+        .popup-formulario{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:10003;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    box-sizing:border-box;
+    overflow-y:auto;
+}
+
+        .popup-formulario-conteudo{
+    background:white;
+    width:100%;
+    max-width:600px;
+    max-height:90vh;
+    overflow-y:auto;
+    padding:30px;
+    border-radius:14px;
+    font-family: Arial, sans-serif;
+    box-shadow:0 0 20px rgba(0,0,0,.3);
+    line-height:1.6;
+    box-sizing:border-box;
+}
+
+        .form-section{
+    margin-bottom:25px;
+}
+
+        .form-section h3{
+    margin:0 0 15px;
+    color:#146666;
+    font-size:18px;
+    border-bottom:2px solid #146666;
+    padding-bottom:8px;
+}
+
+        .form-section label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+    color:#333;
+}
+
+        .form-section select,
+        .form-section textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:16px;
+    font-family: Arial, sans-serif;
+    box-sizing:border-box;
+}
+
+        .form-section select:focus,
+        .form-section textarea:focus{
+    outline:none;
+    border-color:#146666;
+}
+
+        .form-section textarea{
+    resize:vertical;
+    min-height:100px;
+}
+
+        .local-info{
+    background:#f5f5f5;
+    padding:15px;
+    border-radius:8px;
+    margin-top:10px;
+}
+
+        .local-info p{
+    margin:5px 0;
+    font-size:14px;
+    color:#555;
+}
+
+        .local-info strong{
+    color:#146666;
+}
+
+        .form-help{
+    font-size:13px;
+    color:#666;
+    margin-top:8px;
+    font-style:italic;
+}
+
+        #miniMapa{
+    width:100%;
+    height:250px;
+    border-radius:8px;
+    margin-top:10px;
+    border:1px solid #ddd;
+    overflow:hidden;
+}
+
+        .loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+        .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #146666;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+        @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+        .loader p {
+    color: white;
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+        /* Barra Lateral */
+        .sidebar-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: #fff;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* Reposicionar controle de zoom para ficar abaixo do botão da barra lateral */
+        .leaflet-control-zoom {
+            top: 60px !important;
+            left: 10px !important;
+        }
+
+        /* Botão de Centralização */
+        .btn-centralizar {
+            position: fixed;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: #ffffff;
+            color: #146666;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-centralizar:hover {
+            background: #0f5252;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        .btn-centralizar:active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .sidebar-toggle:hover {
+            background: #f4f4f4;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-toggle i {
+            font-size: 18px;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -350px;
+            width: 350px;
+            height: 100%;
+            background: #fff;
+            z-index: 1001;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.3);
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: #146666;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            background: #f8f8f8;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .tab-button.active {
+            color: #146666;
+            border-bottom-color: #146666;
+            background: #fff;
+        }
+
+        .tab-button i {
+            font-size: 18px;
+        }
+
+        .tab-button span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-section h4,
+        .ajuda-section h4 {
+            color: #146666;
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #146666;
+        }
+
+        .info-section h4:first-child,
+        .ajuda-section h4:first-child {
+            margin-top: 0;
+        }
+
+        .info-section p,
+        .ajuda-section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .info-section ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .info-section li {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin: 8px 0;
+        }
+
+        .info-section a {
+            color: #146666;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .info-section a:hover {
+            text-decoration: underline;
+        }
+
+        .ajuda-section .botao-principal {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Overlay escuro quando sidebar abre */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-toggle {
+                top: 10px;
+                left: 10px;
+                width: 36px;
+                height: 36px;
+            }
+
+            .sidebar-toggle i {
+                font-size: 16px;
+            }
+
+            .sidebar-header h3 {
+                font-size: 18px;
+            }
+
+            .tab-button {
+                padding: 12px;
+            }
+
+            .tab-button i {
+                font-size: 16px;
+            }
+
+            .tab-button span {
+                font-size: 11px;
+            }
+
+            .sidebar-content {
+                padding: 15px;
+            }
+
+            .info-section h4,
+            .ajuda-section h4 {
+                font-size: 16px;
+            }
+
+            .info-section p,
+            .ajuda-section p {
+                font-size: 13px;
+            }
+
+            .info-section li {
+                font-size: 13px;
+            }
+
+            /* Ajustar controle de zoom para mobile */
+            .leaflet-control-zoom {
+                top: 56px !important;
+                left: 10px !important;
+            }
+
+            /* Ajustar botão de centralização para mobile */
+            .btn-centralizar {
+                bottom: 20px;
+                padding: 10px 24px;
+                font-size: 14px;
+            }
+        }
+
+        /* Barra de navegação inferior */
+        .nav-bar {
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            display: flex !important;
+            gap: 20px;
+            z-index: 99999 !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            padding: 15px 25px !important;
+            border-radius: 50px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .nav-btn {
+            background: #146666 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 60px !important;
+            height: 60px !important;
+            font-size: 24px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .nav-btn i {
+            color: white !important;
+        }
+
+        .nav-btn:hover {
+            background: #0f5252;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                bottom: 15px;
+                padding: 12px 20px;
+                gap: 15px;
+            }
+
+            .nav-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+
+        /* Logos no canto inferior direito */
+        .logos-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            align-items: center;
+        }
+
+        .logo {
+            max-height: 40px;
+            max-width: 120px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .logos-container {
+                bottom: 80px;
+                right: 10px;
+                gap: 5px;
+            }
+
+            .logo {
+                max-height: 30px;
+                max-width: 80px;
+            }
+        }
+
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+
+        <!-- Barra de Navegação -->
+        <div class="nav-bar" id="testNavBar">
+            <a href="../index.html" class="nav-btn" title="Menu Principal">
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="../Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
+                <i class="fas fa-map"></i>
+            </a>
+            <a href="index.html" class="nav-btn" title="Monitoramento de Praias">
+                <i class="fas fa-camera"></i>
+            </a>
+            <a href="../Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
+                <i class="fas fa-gavel"></i>
+            </a>
+        </div>
+
+        <!-- Logos -->
+        <div class="logos-container">
+            <img src="../logos/APA da Baleia Franca.png" alt="APA da Baleia Franca" class="logo">
+            <img src="../logos/icmbio-logo-1.png" alt="ICMBio" class="logo">
+        </div>
+
+        <div id="popupAjuda" onclick="fecharPopupAjuda(event)">
+            <div class="popup-ajuda-conteudo">
+                <div class="popup-ajuda-header">
+                    <h3>Precisa de ajuda para usar o mapa?</h3>
+                    <button class="popup-ajuda-fechar" type="button" onclick="fecharPopupAjuda()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <p>
+                    Este mapa apresenta as <strong>áreas monitoradas</strong> e as <strong>instituições responsáveis</strong> pelo Projeto de Monitoramento de Praias da <strong>APABF</strong>.
+                </p>
+
+                <ul>
+                    <li>Utilize os botões <strong>+</strong> e <strong>−</strong> para aproximar ou afastar o mapa.</li>
+                    <li>Clique no botão de <strong>localização</strong> para centralizar o mapa na sua posição atual.</li>
+                    <li>Selecione uma <strong>área do mapa</strong> para visualizar informações e os contatos da instituição responsável.</li>
+                    <li>Após selecionar uma área, você poderá compartilhar uma <strong>ocorrência</strong> diretamente com a <strong>APABF</strong> ou com a <strong>instituição executora</strong> correspondente.</li>
+                    <li>Quando disponível, utilize o <strong>painel de camadas</strong> para ativar ou desativar as informações exibidas no mapa.</li>
+                </ul>
+
+                <div class="popup-ajuda-rodape">
+                    Encontrou algum erro ou tem alguma sugestão?<br>
+                    Entre em contato pelo e-mail:
+                    <a href="mailto:apadabaleiafranca@icmbio.gov.br?subject=Sugestão%20ou%20erro%20no%20mapa%20PMP">apadabaleiafranca@icmbio.gov.br</a>
+                <div class="popup-versao">
+        Versão 1.0 • Atualizado em julho de 2026
+    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra Lateral com Abas -->
+        <div id="sidebarToggle" class="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <!-- Botão de Centralização -->
+        <button id="btnCentralizar" class="btn-centralizar">
+            Centralizar
+        </button>
+
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Informações</h3>
+                <button id="sidebarClose" class="sidebar-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-tabs">
+                <button class="tab-button active" data-tab="info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Info</span>
+                </button>
+                <button class="tab-button" data-tab="ajuda">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Ajuda</span>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <div id="tab-info" class="tab-content active">
+                    <div class="info-section">
+                        <h4>Sobre o Mapa</h4>
+                        <p>Este mapa interativo apresenta informações sobre a Área de Proteção Ambiental da Baleia Franca (APABF).</p>
+                        
+                        <h4>Funcionalidades</h4>
+                        <ul>
+                            <li>Navegue pelo mapa usando zoom e pan</li>
+                            <li>Visualize diferentes camadas de informações</li>
+                            <li>Utilize o botão de localização para encontrar sua posição</li>
+                            <li>Acesse a ajuda para obter instruções detalhadas</li>
+                        </ul>
+
+                        <h4>Contato</h4>
+                        <p>Para dúvidas ou sugestões, entre em contato:</p>
+                        <p><a href="mailto:apadabaleiafranca@icmbio.gov.br">apadabaleiafranca@icmbio.gov.br</a></p>
+                    </div>
+                </div>
+
+                <div id="tab-ajuda" class="tab-content">
+                    <div class="ajuda-section">
+                        <h4>Ajuda do Mapa</h4>
+                        <p>Clique no botão abaixo para abrir o guia completo de ajuda:</p>
+                        <button id="btnAbrirAjuda" class="botao-principal">
+                            <i class="fas fa-book"></i>
+                            Abrir ajuda sobre a tela
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // Controle da Barra Lateral
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const btnAbrirAjuda = document.getElementById('btnAbrirAjuda');
+
+            // Abrir/Fechar barra lateral
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('active');
+                document.getElementById('map').style.filter = 'grayscale(50%) brightness(0.9)';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+                document.getElementById('map').style.filter = 'none';
+            }
+
+            sidebarToggle.addEventListener('click', openSidebar);
+            sidebarClose.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Botão de centralização
+            const btnCentralizar = document.getElementById('btnCentralizar');
+            let ultimaLocalizacao = null; // Armazena última localização conhecida
+
+            if (btnCentralizar) {
+                btnCentralizar.addEventListener('click', function() {
+                    // Se já temos localização armazenada e é recente (menos de 5 minutos)
+                    if (ultimaLocalizacao && (Date.now() - ultimaLocalizacao.timestamp) < 300000) {
+                        map.setView([ultimaLocalizacao.lat, ultimaLocalizacao.lng], 16);
+                        return;
+                    }
+
+                    // Mostra indicador de carregamento
+                    btnCentralizar.textContent = 'Localizando...';
+                    btnCentralizar.disabled = true;
+
+                    map.locate({
+                        setView: true,
+                        maxZoom: 16,
+                        watch: false,
+                        enableHighAccuracy: true,
+                        maximumAge: 300000, // Usa localização em cache de até 5 minutos
+                        timeout: 10000
+                    });
+
+                    // Quando a localização for encontrada
+                    map.once('locationfound', function(e) {
+                        // Armazena a localização para uso futuro
+                        ultimaLocalizacao = {
+                            lat: e.latlng.lat,
+                            lng: e.latlng.lng,
+                            timestamp: Date.now()
+                        };
+
+                        btnCentralizar.textContent = 'Centralizar';
+                        btnCentralizar.disabled = false;
+                    });
+
+                    // Caso falhe a localização
+                    map.once('locationerror', function() {
+                        btnCentralizar.textContent = 'Centralizar';
+                        btnCentralizar.disabled = false;
+                        alert('Não foi possível obter sua localização. Verifique a permissão de GPS.');
+                    });
+                });
+            }
+
+            // Controle das abas
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active de todos os botões e conteúdos
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Adiciona active ao botão clicado e conteúdo correspondente
+                    this.classList.add('active');
+                    document.getElementById('tab-' + tabId).classList.add('active');
+                });
+            });
+
+            // Botão de abrir ajuda na barra lateral
+            if (btnAbrirAjuda) {
+                btnAbrirAjuda.addEventListener('click', function() {
+                    document.getElementById('popupAjuda').style.display = 'flex';
+                });
+            }
+
+            // Fechar sidebar com tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+        });
+        </script>
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="data/LimitesdaAPABF_1.js"></script>
+        <script src="data/area_costa_2.js"></script>
+        <script src="data/TrechosSetores_3.js"></script>
+        <script src="data/area_terrestre_v2_3.js"></script>
+
+        <script>
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:18, minZoom:1
+        }).fitBounds([[-28.825111293780306,-49.544851008945],[-27.77715063756411,-48.16391838911966]]);
+        var hash = new L.Hash(map);
+
+        map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+
+
+
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            map.fitBounds(bounds_group.getBounds());
+        }
+        map.createPane('pane_GoogleSatellite_0');
+        map.getPane('pane_GoogleSatellite_0').style.zIndex = 400;
+        var layer_GoogleSatellite_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleSatellite_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 9,
+            maxZoom: 18,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_GoogleSatellite_0;
+        map.addLayer(layer_GoogleSatellite_0);
+
+        
+
+        function pop_LimitesdaAPABF_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id'] !== null ? autolinker.link(String(feature.properties['Id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LimitesdaAPABF_1_0() {
+            return {
+                pane: 'pane_LimitesdaAPABF_1',
+                opacity: 1,
+                color: 'rgba(235,255,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                fillColor: 'rgba(235,255,0,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LimitesdaAPABF_1');
+        map.getPane('pane_LimitesdaAPABF_1').style.zIndex = 401;
+        map.getPane('pane_LimitesdaAPABF_1').style['mix-blend-mode'] = 'normal';
+        var layer_LimitesdaAPABF_1 = new L.geoJson(json_LimitesdaAPABF_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_LimitesdaAPABF_1',
+            layerName: 'layer_LimitesdaAPABF_1',
+            pane: 'pane_LimitesdaAPABF_1',
+            onEachFeature: pop_LimitesdaAPABF_1,
+            style: style_LimitesdaAPABF_1_0,
+        });
+        bounds_group.addLayer(layer_LimitesdaAPABF_1);
+        map.addLayer(layer_LimitesdaAPABF_1);
+
+function pop_area_costa_2(feature, layer) {
+
+    
+
+    layer.on('click', function(e) {
+
+        coordenadaSelecionada = e.latlng;
+        usaGPS = false; // Usa coordenada do clique, não GPS
+
+        telefoneie = null; // limpa o telefone anterior
+
+        var IE = feature.properties['Instituição Executora'];
+        var PMP = feature.properties['PMP'];
+        var areaId = String(feature.properties['id']);
+
+        // Remove telefone do PMP se estiver incluído (remove tudo após parênteses, hífen, ou padrões de telefone)
+        if (PMP) {
+            // Remove tudo após parênteses
+            if (PMP.includes('(')) {
+                PMP = PMP.split('(')[0].trim();
+            }
+            // Remove tudo após hífen seguido de números
+            PMP = PMP.replace(/-\s*\d+.*$/, '').trim();
+            // Remove padrões de telefone no final (ex: - (48) 99183-8663)
+            PMP = PMP.replace(/-\s*\(\d+\)\s*\d+.*$/, '').trim();
+        }
+
+        // Armazena dados da instituição para uso no formulário
+        dadosInstituicaoClique = {
+            instituicao: IE || 'Não informado',
+            telefone: null,
+            pmp: PMP || 'Não informado',
+            area: 'Costa - PMP',
+            isAltoMar: false
+        };
+
+        if (IE && IE.includes('UNESC')) {
+            telefoneie = '5548991838663';
+            dadosInstituicaoClique.telefone = '5548991838663';
+        }
+        else if (IE && IE.includes('R3')) {
+            telefoneie = '5548991045707';
+            dadosInstituicaoClique.telefone = '5548991045707';
+        }
+        else if (IE && IE.includes('Australis')) {
+            telefoneie = '5548991164108';
+            dadosInstituicaoClique.telefone = '5548991164108';
+        }
+        else if (IE && IE.includes('UDESC')) {
+            telefoneie = '5548991160264';
+            dadosInstituicaoClique.telefone = '5548991160264';
+        }
+
+        // Se for área fora do PMP (id = 6)
+        if (areaId === '6') {
+            dadosInstituicaoClique.isAltoMar = true;
+            dadosInstituicaoClique.area = 'Alto mar - Sem atendimento';
+        }
+
+        console.log("Dados instituição clique:", dadosInstituicaoClique);
+
+    });
+
+    // restante da função...
+
+    // =====================================================
+    // POPUP ESPECIAL - ÁREA FORA DO PMP (ID = 6)
+    // =====================================================
+    if (String(feature.properties['id']) === '6') {
+
+        var popupContent = `
+            <h3>Área sem atendimento direto pelo PMP</h3>
+
+            <p>
+                Esta área não é atendida diretamente pelas Instituições Executoras
+                do Projeto de Monitoramento de Praias (PMP).
+            </p>
+
+            <p>
+                Caso observe um animal marinho vivo, morto ou debilitado,
+                você poderá encaminhar a localização para a equipe da
+                APA da Baleia Franca.
+            </p>
+
+            <div style="text-align:center; margin-top:10px;">
+                <button onclick="abrirPopupEnvioAPA()"
+                        style="padding:8px 12px; cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">
+                    📍 Enviar localização
+                </button>
+            </div>
+        `;
+
+        layer.bindPopup(popupContent, { maxHeight: 400 });
+        return;
+    }
+
+    // =====================================================
+    // POPUP PADRÃO DO PMP
+    // =====================================================
+
+    var popupContent = '<table>\
+            <tr>\
+                <td colspan="2"><strong>Instituição Executora</strong><br />' +
+                (feature.properties['Instituição Executora'] !== null ?
+                autolinker.link(String(feature.properties['Instituição Executora']).replace(/'/g, '\'').toLocaleString()) : '') +
+                '</td>\
+            </tr>\
+            <tr>\
+                <td colspan="2"><strong>APABF</strong><br />' +
+                (feature.properties['APABF'] !== null ?
+                autolinker.link(String(feature.properties['APABF']).replace(/'/g, '\'').toLocaleString()) : '') +
+                '</td>\
+            </tr>\
+            <tr>\
+                <td colspan="2"><strong>PMP</strong><br />' +
+                (feature.properties['PMP'] !== null ?
+                autolinker.link(String(feature.properties['PMP']).replace(/'/g, '\'').toLocaleString()) : '') +
+                '</td>\
+            </tr>\
+            <tr>\
+                <td colspan="2" style="text-align:center;padding-top:10px;">\
+                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">\
+                        📍 Enviar localização\
+                    </button>\
+                </td>\
+            </tr>\
+        </table>';
+
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+
+    layer.on('popupopen', function(e) {
+        addClassToPopupIfMedia(content, e.popup);
+    });
+
+    layer.bindPopup(content, { maxHeight: 400 });
+
+    
+}
+
+        function abrirPopupEnvioAPA() {
+
+    const telefone = "5548988056580";
+
+    if (!coordenadaSelecionada) {
+        alert("Clique em um local do mapa primeiro.");
+        return;
+    }
+
+    var mensagem =
+        'Olá! Gostaria de comunicar uma ocorrência observada na área da APA da Baleia Franca:%0A%0A' +
+        'https://maps.google.com/?q=' +
+        coordenadaSelecionada.lat + ',' +
+        coordenadaSelecionada.lng;
+
+    var url =
+        'https://wa.me/' + telefone + '?text=' + mensagem;
+
+    // Tenta abrir na mesma aba para evitar bloqueio de popup
+    try {
+        window.location.href = url;
+    } catch (e) {
+        window.open(url, '_blank');
+    }
+}
+
+        function style_area_costa_2_0(feature) {
+            switch(String(feature.properties['id'])) {
+                case '1':
+                    return {
+                pane: 'pane_area_costa_2',
+                opacity: 0,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0,
+                fillColor: 'rgba(236,2,91,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '2':
+                    return {
+                pane: 'pane_area_costa_2',
+                opacity: 0,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0,
+                fillColor: 'rgba(252,107,255,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '3':
+                    return {
+                pane: 'pane_area_costa_2',
+                opacity: 0,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0,
+                fillColor: 'rgba(41,220,216,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '4':
+                    return {
+                pane: 'pane_area_costa_2',
+                opacity: 0,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0,
+                fillColor: 'rgba(41,220,216,1.0)',
+                interactive: true,
+            }
+                    break;
+                case '5':
+    return {
+        pane: 'pane_area_costa_2',
+        opacity: 0,
+        color: 'rgba(35,35,35,1.0)',
+        dashArray: '',
+        lineCap: 'butt',
+        lineJoin: 'miter',
+        weight: 1.0,
+        fill: true,
+        fillOpacity: 0,
+        fillColor: 'rgba(118,93,209,1.0)',
+        interactive: true,
+    }
+    break;
+
+case '6':
+    return {
+        pane: 'pane_area_costa_2',
+        opacity: 0,
+        color: 'rgba(35,35,35,1.0)',
+        dashArray: '',
+        lineCap: 'butt',
+        lineJoin: 'miter',
+        weight: 1.0,
+        fill: true,
+        fillOpacity: 0,
+        fillColor: 'rgba(29,12,229,1.0)',
+        interactive: true,
+    }
+    break;
+}}
+        map.createPane('pane_area_costa_2');
+        map.getPane('pane_area_costa_2').style.zIndex = 402;
+        map.getPane('pane_area_costa_2').style['mix-blend-mode'] = 'normal';
+        var layer_area_costa_2 = new L.geoJson(json_area_costa_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_area_costa_2',
+            layerName: 'layer_area_costa_2',
+            pane: 'pane_area_costa_2',
+            onEachFeature: pop_area_costa_2,
+            style: style_area_costa_2_0,
+        });
+        bounds_group.addLayer(layer_area_costa_2);
+        map.addLayer(layer_area_costa_2);
+
+        function pop_area_terrestre_v2_3(feature, layer) {
+    var popupContent = '<table>\
+            <tr>\
+                <td colspan="2"><strong>APABF</strong><br />' + (feature.properties['APABF'] !== null ? autolinker.link(String(feature.properties['APABF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+            </tr>\
+            <tr>\
+                <td colspan="2"><strong>Polícia Militar Ambiental</strong><br />' + (feature.properties['Polícia Militar Ambiental'] !== null ? autolinker.link(String(feature.properties['Polícia Militar Ambiental']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+            </tr>\
+            <tr>\
+                <td colspan="2" style="text-align:center;padding-top:10px;">\
+                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">\
+                        📍 Enviar localização\
+                    </button>\
+                </td>\
+            </tr>\
+        </table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+
+    // Armazena dados quando clica na área terrestre
+    layer.on('click', function(e) {
+        coordenadaSelecionada = e.latlng;
+        usaGPS = false; // Usa coordenada do clique, não GPS
+
+        var pma = feature.properties['Polícia Militar Ambiental'];
+
+        // Armazena dados da instituição para uso no formulário
+        dadosInstituicaoClique = {
+            instituicao: pma || 'Polícia Militar Ambiental',
+            telefone: '554836211111', // Telefone da Polícia Militar Ambiental
+            pmp: 'Não se aplica',
+            area: 'Terrestre - Polícia Militar Ambiental',
+            isAltoMar: false
+        };
+
+        console.log("Dados instituição clique (terrestre):", dadosInstituicaoClique);
+    });
+
+    layer.on('popupopen', function(e) {
+        addClassToPopupIfMedia(content, e.popup);
+    });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+
+function style_area_terrestre_v2_3_0() {
+    return {
+        pane: 'pane_area_terrestre_v2_3',
+        opacity: 0,
+        color: 'rgba(0,0,0,0)',
+        weight: 0,
+        fill: true,
+        fillOpacity: 0,
+        fillColor: 'rgba(20,102,102,1.0)',
+        interactive: true,
+    }
+}
+
+map.createPane('pane_area_terrestre_v2_3');
+map.getPane('pane_area_terrestre_v2_3').style.zIndex = 401;
+map.getPane('pane_area_terrestre_v2_3').style['mix-blend-mode'] = 'normal';
+
+var layer_area_terrestre_v2_3 = new L.geoJson(json_area_terrestre_v2_3, {
+    attribution: '',
+    interactive: true,
+    dataVar: 'json_area_terrestre_v2_3',
+    layerName: 'layer_area_terrestre_v2_3',
+    pane: 'pane_area_terrestre_v2_3',
+    onEachFeature: pop_area_terrestre_v2_3,
+    style: style_area_terrestre_v2_3_0,
+});
+
+bounds_group.addLayer(layer_area_terrestre_v2_3);
+map.addLayer(layer_area_terrestre_v2_3);
+
+        function pop_TrechosSetores_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Instituição Executora'] !== null ? autolinker.link(String(feature.properties['Instituição Executora']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['APABF'] !== null ? autolinker.link(String(feature.properties['APABF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['IBAMA'] !== null ? autolinker.link(String(feature.properties['IBAMA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PMP'] !== null ? autolinker.link(String(feature.properties['PMP']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2" style="text-align:center;padding-top:10px;">\
+                            <button onclick="registrarOcorrencia()" style="padding:8px 12px;cursor:pointer;">\
+                                📷 Registrar ocorrência\
+                            </button>\
+                        </td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_TrechosSetores_3_0(feature) {
+            switch(String(feature.properties['id'])) {
+                case '1':
+                    return {
+                pane: 'pane_TrechosSetores_3',
+                opacity: 1,
+                color: 'rgba(236,2,91,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 6.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+                    break;
+                case '2':
+                    return {
+                pane: 'pane_TrechosSetores_3',
+                opacity: 1,
+                color: 'rgba(252,107,255,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 6.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+                    break;
+                case '3':
+                    return {
+                pane: 'pane_TrechosSetores_3',
+                opacity: 1,
+                color: 'rgba(41,220,216,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 6.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+                    break;
+                case '4':
+                    return {
+                pane: 'pane_TrechosSetores_3',
+                opacity: 1,
+                color: 'rgba(67,0,255,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 6.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+                    break;
+                case '5':
+                    return {
+                pane: 'pane_TrechosSetores_3',
+                opacity: 1,
+                color: 'rgba(118,93,209,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 6.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_TrechosSetores_3');
+        map.getPane('pane_TrechosSetores_3').style.zIndex = 403;
+        map.getPane('pane_TrechosSetores_3').style['mix-blend-mode'] = 'normal';
+        var layer_TrechosSetores_3 = new L.geoJson(json_TrechosSetores_3, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_TrechosSetores_3',
+            layerName: 'layer_TrechosSetores_3',
+            pane: 'pane_TrechosSetores_3',
+            onEachFeature: pop_TrechosSetores_3,
+            style: style_TrechosSetores_3_0,
+        });
+        bounds_group.addLayer(layer_TrechosSetores_3);
+        map.addLayer(layer_TrechosSetores_3);
+        var overlaysTree = [
+            {label: 'Trechos / Setores<br /><table><tr><td style="text-align: center;"><img src="legend/TrechosSetores_3_AssociaçãoR3AnimalTrecho30.png" /></td><td>Associação R3 Animal (Trecho 3)</td></tr><tr><td style="text-align: center;"><img src="legend/TrechosSetores_3_InstitutoAustralisTrecho21.png" /></td><td>Instituto Australis (Trecho 2)</td></tr><tr><td style="text-align: center;"><img src="legend/TrechosSetores_3_UDESCTrecho12.png" /></td><td>UDESC (Trecho 1)</td></tr><tr><td style="text-align: center;"><img src="legend/TrechosSetores_3_UDESCSetorA3.png" /></td><td>UDESC (Setor A)</td></tr><tr><td style="text-align: center;"><img src="legend/TrechosSetores_3_UNESCSetorB4.png" /></td><td>UNESC (Setor B)</td></tr></table>', layer: layer_TrechosSetores_3},
+            {label: '<img src="legend/LimitesdaAPABF_1.png" /> Limites da APABF', layer: layer_LimitesdaAPABF_1},
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        </script>
+        
+        
+         <!-- POPUP -->
+
+<div id="popupInicial" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    box-sizing:border-box;
+">
+
+<div style="
+    background:white;
+    width:100%;
+    max-width:700px;
+    max-height:90vh;
+    overflow-y:auto;
+    padding:30px;
+    border-radius:14px;
+    font-family: Arial, sans-serif;
+    box-shadow:0 0 20px rgba(0,0,0,.3);
+    line-height:1.6;
+    box-sizing:border-box;
+">
+
+    <h2 style="
+        margin-top:0;
+        color:#0d4f4f;
+        text-align:center;
+    ">
+       <h2>🐋 Registro de Ocorrência de Fauna</h2>
+
+        <p>
+            Este mapa auxilia no registro de ocorrências de fauna na Área de Proteção Ambiental da Baleia Franca.
+            Escolha uma das opções abaixo para iniciar.
+        </p>
+
+         <hr>
+
+        <div class="opcao-popup">
+            <h3>🗺️ Localizar ocorrência no mapa</h3>
+            <p>
+                Selecione no mapa o local onde o animal foi encontrado.
+                O sistema identificará automaticamente a área e exibirá os
+                contatos responsáveis pelo atendimento.
+            </p>
+
+           <button class="botao-principal" onclick="FecharPopup()">
+    📍 Localizar no mapa
+</button>
+        </div>
+
+        <hr>
+
+        <div class="opcao-popup">
+            <h3>📷 Registrar ocorrência</h3>
+            <p>
+                Tire uma fotografia da ocorrência. A localização será obtida
+                automaticamente pelo GPS do dispositivo e as informações poderão
+                ser encaminhadas à equipe da APA da Baleia Franca.
+            </p>
+
+            <button class="botao-principal" onclick="registrarOcorrencia()">
+    📷 Registrar ocorrência
+</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- INPUT E POPUP FOTO -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="fotoSelecionada(event)">
+
+<div id="popupFoto" class="popup-foto">
+    <div class="popup-foto-conteudo">
+        <h2>📷 Registrar ocorrência</h2>
+        <p>Confira a fotografia antes de continuar.</p>
+        <img id="previewFoto" src="" alt="Pré-visualização da foto">
+        <div class="botoes-foto">
+            <button class="botao-secundario" onclick="tirarOutraFoto()">
+                🔄 Tirar outra foto
+            </button>
+            <button class="botao-principal" style="width: auto; margin: 0;" onclick="continuarRegistro()">
+                ➜ Continuar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p id="loaderText">Carregando...</p>
+</div>
+
+<!-- POPUP FORMULÁRIO DE OCORRÊNCIA -->
+<div id="popupFormulario" class="popup-formulario">
+    <div class="popup-formulario-conteudo">
+        <h2 style="margin-top:0; color:#146666; text-align:center;">📋 Detalhes da Ocorrência</h2>
+
+        <div class="form-section">
+            <h3>🐾 Animal</h3>
+            <label>Selecione o grupo do animal:</label>
+            <select id="selectAnimal">
+                <option value="">-- Selecione --</option>
+                <option value="cetaceo">Cetáceo (baleias e golfinhos)</option>
+                <option value="quelonio">Quelônio (tartarugas)</option>
+                <option value="pinipede">Pinípede (lobos-marinhos)</option>
+                <option value="ave">Ave</option>
+                <option value="peixe">Peixe</option>
+                <option value="outro">Outro animal</option>
+                <option value="nao_sei">Não sei identificar</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <h3>📋 Situação</h3>
+            <label>Selecione a condição observada:</label>
+            <select id="selectSituacao">
+                <option value="">-- Selecione --</option>
+                <option value="vivo">Animal vivo</option>
+                <option value="debilitado">Animal debilitado / ferido</option>
+                <option value="morto">Animal morto</option>
+                <option value="preso">Animal preso em rede ou outro material</option>
+                <option value="outra">Outra situação</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <h3>📍 Local da ocorrência</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">Preenchido automaticamente pelo GPS.</p>
+            <div class="local-info" id="localInfo">
+                <p><strong>Endereço:</strong> <span id="displayEndereco">Carregando...</span></p>
+                <p><strong>Latitude:</strong> <span id="displayLat">--</span></p>
+                <p><strong>Longitude:</strong> <span id="displayLng">--</span></p>
+                <p><strong>Precisão:</strong> <span id="displayPrecisao">--</span></p>
+            </div>
+            <div id="miniMapa"></div>
+        </div>
+
+        <div class="form-section" id="secaoInstituicao">
+            <h3>🏢 Instituição Executora</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">Preenchido automaticamente baseado na localização.</p>
+            <div class="local-info" id="instituicaoInfo">
+                <p><strong>Instituição:</strong> <span id="displayInstituicao">Carregando...</span></p>
+                <p><strong>Telefone:</strong> <span id="displayTelefone">--</span></p>
+                <p><strong>PMP:</strong> <span id="displayPMP">--</span></p>
+                <p><strong>Área:</strong> <span id="displayArea">--</span></p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>📝 Observações (opcional)</h3>
+            <label>Detalhes adicionais:</label>
+            <textarea id="observacoes" placeholder="Comportamento do animal, condições do local ou outras informações relevantes..."></textarea>
+            <p class="form-help">Utilize este campo para informar detalhes que possam auxiliar a equipe responsável.</p>
+        </div>
+
+        <div style="display:flex; gap:15px; justify-content:center; margin-top:30px;">
+            <button class="botao-secundario" onclick="fecharFormulario()">Cancelar</button>
+            <button class="botao-principal" style="width:auto; margin:0;" onclick="enviarOcorrencia()">📤 Enviar Ocorrência</button>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP ESCOLHA DE REGISTRO -->
+<div id="popupEscolhaRegistro" class="popup-formulario">
+    <div class="popup-formulario-conteudo" style="max-width:500px; text-align:center;">
+        <h2 style="margin-top:0; color:#146666;">📋 Como deseja registrar?</h2>
+        <p style="margin-bottom:25px; color:#666;">Escolha uma opção para continuar:</p>
+        
+        <div style="display:flex; flex-direction:column; gap:15px;">
+            <button class="botao-principal" style="width:100%; margin:0;" onclick="registrarComFoto()">
+                📷 Com fotografia
+            </button>
+            
+            <button class="botao-principal" style="width:100%; margin:0;" onclick="registrarSemFoto()">
+                📝 Apenas registro
+            </button>
+        </div>
+        
+        <button class="botao-secundario" style="margin-top:25px;" onclick="fecharPopupEscolhaRegistro()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+
+// Variáveis globais
+var coordenadaSelecionada = null;
+var telefoneie = null;
+var marcadorUsuario = null;
+var circuloPrecisao = null;
+var dadosInstituicaoClique = null; // Armazena dados da instituição quando clica no mapa
+var usaGPS = false; // Flag para saber se deve usar GPS ou coordenada do clique
+var miniMapa = null;
+var fotoBase64 = null; // Armazena a foto em base64 para upload
+
+window.onload = function() {
+    document.getElementById("popupInicial").style.display = "flex";
+}
+
+function FecharPopup() {
+    document.getElementById("popupInicial").style.display = "none";
+    map.invalidateSize();
+    localizarUsuarioAoEntrar();
+}
+
+function localizarUsuarioAoEntrar() {
+    function aoEncontrarLocalizacao(posicao) {
+        map.off('locationerror', aoFalharLocalizacao);
+        var latitude = posicao.latlng.lat;
+        var longitude = posicao.latlng.lng;
+
+        if (marcadorUsuario) map.removeLayer(marcadorUsuario);
+        if (circuloPrecisao) map.removeLayer(circuloPrecisao);
+
+        marcadorUsuario = L.circleMarker([latitude, longitude], {
+            radius: 8, fillColor: "#2196F3", color: "#ffffff", weight: 3, opacity: 1, fillOpacity: 1
+        }).addTo(map);
+
+        circuloPrecisao = L.circle([latitude, longitude], {
+            radius: posicao.accuracy, color: "#2196F3", fillColor: "#2196F3", fillOpacity: 0.15, weight: 1,
+            interactive: false // Permite clicar no mapa através do círculo
+        }).addTo(map);
+
+        map.flyTo([latitude, longitude], 15, { duration: 2.5 });
+        map.stopLocate();
+    }
+
+    function aoFalharLocalizacao() {
+        map.off('locationfound', aoEncontrarLocalizacao);
+        alert("Não foi possível acessar sua localização. Verifique a permissão de localização do navegador.");
+    }
+
+    map.once('locationfound', aoEncontrarLocalizacao);
+    map.once('locationerror', aoFalharLocalizacao);
+    map.locate({ setView: false, watch: false, enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+}
+
+map.on('click', function(e) {
+    coordenadaSelecionada = {
+        lat: e.latlng.lat.toFixed(6),
+        lng: e.latlng.lng.toFixed(6)
+    };
+});
+
+function abrirPopupEnvio() {
+    if (!coordenadaSelecionada) {
+        alert("Clique em um local do mapa primeiro.");
+        return;
+    }
+    document.getElementById('popupEscolhaRegistro').style.display = 'flex';
+}
+
+function fecharPopupEnvio() {
+    document.getElementById('popupEnvio').style.display = 'none';
+}
+
+function fecharPopupAjuda(event) {
+    if (event && event.target.id !== 'popupAjuda') return;
+    document.getElementById('popupAjuda').style.display = 'none';
+}
+
+function abrirPopupEnvioAPA() {
+    if (!coordenadaSelecionada) {
+        alert("Clique em um local do mapa primeiro.");
+        return;
+    }
+    // Abre diretamente o formulário usando a coordenada do clique
+    abrirFormularioComCoordenadaClique();
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') fecharPopupAjuda();
+});
+
+// Aguarda o DOM estar carregado antes de adicionar os event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    var btnAPA = document.getElementById('btnAPA');
+    if (btnAPA) {
+        btnAPA.addEventListener('click', function() {
+            var numero = '5548988056580';
+            var mensagem = 'Olá! Gostaria de comunicar uma ocorrência observada na área monitorada pelo PMP: %0A%0A' +
+                'https://maps.google.com/?q=' + coordenadaSelecionada.lat + ',' + coordenadaSelecionada.lng;
+            var whatsappUrl = 'https://wa.me/' + numero + '?text=' + mensagem;
+
+            // Tenta abrir na mesma aba para evitar bloqueio de popup
+            try {
+                window.location.href = whatsappUrl;
+            } catch (e) {
+                window.open(whatsappUrl, '_blank');
+            }
+
+            fecharPopupEnvio();
+        });
+    }
+
+    var btnie = document.getElementById('btnie');
+    if (btnie) {
+        btnie.addEventListener('click', function() {
+            if (!telefoneie) {
+                alert("Nenhuma instituição executora foi encontrada para esta área.");
+                return;
+            }
+            var mensagem = 'Olá! Gostaria de comunicar uma ocorrência observada na área monitorada pelo PMP: %0A%0A' +
+                'https://maps.google.com/?q=' + coordenadaSelecionada.lat + ',' + coordenadaSelecionada.lng;
+            var whatsappUrl = 'https://wa.me/' + telefoneie + '?text=' + mensagem;
+
+            // Tenta abrir na mesma aba para evitar bloqueio de popup
+            try {
+                window.location.href = whatsappUrl;
+            } catch (e) {
+                window.open(whatsappUrl, '_blank');
+            }
+
+            fecharPopupEnvio();
+        });
+    }
+});
+
+/* FUNÇÕES DE FOTO */
+function registrarOcorrencia() {
+    document.getElementById("popupInicial").style.display = "none";
+    const input = document.getElementById("cameraInput");
+    input.value = "";
+    input.click();
+}
+
+function fotoSelecionada(event){
+    const foto = event.target.files[0];
+    if(!foto) return;
+
+    const leitor = new FileReader();
+    leitor.onload = function(e){
+        document.getElementById("previewFoto").src = e.target.result;
+        fotoBase64 = e.target.result; // Armazena a foto em base64 para upload
+        document.getElementById("popupFoto").style.display = "flex";
+    }
+    leitor.readAsDataURL(foto);
+}
+
+function tirarOutraFoto(){
+    document.getElementById("popupFoto").style.display="none";
+    const input = document.getElementById("cameraInput");
+    input.value = "";
+    input.click();
+}
+
+function continuarRegistro(){
+    // Fecha o popupFoto se estiver aberto
+    var popupFoto = document.getElementById("popupFoto");
+    if (popupFoto) {
+        popupFoto.style.display="none";
+    }
+
+    // Se veio do clique no mapa, usa coordenada do clique
+    if (!usaGPS && coordenadaSelecionada) {
+        abrirFormularioComCoordenadaClique();
+        return;
+    }
+
+    // Define que deve usar GPS
+    usaGPS = true;
+
+    // Mostra o loader com mensagem personalizada
+    document.getElementById("loader").style.display = "flex";
+    document.getElementById("loaderText").textContent = "Obtendo sua localização...";
+
+    // Captura a localização atual do usuário
+    map.locate({
+        setView: false,
+        watch: false,
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+    });
+
+    // Quando a localização for encontrada, abre o formulário e exibe os dados
+    map.once('locationfound', function(posicao) {
+        var latitude = posicao.latlng.lat.toFixed(6);
+        var longitude = posicao.latlng.lng.toFixed(6);
+        var precisao = Math.round(posicao.accuracy);
+
+        coordenadaSelecionada = {
+            lat: latitude,
+            lng: longitude
+        };
+
+        // Exibe os dados no formulário
+        document.getElementById('displayLat').textContent = latitude;
+        document.getElementById('displayLng').textContent = longitude;
+        document.getElementById('displayPrecisao').textContent = precisao + ' m';
+
+        // Faz reverse geocoding para obter o endereço
+        document.getElementById('displayEndereco').textContent = "Carregando endereço...";
+
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude + '&zoom=18&addressdetails=1')
+            .then(response => response.json())
+            .then(data => {
+                var endereco = data.display_name || "Endereço não encontrado";
+
+                // Tenta extrair partes mais relevantes do endereço
+                if (data.address) {
+                    var partes = [];
+                    if (data.address.road) partes.push(data.address.road);
+                    if (data.address.suburb) partes.push(data.address.suburb);
+                    if (data.address.city || data.address.town) partes.push(data.address.city || data.address.town);
+                    if (data.address.state) partes.push(data.address.state);
+                    if (partes.length > 0) {
+                        endereco = partes.join(', ');
+                    }
+                }
+
+                document.getElementById('displayEndereco').textContent = endereco;
+
+                // Preenche instituição executora baseado na área (usando GPS)
+                preencherInstituicaoExecutora(latitude, longitude, true, null);
+            })
+            .catch(error => {
+                console.error('Erro no reverse geocoding:', error);
+                document.getElementById('displayEndereco').textContent = "Endereço não disponível";
+                // Se falhar o geocoding, assume área não identificada
+                preencherInstituicaoExecutora(latitude, longitude, true, null);
+            });
+
+        // Cria o mini mapa
+        if (miniMapa) {
+            miniMapa.remove();
+        }
+        miniMapa = L.map('miniMapa', {
+            center: [latitude, longitude],
+            zoom: 15,
+            zoomControl: false,
+            attributionControl: false,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            dragging: false
+        });
+
+        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: ''
+        }).addTo(miniMapa);
+
+        L.marker([latitude, longitude]).addTo(miniMapa);
+
+        // Abre o popup do formulário
+        document.getElementById('popupFormulario').style.display = 'flex';
+
+        // Esconde o loader após o formulário abrir
+        setTimeout(function() {
+            document.getElementById("loader").style.display = "none";
+            document.getElementById("loaderText").textContent = "Carregando...";
+        }, 300);
+
+        // Força o mini mapa a renderizar corretamente
+        setTimeout(function() {
+            miniMapa.invalidateSize();
+        }, 100);
+    });
+
+    // Caso falhe a localização
+    map.once('locationerror', function(erro) {
+        alert("Não foi possível obter sua localização. Verifique a permissão de GPS.");
+        // Abre o formulário mesmo sem localização
+        document.getElementById('displayLat').textContent = "Não disponível";
+        document.getElementById('displayLng').textContent = "Não disponível";
+        document.getElementById('displayPrecisao').textContent = "Não disponível";
+        document.getElementById('displayEndereco').textContent = "Não disponível";
+        document.getElementById('popupFormulario').style.display = 'flex';
+        // Esconde o loader e reseta texto
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("loaderText").textContent = "Carregando...";
+    });
+}
+
+function fecharFormulario(){
+    document.getElementById('popupFormulario').style.display = 'none';
+}
+
+function abrirFormularioComCoordenadaClique() {
+    // Usa a coordenada do clique que já está armazenada
+    var latitude = coordenadaSelecionada.lat;
+    var longitude = coordenadaSelecionada.lng;
+
+    // Exibe os dados no formulário
+    document.getElementById('displayLat').textContent = latitude;
+    document.getElementById('displayLng').textContent = longitude;
+    document.getElementById('displayPrecisao').textContent = "Clique no mapa";
+
+    // Faz reverse geocoding para obter o endereço
+    document.getElementById('displayEndereco').textContent = "Carregando endereço...";
+
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude + '&zoom=18&addressdetails=1')
+        .then(response => response.json())
+        .then(data => {
+            var endereco = data.display_name || "Endereço não encontrado";
+
+            // Tenta extrair partes mais relevantes do endereço
+            if (data.address) {
+                var partes = [];
+                if (data.address.road) partes.push(data.address.road);
+                if (data.address.suburb) partes.push(data.address.suburb);
+                if (data.address.city || data.address.town) partes.push(data.address.city || data.address.town);
+                if (data.address.state) partes.push(data.address.state);
+                if (partes.length > 0) {
+                    endereco = partes.join(', ');
+                }
+            }
+
+            document.getElementById('displayEndereco').textContent = endereco;
+        })
+        .catch(error => {
+            console.error('Erro no reverse geocoding:', error);
+            document.getElementById('displayEndereco').textContent = "Endereço não disponível";
+        });
+
+    // Preenche instituição executora usando dados do clique
+    preencherInstituicaoExecutora(latitude, longitude, false, null);
+
+    // Cria o mini mapa
+    if (miniMapa) {
+        miniMapa.remove();
+    }
+    miniMapa = L.map('miniMapa', {
+        center: [latitude, longitude],
+        zoom: 15,
+        zoomControl: false,
+        attributionControl: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        dragging: false
+    });
+
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: ''
+    }).addTo(miniMapa);
+
+    L.marker([latitude, longitude]).addTo(miniMapa);
+
+    // Abre o formulário
+    document.getElementById('popupFormulario').style.display = 'flex';
+
+    // Força o mapa a recalcular o tamanho após o formulário estar visível
+    setTimeout(function() {
+        if (miniMapa) {
+            miniMapa.invalidateSize();
+        }
+    }, 100);
+}
+
+function preencherInstituicaoExecutora(lat, lng, isMaritimo, addressData) {
+    var instituicao = "";
+    var telefone = "";
+    var pmp = "";
+    var area = "";
+
+    // Se o usuário clicou no mapa, usa os dados armazenados
+    if (!usaGPS && dadosInstituicaoClique) {
+        if (dadosInstituicaoClique.isAltoMar) {
+            // Alto mar - oculta a seção inteira
+            document.getElementById('secaoInstituicao').style.display = 'none';
+            return;
+        }
+
+        // Usa dados do clique
+        instituicao = dadosInstituicaoClique.instituicao;
+        telefone = dadosInstituicaoClique.telefone || "";
+        pmp = dadosInstituicaoClique.pmp;
+        area = dadosInstituicaoClique.area;
+
+        // Se for área terrestre (Polícia Militar Ambiental), ajusta campos
+        if (area.includes('Terrestre')) {
+            instituicao = "Polícia Militar Ambiental";
+            // Formata o telefone - remove todos os caracteres não numéricos
+            if (telefone) {
+                telefone = telefone.replace(/\D/g, ''); // Remove tudo que não é dígito
+                // Remove o código do país (55) se presente
+                if (telefone.startsWith('55')) {
+                    telefone = telefone.substring(2);
+                }
+                if (telefone.length === 11) {
+                    // Formata de 4836211111 para (48) 3621-1111
+                    telefone = '(' + telefone.substring(0, 2) + ') ' + telefone.substring(2, 6) + '-' + telefone.substring(6);
+                } else if (telefone.length === 10) {
+                    // Formata de 483621111 para (48) 3621-111
+                    telefone = '(' + telefone.substring(0, 2) + ') ' + telefone.substring(2, 6) + '-' + telefone.substring(6);
+                }
+            }
+            pmp = ""; // Remove PMP
+            area = "Terrestre";
+        } else if (area.includes('Costa')) {
+            // Se for área do PMP, separa nome da instituição e formata telefone
+            if (instituicao.includes('(')) {
+                // Remove telefone do nome da instituição
+                instituicao = instituicao.split('(')[0].trim();
+            }
+            // Remove "-" do nome da instituição se tiver
+            instituicao = instituicao.replace(/-/g, '').trim();
+            // Remove telefone do PMP se estiver incluído (remoção mais agressiva)
+            if (pmp) {
+                // Remove tudo após parênteses
+                if (pmp.includes('(')) {
+                    pmp = pmp.split('(')[0].trim();
+                }
+                // Remove tudo após hífen seguido de números
+                pmp = pmp.replace(/-\s*\d+.*$/, '').trim();
+                // Remove padrões de telefone no final
+                pmp = pmp.replace(/-\s*\(\d+\)\s*\d+.*$/, '').trim();
+                // Remove qualquer hífen no final
+                pmp = pmp.replace(/-$/, '').trim();
+            }
+            // Formata o telefone - remove todos os caracteres não numéricos
+            if (telefone) {
+                telefone = telefone.replace(/\D/g, ''); // Remove tudo que não é dígito
+                if (telefone.length === 13) {
+                    // Formata de 5548991838663 para (48) 99183-8663
+                    telefone = '(' + telefone.substring(2, 4) + ') ' + telefone.substring(4, 9) + '-' + telefone.substring(9);
+                } else if (telefone.length === 12) {
+                    // Formata de 48991838663 para (48) 99183-8663
+                    telefone = '(' + telefone.substring(0, 2) + ') ' + telefone.substring(2, 7) + '-' + telefone.substring(7);
+                } else if (telefone.length === 11) {
+                    // Formata de 4899183866 para (48) 99183-866
+                    telefone = '(' + telefone.substring(0, 2) + ') ' + telefone.substring(2, 6) + '-' + telefone.substring(6);
+                }
+            }
+        }
+    } else {
+        // Usando GPS - não tem dados específicos do layer
+        document.getElementById('secaoInstituicao').style.display = 'none';
+        return;
+    }
+
+    // Exibe a seção
+    document.getElementById('secaoInstituicao').style.display = 'block';
+
+    // Exibe apenas campos com informação
+    document.getElementById('displayInstituicao').textContent = instituicao;
+    document.getElementById('displayTelefone').textContent = telefone;
+    document.getElementById('displayPMP').textContent = pmp;
+    document.getElementById('displayArea').textContent = area;
+
+    // Oculta campos vazios
+    document.getElementById('displayTelefone').parentElement.style.display = telefone ? 'block' : 'none';
+    document.getElementById('displayPMP').parentElement.style.display = pmp ? 'block' : 'none';
+    document.getElementById('displayArea').parentElement.style.display = area ? 'block' : 'none';
+}
+
+function fecharPopupEscolhaRegistro(){
+    document.getElementById('popupEscolhaRegistro').style.display = 'none';
+}
+
+function registrarComFoto(){
+    fecharPopupEscolhaRegistro();
+    if (usaGPS) {
+        // Veio do popup inicial - usa GPS
+        registrarOcorrencia();
+    } else {
+        // Veio do clique no mapa - usa coordenada do clique
+        fotoBase64 = null; // Limpa foto anterior
+        registrarOcorrenciaComCoordenadaClique();
+    }
+}
+
+function registrarSemFoto(){
+    fecharPopupEscolhaRegistro();
+    fotoBase64 = null; // Garante que não há foto
+    if (usaGPS) {
+        // Veio do popup inicial - usa GPS
+        continuarRegistro();
+    } else {
+        // Veio do clique no mapa - usa coordenada do clique
+        abrirFormularioComCoordenadaClique();
+    }
+}
+
+function registrarOcorrenciaComCoordenadaClique(){
+    // Abre a câmera para tirar foto
+    const input = document.getElementById("cameraInput");
+    input.value = "";
+    input.click();
+}
+
+function uploadFotoParaCloudinary(base64Image, municipio, tipoAnimal) {
+    return new Promise((resolve, reject) => {
+        // Configurações do Cloudinary
+        const CLOUD_NAME = 'yumxsn6q';
+        const UPLOAD_PRESET = 'fotos_apabf';
+        
+        // Gera o nome do arquivo no formato: dia_mês_ano_hora_municipio_tipo_animal
+        var agora = new Date();
+        var dia = String(agora.getDate()).padStart(2, '0');
+        var mes = String(agora.getMonth() + 1).padStart(2, '0');
+        var ano = agora.getFullYear();
+        var hora = String(agora.getHours()).padStart(2, '0');
+        var minuto = String(agora.getMinutes()).padStart(2, '0');
+        var segundo = String(agora.getSeconds()).padStart(2, '0');
+        
+        // Limpa o nome do município e tipo de animal (remove espaços e caracteres especiais)
+        municipio = municipio.replace(/[^a-zA-Z0-9]/g, '_');
+        tipoAnimal = tipoAnimal.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        var publicId = dia + '_' + mes + '_' + ano + '_' + hora + '-' + minuto + '-' + segundo + '_' + municipio + '_' + tipoAnimal;
+        
+        // Converte base64 para Blob
+        fetch(base64Image)
+            .then(res => res.blob())
+            .then(blob => {
+                // Prepara os dados para upload
+                var formData = new FormData();
+                formData.append('file', blob);
+                formData.append('upload_preset', UPLOAD_PRESET);
+                formData.append('public_id', publicId);
+                formData.append('folder', 'Fotos_Ocorrencias_APABF');
+                
+                return fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Resposta do Cloudinary:', data);
+                if (data.secure_url) {
+                    resolve(data.secure_url);
+                } else {
+                    reject(new Error(data.error?.message || 'Erro no upload para Cloudinary'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro no fetch:', error);
+                reject(error);
+            });
+    });
+}
+
+function enviarOcorrencia(){
+    // Validação básica
+    var animal = document.getElementById('selectAnimal').value;
+    var situacao = document.getElementById('selectSituacao').value;
+
+    if (!animal || !situacao) {
+        alert("Por favor, selecione o tipo de animal e a situação.");
+        return;
+    }
+
+    // Coleta os dados
+    var observacoes = document.getElementById('observacoes').value;
+    var lat = document.getElementById('displayLat').textContent;
+    var lng = document.getElementById('displayLng').textContent;
+    var endereco = document.getElementById('displayEndereco').textContent;
+    var instituicao = document.getElementById('displayInstituicao').textContent;
+    var telefone = document.getElementById('displayTelefone').textContent;
+    var pmp = document.getElementById('displayPMP').textContent;
+    var area = document.getElementById('displayArea').textContent;
+
+    // Monta a mensagem para WhatsApp
+    var mensagem = '*REGISTRO DE OCORRÊNCIA - APABF*%0A%0A';
+    mensagem += '*Animal:* ' + document.getElementById('selectAnimal').options[document.getElementById('selectAnimal').selectedIndex].text + '%0A';
+    mensagem += '*Situação:* ' + document.getElementById('selectSituacao').options[document.getElementById('selectSituacao').selectedIndex].text + '%0A';
+    mensagem += '*Endereço:* ' + endereco + '%0A';
+    mensagem += '*Coordenadas:* ' + lat + ', ' + lng + '%0A';
+
+    // Adiciona campos de instituição apenas se tiverem conteúdo
+    if (instituicao && instituicao.trim() !== '') {
+        mensagem += '*Instituição:* ' + instituicao + '%0A';
+    }
+    if (telefone && telefone.trim() !== '') {
+        mensagem += '*Telefone:* ' + telefone + '%0A';
+    }
+    if (pmp && pmp.trim() !== '') {
+        mensagem += '*PMP:* ' + pmp + '%0A';
+    }
+    if (area && area.trim() !== '') {
+        mensagem += '*Área:* ' + area + '%0A';
+    }
+
+    if (observacoes) {
+        mensagem += '*Observações:* ' + observacoes + '%0A';
+    }
+    mensagem += '%0ALink: https://maps.google.com/?q=' + lat + ',' + lng;
+
+    // Se há foto, faz upload e adiciona URL à mensagem
+    if (fotoBase64) {
+        // Mostra loader com mensagem personalizada
+        document.getElementById("loader").style.display = "flex";
+        document.getElementById("loaderText").textContent = "Enviando sua ocorrência...";
+
+        // Extrai o município do endereço (assume que está no formato "rua, bairro, cidade, estado")
+        var municipio = "Desconhecido";
+        if (endereco) {
+            var partes = endereco.split(',');
+            if (partes.length >= 3) {
+                municipio = partes[partes.length - 2].trim(); // Penúltima parte é geralmente a cidade
+            } else if (partes.length >= 2) {
+                municipio = partes[partes.length - 2].trim();
+            }
+        }
+
+        // Obtém o tipo de animal selecionado
+        var tipoAnimal = document.getElementById('selectAnimal').options[document.getElementById('selectAnimal').selectedIndex].text;
+        // Remove emojis e caracteres especiais do nome do animal
+        tipoAnimal = tipoAnimal.replace(/[^\w\s]/gi, '').trim();
+
+        uploadFotoParaCloudinary(fotoBase64, municipio, tipoAnimal)
+            .then(fotoUrl => {
+                if (fotoUrl) {
+                    mensagem += '%0A%0A📷 *Foto:* ' + fotoUrl;
+                } else {
+                    mensagem += '%0A%0A📷 *Foto:* Enviada para o Cloudinary (URL não disponível)';
+                }
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("loaderText").textContent = "Carregando...";
+                enviarWhatsApp(mensagem);
+            })
+            .catch(error => {
+                console.error('Erro no upload:', error);
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("loaderText").textContent = "Carregando...";
+                alert("Não foi possível fazer upload da foto. Erro: " + error.message + "\nEnviando sem foto.");
+                enviarWhatsApp(mensagem);
+            });
+    } else {
+        enviarWhatsApp(mensagem);
+    }
+}
+
+function enviarWhatsApp(mensagem) {
+    // Envia para APABF
+    var numero = '5548988056580';
+    var whatsappUrl = 'https://wa.me/' + numero + '?text=' + mensagem;
+
+    // Tenta abrir na mesma aba para evitar bloqueio de popup
+    try {
+        window.location.href = whatsappUrl;
+    } catch (e) {
+        // Se falhar, tenta abrir em nova aba
+        window.open(whatsappUrl, '_blank');
+    }
+
+    fecharFormulario();
+}
+
+</script>
+
+<!--Começo de envio das coordenadas-->
+
+<div id="popupEnvio" style="
+display:none;
+position:fixed;
+inset:0;
+z-index:10000;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+padding:20px;
+box-sizing:border-box;
+">
+
+<div style="
+background:white;
+width:100%;
+max-width:500px;
+padding:30px;
+border-radius:14px;
+text-align:center;
+font-family: Arial, sans-serif;
+box-shadow:0 0 20px rgba(0,0,0,.3);
+line-height:1.6;
+box-sizing:border-box;
+">
+
+<h3>Compartilhar localização</h3>
+
+<p>
+A localização selecionada será anexada automaticamente à mensagem.
+</p>
+
+<p>
+Escolha para qual instituição deseja encaminhar a ocorrência:
+</p>
+
+<button id="btnAPA" style="
+background:#146666;
+color:white;
+border:none;
+padding:12px 20px;
+border-radius:8px;
+cursor:pointer;
+margin:5px;
+">
+Enviar para APABF
+</button>
+
+<button id="btnie" style="
+background:#146666;
+color:white;
+border:none;
+padding:12px 20px;
+border-radius:8px;
+cursor:pointer;
+margin:5px;
+">
+Enviar para Instituição Executora
+</button>
+
+<br><br>
+
+<button onclick="fecharPopupEnvio()" style="
+background:#999;
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:8px;
+cursor:pointer;
+">
+Cancelar
+</button>
+
+</div>
+
+    </body>
+
+</html>

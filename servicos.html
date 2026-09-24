@@ -67,7 +67,7 @@
 
         .service-link {
             display: inline-block;
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 12px 25px;
             border-radius: 8px;
@@ -78,7 +78,7 @@
         }
 
         .service-link:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
         }
 
         .form-section {
@@ -181,7 +181,7 @@
         }
 
         .submit-btn {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 15px 30px;
             border: none;
@@ -194,7 +194,7 @@
         }
 
         .submit-btn:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
         }
 
         /* Barra de navegação inferior */
@@ -213,7 +213,7 @@
         }
 
         .nav-btn {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white !important;
             border: none;
             border-radius: 50%;
@@ -234,7 +234,7 @@
         }
 
         .nav-btn:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
@@ -274,6 +274,7 @@
         }
         </style>
         <title>Serviços - APABF</title>
+            <link rel="stylesheet" href="../nav.css">
     </head>
     <body>
         <div class="services-container">
@@ -333,12 +334,13 @@
             <a href="Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
                 <i class="fas fa-map"></i>
             </a>
-            <a href="PMP-na-APABF-main2/index.html" class="nav-btn" title="Monitoramento de Praias">
-                <i class="fas fa-camera"></i>
+            <a href="Fiscalização/index.html" class="nav-btn" title="Fiscalização">
+                <i class="fas fa-shield-alt"></i>
             </a>
             <a href="Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
                 <i class="fas fa-gavel"></i>
             </a>
         </div>
+            <script src="../nav.js" data-base=".."></script>
     </body>
 </html>

@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="../nav.css">
         <style>
         html, body, #map {
             width: 100%;
@@ -63,7 +64,7 @@
     padding: 14px 20px;
     border: none;
     border-radius: 10px;
-    background: #146666;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
     color: white;
     font-size: 18px;
     font-weight: 600;
@@ -75,7 +76,7 @@
 
 
 .botao-principal:hover {
-    background: #0f5252;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
     transform: translateY(-1px);
 }
 
@@ -85,7 +86,7 @@
 
         .popup-ajuda-conteudo h3 {
             margin: 0 0 12px;
-            color: #146666;
+            color: #125F5F;
             font-size: 24px;
             text-align: center;
         }
@@ -134,7 +135,7 @@
         }
 
         .popup-ajuda-header {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 20px;
             display: flex;
@@ -250,9 +251,9 @@
 
         .form-section h3{
     margin:0 0 15px;
-    color:#146666;
+    color:#125F5F;
     font-size:18px;
-    border-bottom:2px solid #146666;
+    border-bottom:2px solid #125F5F;
     padding-bottom:8px;
 }
 
@@ -277,7 +278,7 @@
         .form-section select:focus,
         .form-section textarea:focus{
     outline:none;
-    border-color:#146666;
+    border-color:#125F5F;
 }
 
         .form-section textarea{
@@ -299,7 +300,7 @@
 }
 
         .local-info strong{
-    color:#146666;
+    color:#125F5F;
 }
 
         .form-help{
@@ -336,7 +337,7 @@
     width: 50px;
     height: 50px;
     border: 5px solid #f3f3f3;
-    border-top: 5px solid #146666;
+    border-top: 5px solid #125F5F;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -385,7 +386,7 @@
             transform: translateX(-50%);
             z-index: 1000;
             background: #ffffff;
-            color: #146666;
+            color: #125F5F;
             border: none;
             border-radius: 25px;
             padding: 12px 30px;
@@ -397,7 +398,7 @@
         }
 
         .btn-centralizar:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             transform: translateX(-50%) translateY(-2px);
             box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
@@ -434,7 +435,7 @@
         }
 
         .sidebar-header {
-            background: #146666;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
             color: white;
             padding: 20px;
             display: flex;
@@ -490,8 +491,8 @@
         }
 
         .tab-button.active {
-            color: #146666;
-            border-bottom-color: #146666;
+            color: #125F5F;
+            border-bottom-color: #125F5F;
             background: #fff;
         }
 
@@ -520,11 +521,11 @@
 
         .info-section h4,
         .ajuda-section h4 {
-            color: #146666;
+            color: #125F5F;
             font-size: 18px;
             margin: 20px 0 10px 0;
             padding-bottom: 8px;
-            border-bottom: 2px solid #146666;
+            border-bottom: 2px solid #125F5F;
         }
 
         .info-section h4:first-child,
@@ -553,7 +554,7 @@
         }
 
         .info-section a {
-            color: #146666;
+            color: #125F5F;
             text-decoration: none;
             font-weight: 500;
         }
@@ -677,7 +678,7 @@
         }
 
         .nav-btn {
-            background: #146666 !important;
+            background: #125F5F !important;
             color: white !important;
             border: none !important;
             border-radius: 50% !important;
@@ -700,7 +701,7 @@
         }
 
         .nav-btn:hover {
-            background: #0f5252;
+            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
@@ -754,21 +755,22 @@
         }
 
         </style>
-        <title></title>
+        <link rel="stylesheet" href="../nav.css">
+        <title>Ocorrências de Fauna - APABF</title>
     </head>
     <body>
         <div id="map">
         </div>
 
         <!-- Barra de Navegação -->
-        <div class="nav-bar" id="testNavBar">
+        <div class="nav-bar" id="testNavBar" aria-label="Navegação principal">
             <a href="../index.html" class="nav-btn" title="Menu Principal">
                 <i class="fas fa-home"></i>
             </a>
             <a href="../Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
                 <i class="fas fa-map"></i>
             </a>
-            <a href="index.html" class="nav-btn" title="Monitoramento de Praias">
+            <a href="index.html" class="nav-btn" title="Ocorrências">
                 <i class="fas fa-camera"></i>
             </a>
             <a href="../Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
@@ -1220,7 +1222,7 @@ function pop_area_costa_2(feature, layer) {
 
             <div style="text-align:center; margin-top:10px;">
                 <button onclick="abrirPopupEnvioAPA()"
-                        style="padding:8px 12px; cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">
+                        style="padding:8px 12px; cursor:pointer;background:linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));color:white;border:none;border-radius:4px;">
                     📍 Enviar localização
                 </button>
             </div>
@@ -1255,7 +1257,7 @@ function pop_area_costa_2(feature, layer) {
             </tr>\
             <tr>\
                 <td colspan="2" style="text-align:center;padding-top:10px;">\
-                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">\
+                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background:linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));color:white;border:none;border-radius:4px;">\
                         📍 Enviar localização\
                     </button>\
                 </td>\
@@ -1418,7 +1420,7 @@ case '6':
             </tr>\
             <tr>\
                 <td colspan="2" style="text-align:center;padding-top:10px;">\
-                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background-color:#146666;color:white;border:none;border-radius:4px;">\
+                    <button onclick="abrirPopupEnvio()" style="padding:8px 12px;cursor:pointer;background:linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));color:white;border:none;border-radius:4px;">\
                         📍 Enviar localização\
                     </button>\
                 </td>\
@@ -1715,7 +1717,7 @@ map.addLayer(layer_area_terrestre_v2_3);
 <!-- POPUP FORMULÁRIO DE OCORRÊNCIA -->
 <div id="popupFormulario" class="popup-formulario">
     <div class="popup-formulario-conteudo">
-        <h2 style="margin-top:0; color:#146666; text-align:center;">📋 Detalhes da Ocorrência</h2>
+        <h2 style="margin-top:0; color:#125F5F; text-align:center;">📋 Detalhes da Ocorrência</h2>
 
         <div class="form-section">
             <h3>🐾 Animal</h3>
@@ -1785,7 +1787,7 @@ map.addLayer(layer_area_terrestre_v2_3);
 <!-- POPUP ESCOLHA DE REGISTRO -->
 <div id="popupEscolhaRegistro" class="popup-formulario">
     <div class="popup-formulario-conteudo" style="max-width:500px; text-align:center;">
-        <h2 style="margin-top:0; color:#146666;">📋 Como deseja registrar?</h2>
+        <h2 style="margin-top:0; color:#125F5F;">📋 Como deseja registrar?</h2>
         <p style="margin-bottom:25px; color:#666;">Escolha uma opção para continuar:</p>
         
         <div style="display:flex; flex-direction:column; gap:15px;">
@@ -2499,7 +2501,7 @@ Escolha para qual instituição deseja encaminhar a ocorrência:
 </p>
 
 <button id="btnAPA" style="
-background:#146666;
+background:linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
 color:white;
 border:none;
 padding:12px 20px;
@@ -2511,7 +2513,7 @@ Enviar para APABF
 </button>
 
 <button id="btnie" style="
-background:#146666;
+background:linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
 color:white;
 border:none;
 padding:12px 20px;
@@ -2537,6 +2539,7 @@ Cancelar
 
 </div>
 
+        <script src="../nav.js" data-base=".."></script>
     </body>
 
 </html>
