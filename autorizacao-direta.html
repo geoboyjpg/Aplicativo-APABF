@@ -286,38 +286,6 @@
             line-height: 1.6;
         }
 
-        .success-btn {
-            background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74));
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .success-btn:hover {
-            background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
-        }
-
-        .back-btn {
-            display: inline-block;
-            background: #6c757d;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .back-btn:hover {
-            background: #5a6268;
-        }
-
         /* Barra de navegação inferior */
         .nav-bar {
             position: fixed;
@@ -387,7 +355,7 @@
         }
         </style>
         <title>Autorização Direta - APA da Baleia Franca</title>
-            <link rel="stylesheet" href="../nav.css">
+            <link rel="stylesheet" href="nav.css">
     </head>
     <body>
         <div class="form-container">
@@ -613,7 +581,7 @@
                 O protocolo será gerado automaticamente pelo sistema e enviado por e-mail.
                 Entraremos em contato em breve com as informações sobre o andamento do processo.
             </p>
-            <button class="success-btn" onclick="window.location.href='servicos.html'">
+            <button class="back-btn" type="button" onclick="window.location.href='servicos.html'">
                 <i class="fas fa-arrow-left"></i> Voltar para Serviços
             </button>
         </div>

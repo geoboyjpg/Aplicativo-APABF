@@ -26,6 +26,12 @@
                 box-sizing: border-box;
             }
 
+            .page-container > .back-btn {
+                align-self: flex-start;
+                position: relative;
+                left: max(0px, calc((100% - 800px) / 2));
+            }
+
             .page-title {
                 color: white;
                 font-size: 32px;
@@ -42,7 +48,7 @@
                 max-width: 800px;
                 width: 100%;
                 box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-                margin-bottom: 80px;
+                margin-bottom: 24px;
             }
 
             .content-card h2 {
@@ -161,10 +167,13 @@
             }
         </style>
         <title>Sobre o ICMBio - APABF</title>
-            <link rel="stylesheet" href="../nav.css">
+            <link rel="stylesheet" href="nav.css">
     </head>
     <body>
         <div class="page-container">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Voltar para a tela inicial
+            </a>
             <h1 class="page-title">Sobre o ICMBio</h1>
 
             <div class="content-card">
@@ -222,21 +231,5 @@
             </div>
         </div>
 
-        <!-- Barra de Navegação -->
-        <div class="nav-bar">
-            <a href="index.html" class="nav-btn" title="Menu Principal">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
-                <i class="fas fa-map"></i>
-            </a>
-            <a href="Fiscalização/index.html" class="nav-btn" title="Fiscalização">
-                <i class="fas fa-shield-alt"></i>
-            </a>
-            <a href="Instrumentos Legais/index.html" class="nav-btn" title="Instrumentos Legais">
-                <i class="fas fa-gavel"></i>
-            </a>
-        </div>
-            <script src="../nav.js" data-base=".."></script>
     </body>
 </html>

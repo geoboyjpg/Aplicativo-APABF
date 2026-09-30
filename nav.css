@@ -107,6 +107,103 @@
     outline-offset: 3px !important;
 }
 
+.back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    color: #ffffff;
+    border: 0;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    background: #6c757d;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.back-btn:hover,
+.back-btn:focus-visible {
+    color: #ffffff;
+    background: #5a6268;
+}
+
+.back-btn:focus-visible {
+    outline: 3px solid #b9ece3;
+    outline-offset: 3px;
+}
+
+.page-footer {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    color: rgba(255, 255, 255, 0.86);
+    font-family: Arial, sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    text-align: left;
+    background: rgba(8, 49, 59, 0.58);
+    border: 1px solid rgba(208, 247, 241, 0.2);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+}
+
+.page-footer-logo {
+    display: block;
+    flex: 0 0 auto;
+    width: 72px;
+    max-height: 62px;
+    object-fit: contain;
+}
+
+.page-footer-logos {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-footer-logos .page-footer-logo {
+    width: 72px;
+}
+
+.page-footer-title {
+    margin: 0 0 3px;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.page-footer-motto {
+    margin: 2px 0;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 1.05rem;
+    font-style: italic;
+    line-height: 1.2;
+}
+
+.page-footer > div:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+}
+
+.page-footer p {
+    margin: 2px 0;
+}
+
+.page-footer-disclaimer {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.home-footer {
+    max-width: 920px;
+    margin: 0 auto 20px;
+}
+
 @media (max-width: 700px) {
     .nav-bar {
         right: 8px !important;
@@ -136,5 +233,28 @@
 
     .nav-bar .nav-btn:last-child .nav-btn-label {
         font-size: 0.55rem !important;
+    }
+
+    .page-footer {
+        gap: 10px;
+        padding: 12px 14px;
+        font-size: 0.7rem;
+    }
+
+    .page-footer-logo {
+        width: 56px;
+        max-height: 48px;
+    }
+
+    .page-footer-logos {
+        gap: 6px;
+    }
+
+    .page-footer-logos .page-footer-logo {
+        width: 56px;
+    }
+
+    .home-footer {
+        margin-bottom: 14px;
     }
 }

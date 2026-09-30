@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#125f5f">
+        <title>Dados Geográficos | GeoAPABF</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="nav.css">
+        <link rel="stylesheet" href="dados-geograficos.css">
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script src="camadas-geograficas.js" defer></script>
+        <script src="dados-geograficos.js" defer></script>
+    </head>
+    <body>
+        <main class="geo-page">
+            <header class="geo-header">
+                <div class="geo-brand">
+                    <img class="geo-brand-logo" src="logos/APA%20da%20Baleia%20Franca.png" alt="">
+                    <div class="geo-heading">
+                        <h1>Dados Geográficos</h1>
+                        <p>Mapa interativo da APA da Baleia Franca</p>
+                    </div>
+                </div>
+                <a class="geo-home-link" href="index.html">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    <span>Início</span>
+                </a>
+            </header>
+
+            <section class="geo-workspace" aria-label="Mapa interativo e controles de camadas">
+                <aside class="geo-panel" aria-labelledby="geo-panel-title">
+                    <div class="geo-panel-heading">
+                        <h2 id="geo-panel-title"><i class="fas fa-layer-group" aria-hidden="true"></i> Camadas</h2>
+                        <p>Marque uma camada para exibi-la no mapa. Clique em uma feição para consultar seus atributos.</p>
+                    </div>
+                    <div class="geo-panel-content">
+                        <p id="geo-catalog-status" class="geo-catalog-status" role="status" aria-live="polite">Preparando mapa…</p>
+                        <button id="geo-retry" class="geo-retry" type="button" hidden>Tentar novamente</button>
+                        <fieldset id="geo-layer-list" class="geo-layer-list">
+                            <legend>Camadas disponíveis</legend>
+                        </fieldset>
+                        <section class="geo-legend" aria-labelledby="geo-legend-title">
+                            <h3 id="geo-legend-title">Legenda</h3>
+                            <p id="geo-legend-empty" class="geo-legend-empty">Ative uma camada para ver sua legenda.</p>
+                            <ul id="geo-legend-list" class="geo-legend-list" aria-live="polite"></ul>
+                        </section>
+                    </div>
+                </aside>
+
+                <div class="geo-map-wrap">
+                    <div id="geo-map" role="region" aria-label="Mapa interativo da APA da Baleia Franca"></div>
+                    <p id="geo-basemap-status" class="geo-basemap-status" role="status" aria-live="polite">Preparando mapa de satélite…</p>
+                    <span id="geo-data-attribution" class="geo-data-attribution" aria-live="polite"></span>
+                    <span class="geo-map-credit">Dados geográficos: <a href="https://github.com/geoboyjpg/Base-de-Dados" target="_blank" rel="noopener noreferrer">Base-de-Dados no GitHub</a></span>
+                </div>
+            </section>
+
+            <footer class="page-footer geo-footer" aria-label="Informações institucionais">
+                <div class="page-footer-logos">
+                    <img src="logos/APA%20da%20Baleia%20Franca.png" alt="Logo da APA da Baleia Franca" class="page-footer-logo">
+                    <img src="logos/icmbio%20horizontal%401000x-8.png" alt="Logo do ICMBio" class="page-footer-logo">
+                </div>
+                <div>
+                    <p class="page-footer-motto">Cuidar da natureza com as pessoas</p>
+                    <p>© 2026 – APA da Baleia Franca | ICMBio</p>
+                </div>
+            </footer>
+        </main>
+
+        <nav class="nav-bar" aria-label="Navegação principal"></nav>
+        <script src="nav.js" data-base=""></script>
+    </body>
+</html>
