@@ -2,8 +2,6 @@
     'use strict';
 
     var config = window.CAMADAS_GEOGRAFICAS;
-    var catalogUrl = 'https://api.github.com/repos/' + config.repository + '/git/trees/' + config.branch + '?recursive=1';
-    var rawBaseUrl = 'https://raw.githubusercontent.com/' + config.repository + '/' + config.branch + '/';
     var palette = ['#12647a', '#2e8b57', '#e28b32', '#2589b5', '#9b5b3c', '#7857a5'];
     var layerStates = new Map();
     var map = L.map('geo-map', { zoomControl: false, minZoom: 5, maxZoom: 19 }).setView([-28.2, -48.8], 8);
@@ -11,109 +9,21 @@
     var legendEmpty = document.getElementById('geo-legend-empty');
     var layerList = document.getElementById('geo-layer-list');
     var catalogStatus = document.getElementById('geo-catalog-status');
-    var retryButton = document.getElementById('geo-retry');
-    var basemapStatus = document.getElementById('geo-basemap-status');
-    var dataAttribution = document.getElementById('geo-data-attribution');
-    var catalogGeneration = 0;
-    var attributionRequest = 0;
-    var attributionTimer;
 
-    function setBasemapStatus(message, isError) {
-        basemapStatus.textContent = message;
-        if (isError) {
-            basemapStatus.setAttribute('role', 'alert');
-        } else {
-            basemapStatus.setAttribute('role', 'status');
-        }
-    }
-
-    function loadSatelliteBasemap() {
-        var apiKey = config.googleMapsApiKey.trim();
-        if (!apiKey) {
-            setBasemapStatus('Para exibir o Google Satellite, configure sua chave Google Maps Platform em camadas-geograficas.js. Restrinja a chave ao domínio publicado e à Map Tiles API. Para testar localmente, abra o projeto por um servidor HTTP; o GitHub Pages atende esse requisito.', true);
-            return Promise.resolve();
-        }
-
-        setBasemapStatus('Conectando ao Google Satellite…', false);
-        return fetch('https://tile.googleapis.com/v1/createSession?key=' + encodeURIComponent(apiKey), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                mapType: 'satellite',
-                language: 'pt-BR',
-                region: 'BR'
-            })
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    return response.json().catch(function () {
-                        throw new Error('O Google Maps respondeu com HTTP ' + response.status + '.');
-                    }).then(function (errorBody) {
-                        var message = errorBody.error && errorBody.error.message;
-                        throw new Error(message || 'O Google Maps respondeu com HTTP ' + response.status + '.');
-                    });
-                }
-                return response.json();
-            })
-            .then(function (sessionData) {
-                if (!sessionData.session) {
-                    throw new Error('O Google Maps não retornou um token de sessão.');
-                }
-
-                var tileUrl = 'https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=' +
-                    encodeURIComponent(sessionData.session) + '&key=' + encodeURIComponent(apiKey);
-                L.tileLayer(tileUrl, {
-                    maxZoom: 19,
-                    maxNativeZoom: 19,
-                    attribution: '&copy; <a href="https://maps.google.com/" target="_blank" rel="noopener noreferrer">Google Maps</a>'
-                }).addTo(map);
-                setBasemapStatus('', false);
-                updateDataAttribution(apiKey, sessionData.session);
-                map.on('moveend zoomend', function () {
-                    window.clearTimeout(attributionTimer);
-                    attributionTimer = window.setTimeout(function () {
-                        updateDataAttribution(apiKey, sessionData.session);
-                    }, 350);
-                });
-            })
-            .catch(function (error) {
-                console.error('Não foi possível carregar o mapa-base Google Satellite:', error);
-                setBasemapStatus('Não foi possível carregar o Google Satellite: ' + error.message + ' Verifique a chave, a ativação da Map Tiles API, o faturamento e as restrições de domínio.', true);
-            });
-    }
-
-    function updateDataAttribution(apiKey, sessionToken) {
-        var requestId = ++attributionRequest;
-        var bounds = map.getBounds();
-        var query = new URLSearchParams({
-            session: sessionToken,
-            key: apiKey,
-            zoom: String(Math.floor(map.getZoom())),
-            north: String(bounds.getNorth()),
-            south: String(bounds.getSouth()),
-            east: String(bounds.getEast()),
-            west: String(bounds.getWest())
-        });
-
-        fetch('https://tile.googleapis.com/v1/mapTypes/satellite/viewport?' + query.toString())
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('O Google Maps respondeu com HTTP ' + response.status + '.');
-                }
-                return response.json();
-            })
-            .then(function (viewport) {
-                if (requestId !== attributionRequest) {
-                    return;
-                }
-                dataAttribution.textContent = viewport.copyright || '';
-            })
-            .catch(function (error) {
-                console.error('Não foi possível consultar os créditos do mapa-base:', error);
-            });
-    }
+    map.createPane('pane_GoogleSatellite');
+    map.getPane('pane_GoogleSatellite').style.zIndex = 200;
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        pane: 'pane_GoogleSatellite',
+        opacity: 1,
+        attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html" target="_blank" rel="noopener noreferrer">Map data &copy; Google</a>',
+        minZoom: 1,
+        maxZoom: 18,
+        minNativeZoom: 0,
+        maxNativeZoom: 20
+    }).addTo(map);
 
     L.control.zoom({ position: 'topright' }).addTo(map);
+    L.control.locate({ position: 'topleft', locateOptions: { maxZoom: 19 } }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
     function displayName(path) {
@@ -253,7 +163,7 @@
 
         setLayerStatus(state, 'Carregando dados do GitHub…', false);
         var encodedPath = state.path.split('/').map(encodeURIComponent).join('/');
-        state.loadPromise = fetch(rawBaseUrl + encodedPath)
+        state.loadPromise = fetch(encodedPath)
             .then(function (response) {
                 if (!response.ok) {
                     throw new Error('O GitHub respondeu com HTTP ' + response.status + '.');
@@ -278,7 +188,10 @@
             .catch(function (error) {
                 console.error('Não foi possível carregar a camada ' + state.path + ':', error);
                 state.checkbox.checked = false;
-                setLayerStatus(state, 'Falha ao carregar. Marque novamente para tentar.', true);
+                var retryMessage = window.location.protocol === 'file:'
+                    ? 'A leitura de GeoJSON requer um servidor HTTP local; abra o projeto por HTTP e tente novamente.'
+                    : 'Falha ao carregar. Verifique o arquivo no repositório e marque novamente para tentar.';
+                setLayerStatus(state, retryMessage, true);
                 updateLegend();
             })
             .finally(function () {
@@ -373,50 +286,13 @@
     }
 
     function loadCatalog() {
-        var generation = ++catalogGeneration;
-        catalogStatus.removeAttribute('role');
-        catalogStatus.textContent = 'Buscando camadas publicadas no GitHub…';
-        retryButton.hidden = true;
-
-        fetch(catalogUrl, { headers: { Accept: 'application/vnd.github+json' } })
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('O GitHub respondeu com HTTP ' + response.status + '.');
-                }
-                return response.json();
-            })
-            .then(function (catalog) {
-                if (generation !== catalogGeneration) {
-                    return;
-                }
-                if (!catalog || !Array.isArray(catalog.tree)) {
-                    throw new Error('A resposta do GitHub não contém a lista de arquivos esperada.');
-                }
-                var files = catalog.tree
-                    .filter(function (entry) {
-                        return entry.type === 'blob' && /\.geojson$/i.test(entry.path);
-                    })
-                    .map(function (entry) {
-                        return entry.path;
-                    });
-                renderLayers(files);
-                catalogStatus.textContent = files.length
-                    ? files.length + (files.length === 1 ? ' camada encontrada no repositório.' : ' camadas encontradas no repositório.')
-                    : 'Nenhum arquivo GeoJSON foi encontrado no repositório.';
-            })
-            .catch(function (error) {
-                if (generation !== catalogGeneration) {
-                    return;
-                }
-                console.error('Não foi possível consultar as camadas do repositório:', error);
-                catalogStatus.textContent = 'Não foi possível consultar o repositório de dados. Verifique sua conexão e tente novamente.';
-                catalogStatus.setAttribute('role', 'alert');
-                retryButton.hidden = false;
-            });
+        var files = Object.keys(config.definitions || {});
+        renderLayers(files);
+        catalogStatus.textContent = files.length
+            ? files.length + (files.length === 1 ? ' camada configurada.' : ' camadas configuradas.')
+            : 'Nenhuma camada está configurada.';
     }
 
-    retryButton.addEventListener('click', loadCatalog);
     map.on('layeradd layerremove', updateLegend);
-    loadSatelliteBasemap();
     loadCatalog();
 }());

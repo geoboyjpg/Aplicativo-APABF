@@ -9,7 +9,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="nav.css">
         <link rel="stylesheet" href="dados-geograficos.css">
+        <link rel="stylesheet" href="Zoneamento%20APABF/css/L.Control.Locate.min.css">
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script src="Zoneamento%20APABF/js/L.Control.Locate.min.js" defer></script>
         <script src="camadas-geograficas.js" defer></script>
         <script src="dados-geograficos.js" defer></script>
     </head>
@@ -36,8 +38,7 @@
                         <p>Marque uma camada para exibi-la no mapa. Clique em uma feição para consultar seus atributos.</p>
                     </div>
                     <div class="geo-panel-content">
-                        <p id="geo-catalog-status" class="geo-catalog-status" role="status" aria-live="polite">Preparando mapa…</p>
-                        <button id="geo-retry" class="geo-retry" type="button" hidden>Tentar novamente</button>
+                        <p id="geo-catalog-status" class="geo-catalog-status" role="status" aria-live="polite">Preparando camadas…</p>
                         <fieldset id="geo-layer-list" class="geo-layer-list">
                             <legend>Camadas disponíveis</legend>
                         </fieldset>
@@ -51,8 +52,7 @@
 
                 <div class="geo-map-wrap">
                     <div id="geo-map" role="region" aria-label="Mapa interativo da APA da Baleia Franca"></div>
-                    <p id="geo-basemap-status" class="geo-basemap-status" role="status" aria-live="polite">Preparando mapa de satélite…</p>
-                    <span id="geo-data-attribution" class="geo-data-attribution" aria-live="polite"></span>
+                    <noscript><p class="geo-basemap-status">Este mapa precisa de JavaScript para exibir o Google Satellite e as camadas geográficas.</p></noscript>
                     <span class="geo-map-credit">Dados geográficos: <a href="https://github.com/geoboyjpg/Base-de-Dados" target="_blank" rel="noopener noreferrer">Base-de-Dados no GitHub</a></span>
                 </div>
             </section>
