@@ -4,16 +4,16 @@
     global.CAMADAS_GEOGRAFICAS = {
         // Adicione aqui cada GeoJSON publicado na pasta dados/.
         definitions: {
-            'dados/limite_apabf.geojson': {
+            'dados/limites_apabf_linha.geojson': {
                 name: 'Limite da APABF',
                 color: '#12647a',
                 initiallyVisible: true
             },
-            'dados/ilhas_poligonos.geojson': {
+            'dados/ilhas_apabf_poligono.geojson': {
                 name: 'Ilhas da APABF (polígonos)',
                 color: '#2e8b57'
             },
-            'dados/ilhas_pontos.geojson': {
+            'dados/ilhas_apabf_ponto.geojson': {
                 name: 'Ilhas da APABF (pontos)',
                 color: '#e28b32'
             },
