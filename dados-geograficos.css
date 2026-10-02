@@ -217,6 +217,193 @@ body {
     content: "−";
 }
 
+.geo-download-trigger,
+.geo-download-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.87rem;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(13, 79, 85, 0.94));
+    border: 1px solid rgba(208, 247, 241, 0.35);
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(13, 79, 85, 0.12);
+    cursor: pointer;
+}
+
+.geo-download-trigger:hover,
+.geo-download-button:hover {
+    background: linear-gradient(135deg, rgba(18, 95, 95, 1), rgba(13, 79, 85, 1));
+}
+
+.geo-download-trigger:focus-visible,
+.geo-download-button:focus-visible,
+.geo-download-close:focus-visible,
+.geo-download-format input:focus-visible {
+    outline: 3px solid var(--geo-green);
+    outline-offset: 3px;
+}
+
+.geo-download-trigger {
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.geo-download-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.geo-download-dialog {
+    width: min(640px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: min(82vh, 720px);
+    padding: 0;
+    overflow: hidden;
+    color: var(--geo-ink);
+    background: #ffffff;
+    border: 1px solid var(--geo-border);
+    border-radius: 16px;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+}
+
+.geo-download-dialog::backdrop {
+    background: rgba(7, 35, 39, 0.62);
+    backdrop-filter: blur(2px);
+}
+
+.geo-download-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(13, 79, 85, 0.94));
+}
+
+.geo-download-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.geo-download-close {
+    display: inline-grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #ffffff;
+    font: inherit;
+    background: rgba(8, 49, 59, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.geo-download-content {
+    max-height: calc(min(82vh, 720px) - 62px);
+    padding: 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.geo-download-empty {
+    margin: 0;
+    padding: 12px;
+    color: var(--geo-muted);
+    background: #f6faf9;
+    border: 1px solid var(--geo-border);
+    border-radius: 9px;
+}
+
+.geo-download-empty[hidden],
+.geo-download-layers[hidden] {
+    display: none;
+}
+
+.geo-download-layers {
+    display: grid;
+    gap: 12px;
+}
+
+.geo-download-layer {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px 12px;
+    padding: 12px;
+    background: #f8fbfa;
+    border: 1px solid var(--geo-border);
+    border-radius: 10px;
+}
+
+.geo-download-layer-title {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--geo-green-dark);
+    font-size: 0.95rem;
+}
+
+.geo-download-formats {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 7px 12px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.geo-download-formats legend {
+    width: 100%;
+    margin-bottom: 3px;
+    color: var(--geo-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.geo-download-format {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--geo-ink);
+    font-size: 0.8rem;
+}
+
+.geo-download-format input {
+    margin: 0;
+    accent-color: var(--geo-green);
+}
+
+.geo-download-format.is-unavailable {
+    color: #849290;
+}
+
+.geo-download-button {
+    min-width: 92px;
+    min-height: 38px;
+    padding: 7px 12px;
+}
+
+.geo-download-status {
+    grid-column: 1 / -1;
+    min-height: 1em;
+    margin: 0;
+    color: var(--geo-muted);
+    font-size: 0.76rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
 .geo-accordion-toggle > span {
     display: flex;
     align-items: center;
@@ -593,6 +780,31 @@ body {
         font-size: 0.82rem;
     }
 
+    .geo-download-dialog {
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+        max-height: 86vh;
+        border-radius: 13px;
+    }
+
+    .geo-download-content {
+        max-height: calc(86vh - 60px);
+        padding: 10px;
+    }
+
+    .geo-download-layer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .geo-download-layer-title,
+    .geo-download-status {
+        grid-column: 1;
+    }
+
+    .geo-download-button {
+        width: 100%;
+    }
+
     .geo-workspace {
         min-height: auto;
         flex: 1 0 auto;
@@ -669,6 +881,10 @@ body {
 
     .geo-institutional-motto {
         font-size: 0.68rem;
+    }
+
+    .geo-download-format {
+        font-size: 0.74rem;
     }
 
     .leaflet-bottom.leaflet-left .leaflet-control-locate {

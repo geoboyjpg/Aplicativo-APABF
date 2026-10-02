@@ -69,6 +69,10 @@
                                 <ul id="geo-legend-list" class="geo-legend-list" aria-live="polite"></ul>
                             </div>
                         </details>
+                        <button id="geo-download-open" class="geo-download-trigger" type="button">
+                            <i class="fas fa-download" aria-hidden="true"></i>
+                            Baixar dados
+                        </button>
                     </div>
                 </aside>
 
@@ -78,6 +82,19 @@
                     <span class="geo-map-credit">Dados geográficos: <a href="https://github.com/geoboyjpg/Base-de-Dados" target="_blank" rel="noopener noreferrer">Base-de-Dados no GitHub</a></span>
                 </div>
             </section>
+
+            <dialog id="geo-download-dialog" class="geo-download-dialog" aria-labelledby="geo-download-title">
+                <div class="geo-download-header">
+                    <h2 id="geo-download-title">Baixar dados</h2>
+                    <button id="geo-download-close" class="geo-download-close" type="button" aria-label="Fechar painel de download">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="geo-download-content">
+                    <p id="geo-download-empty" class="geo-download-empty" role="status">Selecione pelo menos uma camada para baixar.</p>
+                    <div id="geo-download-layers" class="geo-download-layers"></div>
+                </div>
+            </dialog>
 
         </main>
 
