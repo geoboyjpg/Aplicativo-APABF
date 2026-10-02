@@ -7,9 +7,9 @@
         <title>Dados Geográficos | GeoAPABF</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="Zoneamento%20APABF/css/L.Control.Locate.min.css">
         <link rel="stylesheet" href="nav.css">
         <link rel="stylesheet" href="dados-geograficos.css">
-        <link rel="stylesheet" href="Zoneamento%20APABF/css/L.Control.Locate.min.css">
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         <script src="Zoneamento%20APABF/js/L.Control.Locate.min.js" defer></script>
         <script src="camadas-geograficas.js" defer></script>
@@ -25,6 +25,16 @@
                         <p>Mapa interativo da APA da Baleia Franca</p>
                     </div>
                 </div>
+                <div class="geo-institutional" aria-label="Informações institucionais">
+                    <div class="geo-institutional-logos">
+                        <img src="logos/APA%20da%20Baleia%20Franca.png" alt="Logo da APA da Baleia Franca" class="geo-institutional-logo">
+                        <img src="logos/icmbio%20horizontal%401000x-8.png" alt="Logo do ICMBio" class="geo-institutional-logo">
+                    </div>
+                    <div class="geo-institutional-text">
+                        <p class="geo-institutional-motto">Cuidar da natureza com as pessoas</p>
+                        <p>© 2026 – APA da Baleia Franca | ICMBio</p>
+                    </div>
+                </div>
                 <a class="geo-home-link" href="index.html">
                     <i class="fas fa-arrow-left" aria-hidden="true"></i>
                     <span>Início</span>
@@ -33,20 +43,32 @@
 
             <section class="geo-workspace" aria-label="Mapa interativo e controles de camadas">
                 <aside class="geo-panel" aria-labelledby="geo-panel-title">
-                    <div class="geo-panel-heading">
-                        <h2 id="geo-panel-title"><i class="fas fa-layer-group" aria-hidden="true"></i> Camadas</h2>
-                        <p>Marque uma camada para exibi-la no mapa. Clique em uma feição para consultar seus atributos.</p>
-                    </div>
                     <div class="geo-panel-content">
-                        <p id="geo-catalog-status" class="geo-catalog-status" role="status" aria-live="polite">Preparando camadas…</p>
-                        <fieldset id="geo-layer-list" class="geo-layer-list">
-                            <legend>Camadas disponíveis</legend>
-                        </fieldset>
-                        <section class="geo-legend" aria-labelledby="geo-legend-title">
-                            <h3 id="geo-legend-title">Legenda</h3>
-                            <p id="geo-legend-empty" class="geo-legend-empty">Ative uma camada para ver sua legenda.</p>
-                            <ul id="geo-legend-list" class="geo-legend-list" aria-live="polite"></ul>
-                        </section>
+                        <details class="geo-accordion">
+                            <summary id="geo-panel-title" class="geo-accordion-toggle">
+                                <span><i class="fas fa-layer-group" aria-hidden="true"></i> Camadas</span>
+                            </summary>
+                            <div class="geo-accordion-content">
+                                <p>Marque uma camada para exibi-la no mapa. Clique em uma feição para consultar seus atributos.</p>
+                                <p id="geo-catalog-status" class="geo-catalog-status" role="status" aria-live="polite">Preparando camadas…</p>
+                                <label class="geo-layer-search-label" for="geo-layer-search">Pesquisar camadas</label>
+                                <input id="geo-layer-search" class="geo-layer-search" type="search" placeholder="Digite o nome de uma camada" autocomplete="off">
+                                <fieldset id="geo-layer-list" class="geo-layer-list">
+                                    <legend>Camadas disponíveis</legend>
+                                </fieldset>
+                                <p id="geo-layer-no-results" class="geo-layer-empty" hidden>Nenhuma camada corresponde à pesquisa.</p>
+                            </div>
+                        </details>
+
+                        <details class="geo-accordion">
+                            <summary id="geo-legend-title" class="geo-accordion-toggle">
+                                <span><i class="fas fa-list-ul" aria-hidden="true"></i> Legenda</span>
+                            </summary>
+                            <div class="geo-accordion-content geo-legend-content">
+                                <p id="geo-legend-empty" class="geo-legend-empty">Ative uma camada para ver sua legenda.</p>
+                                <ul id="geo-legend-list" class="geo-legend-list" aria-live="polite"></ul>
+                            </div>
+                        </details>
                     </div>
                 </aside>
 
@@ -57,16 +79,6 @@
                 </div>
             </section>
 
-            <footer class="page-footer geo-footer" aria-label="Informações institucionais">
-                <div class="page-footer-logos">
-                    <img src="logos/APA%20da%20Baleia%20Franca.png" alt="Logo da APA da Baleia Franca" class="page-footer-logo">
-                    <img src="logos/icmbio%20horizontal%401000x-8.png" alt="Logo do ICMBio" class="page-footer-logo">
-                </div>
-                <div>
-                    <p class="page-footer-motto">Cuidar da natureza com as pessoas</p>
-                    <p>© 2026 – APA da Baleia Franca | ICMBio</p>
-                </div>
-            </footer>
         </main>
 
         <nav class="nav-bar" aria-label="Navegação principal"></nav>

@@ -19,11 +19,11 @@
             },
             'dados/lagoas_apabf.geojson': {
                 name: 'Lagoas da APABF',
-                color: '#2589b5'
+                color: '#168a9b'
             },
             'dados/sitios_arqueologicos.geojson': {
                 name: 'Sítios arqueológicos',
-                color: '#9b5b3c'
+                color: '#8059a7'
             }
         }
     };

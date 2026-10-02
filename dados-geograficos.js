@@ -9,6 +9,8 @@
     var legendEmpty = document.getElementById('geo-legend-empty');
     var layerList = document.getElementById('geo-layer-list');
     var catalogStatus = document.getElementById('geo-catalog-status');
+    var layerSearch = document.getElementById('geo-layer-search');
+    var layerNoResults = document.getElementById('geo-layer-no-results');
 
     map.createPane('pane_GoogleSatellite');
     map.getPane('pane_GoogleSatellite').style.zIndex = 200;
@@ -23,7 +25,15 @@
     }).addTo(map);
 
     L.control.zoom({ position: 'topright' }).addTo(map);
-    L.control.locate({ position: 'topleft', locateOptions: { maxZoom: 19 } }).addTo(map);
+    var locateControl = L.control.locate({ position: 'bottomleft', locateOptions: { maxZoom: 19 } }).addTo(map);
+    var locateButton = locateControl.getContainer().querySelector('a');
+    var locateLabel = document.createElement('span');
+    locateLabel.className = 'leaflet-control-locate-label';
+    locateLabel.textContent = 'Centralizar';
+    locateButton.setAttribute('aria-label', 'Centralizar');
+    locateButton.title = 'Centralizar';
+    locateButton.firstElementChild.setAttribute('aria-hidden', 'true');
+    locateButton.appendChild(locateLabel);
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
     function displayName(path) {
@@ -45,7 +55,9 @@
 
     function createPopup(properties) {
         var container = document.createElement('div');
+        var scrollArea = document.createElement('div');
         var table = document.createElement('table');
+        scrollArea.className = 'geo-popup-scroll';
         table.className = 'geo-popup-table';
         var entries = properties && typeof properties === 'object' ? Object.entries(properties) : [];
         var availableEntries = entries.filter(function (entry) {
@@ -69,7 +81,8 @@
             table.appendChild(row);
         });
 
-        container.appendChild(table);
+        scrollArea.appendChild(table);
+        container.appendChild(scrollArea);
         return container;
     }
 
@@ -145,7 +158,14 @@
                 });
             },
             onEachFeature: function (feature, layer) {
-                layer.bindPopup(createPopup(feature.properties));
+                var maxWidth = Math.max(180, Math.min(window.innerWidth - 40, map.getSize().x - 56, 520));
+                layer.bindPopup(createPopup(feature.properties), {
+                    minWidth: Math.min(180, maxWidth),
+                    maxWidth: maxWidth,
+                    maxHeight: Math.max(180, Math.min(window.innerHeight - 120, map.getSize().y - 32, 420)),
+                    autoPanPadding: [16, 16],
+                    keepInView: true
+                });
             }
         });
     }
@@ -285,6 +305,22 @@
         updateLegend();
     }
 
+    function filterLayers() {
+        var query = layerSearch.value.trim().toLocaleLowerCase('pt-BR');
+        var visibleCount = 0;
+
+        Array.from(layerList.querySelectorAll('.geo-layer-option')).forEach(function (item) {
+            var name = item.querySelector('.geo-layer-label').textContent.toLocaleLowerCase('pt-BR');
+            var matches = name.indexOf(query) !== -1;
+            item.hidden = !matches;
+            if (matches) {
+                visibleCount += 1;
+            }
+        });
+
+        layerNoResults.hidden = visibleCount > 0 || !query;
+    }
+
     function loadCatalog() {
         var files = Object.keys(config.definitions || {});
         renderLayers(files);
@@ -294,5 +330,6 @@
     }
 
     map.on('layeradd layerremove', updateLegend);
+    layerSearch.addEventListener('input', filterLayers);
     loadCatalog();
 }());
