@@ -41,9 +41,9 @@
     var locateLabel = document.createElement('span');
     locateLabel.className = 'leaflet-control-locate-label';
     locateLabel.textContent = 'Centralizar';
+    locateButton.firstElementChild.remove();
     locateButton.setAttribute('aria-label', 'Centralizar');
     locateButton.title = 'Centralizar';
-    locateButton.firstElementChild.setAttribute('aria-hidden', 'true');
     locateButton.appendChild(locateLabel);
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
@@ -282,6 +282,7 @@
 
     function setLayerStatus(state, message, isError) {
         state.status.textContent = message;
+        state.status.hidden = !isError;
         state.status.setAttribute('aria-live', 'polite');
         state.status.classList.toggle('is-error', Boolean(isError));
     }
@@ -291,7 +292,7 @@
             return state.loadPromise;
         }
 
-        setLayerStatus(state, 'Carregando dados do GitHub…', false);
+        setLayerStatus(state, '', false);
         var encodedPath = state.path.split('/').map(encodeURIComponent).join('/');
         state.loadPromise = fetch(encodedPath)
             .then(function (response) {
@@ -304,7 +305,7 @@
                 state.geoJsonLayer = createLayer(state, geojson);
                 if (state.checkbox.checked) {
                     state.geoJsonLayer.addTo(map);
-                    setLayerStatus(state, 'Camada exibida no mapa.', false);
+                    setLayerStatus(state, '', false);
                     updateLegend();
 
                     var bounds = state.geoJsonLayer.getBounds();
@@ -312,7 +313,7 @@
                         map.fitBounds(bounds, { padding: [22, 22], maxZoom: 12 });
                     }
                 } else {
-                    setLayerStatus(state, 'Carregada; desativada no mapa.', false);
+                    setLayerStatus(state, '', false);
                 }
             })
             .catch(function (error) {
@@ -335,7 +336,7 @@
         if (state.checkbox.checked) {
             if (state.geoJsonLayer) {
                 state.geoJsonLayer.addTo(map);
-                setLayerStatus(state, 'Camada exibida no mapa.', false);
+                setLayerStatus(state, '', false);
                 updateLegend();
                 return;
             }
@@ -346,7 +347,7 @@
         if (state.geoJsonLayer && map.hasLayer(state.geoJsonLayer)) {
             map.removeLayer(state.geoJsonLayer);
         }
-        setLayerStatus(state, state.loadPromise ? 'Carregamento em andamento…' : '', false);
+        setLayerStatus(state, '', false);
         updateLegend();
     }
 

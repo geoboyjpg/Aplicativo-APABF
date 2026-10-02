@@ -10,9 +10,9 @@
                 initiallyVisible: true,
                 downloads: {
                     geojson: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/limites_apabf/limites_apabf_linha.geojson',
-                    kml: null,
-                    shapefile: null,
-                    geopackage: null
+                    kml: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/limites_apabf/limites_apabf_linha.kml',
+                    shapefile: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/limites_apabf/limites_apabf_linha.zip',
+                    geopackage: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/limites_apabf/limites_apabf_linha.gpkg'
                 }
             },
             'dados/ilhas_apabf_poligono.geojson': {
@@ -20,9 +20,9 @@
                 color: '#2e8b57',
                 downloads: {
                     geojson: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_poligono.geojson',
-                    kml: null,
-                    shapefile: null,
-                    geopackage: null
+                    kml: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_poligono.kml',
+                    shapefile: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_poligono.zip',
+                    geopackage: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_poligono.gpkg'
                 }
             },
             'dados/ilhas_apabf_ponto.geojson': {
@@ -30,9 +30,9 @@
                 color: '#e28b32',
                 downloads: {
                     geojson: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_ponto.geojson',
-                    kml: null,
-                    shapefile: null,
-                    geopackage: null
+                    kml: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_ponto.kml',
+                    shapefile: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_ponto.zip',
+                    geopackage: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/ilhas/ilhas_apabf_ponto.gpkg'
                 }
             },
             'dados/lagoas_apabf.geojson': {
@@ -40,9 +40,9 @@
                 color: '#168a9b',
                 downloads: {
                     geojson: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/lagoas/lagoas_apabf.geojson',
-                    kml: null,
-                    shapefile: null,
-                    geopackage: null
+                    kml: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/lagoas/lagoas_apabf.kml',
+                    shapefile: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/lagoas/lagoas_apabf.zip',
+                    geopackage: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/lagoas/lagoas_apabf.gpkg'
                 }
             },
             'dados/sitios_arqueologicos.geojson': {
@@ -50,9 +50,9 @@
                 color: '#8059a7',
                 downloads: {
                     geojson: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/sitios_arqueologicos/sitios_arqueologicos.geojson',
-                    kml: null,
-                    shapefile: null,
-                    geopackage: null
+                    kml: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/sitios_arqueologicos/sitios_arqueologicos.kml',
+                    shapefile: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/sitios_arqueologicos/sitios_arqueologicos.zip',
+                    geopackage: 'https://raw.githubusercontent.com/geoboyjpg/Base-de-Dados/main/sitios_arqueologicos/sitios_arqueologicos.gpkg'
                 }
             }
         }

@@ -159,6 +159,7 @@ body {
 
 .geo-panel {
     display: flex;
+    align-self: start;
     min-width: 0;
     flex-direction: column;
     background: #ffffff;
@@ -168,7 +169,7 @@ body {
 .geo-panel-content {
     display: flex;
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     flex-direction: column;
     gap: 10px;
     max-height: min(68vh, 680px);
@@ -527,8 +528,12 @@ body {
 }
 
 .geo-layer-status {
+    display: none;
+    margin: 0;
+}
+
+.geo-layer-status.is-error {
     display: block;
-    margin-top: 3px;
 }
 
 .geo-legend {
@@ -687,7 +692,7 @@ body {
 #geo-map .leaflet-control-locate.active a,
 #geo-map .leaflet-control-locate.active.following a {
     display: inline-flex;
-    width: auto;
+    width: 120.4px;
     min-width: 44px;
     height: 44px;
     align-items: center;
