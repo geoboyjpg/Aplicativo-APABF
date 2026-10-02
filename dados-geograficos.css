@@ -159,7 +159,7 @@ body {
 
 .geo-panel {
     display: flex;
-    align-self: start;
+    min-height: 0;
     min-width: 0;
     flex-direction: column;
     background: #ffffff;
@@ -169,10 +169,9 @@ body {
 .geo-panel-content {
     display: flex;
     min-height: 0;
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 10px;
-    max-height: min(68vh, 680px);
     padding: 10px;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -188,6 +187,17 @@ body {
     box-shadow: 0 3px 10px rgba(13, 79, 85, 0.08);
 }
 
+.geo-accordion[open] {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0;
+    flex-direction: column;
+}
+
+.geo-accordion:not([open]) {
+    flex: 0 0 auto;
+}
+
 .geo-accordion-toggle {
     display: flex;
     min-height: 44px;
@@ -201,6 +211,10 @@ body {
     background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(13, 79, 85, 0.94));
     cursor: pointer;
     list-style: none;
+}
+
+.geo-accordion[open] > .geo-accordion-toggle {
+    flex: 0 0 auto;
 }
 
 .geo-accordion-toggle::-webkit-details-marker {
@@ -254,6 +268,7 @@ body {
 .geo-download-trigger {
     width: 100%;
     flex: 0 0 auto;
+    margin-top: auto;
 }
 
 .geo-download-button:disabled {
@@ -428,6 +443,12 @@ body {
     overflow: hidden;
 }
 
+.geo-accordion[open] > .geo-accordion-content {
+    max-height: none;
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
 .geo-accordion-content > p:first-child:not(.geo-catalog-status):not(.geo-legend-empty) {
     margin: 0;
     color: var(--geo-muted);
@@ -472,6 +493,8 @@ body {
 
 .geo-layer-list {
     display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
     min-width: 0;
     gap: 7px;
     max-height: min(34vh, 330px);
@@ -542,6 +565,8 @@ body {
 
 .geo-legend-list {
     display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
     gap: 9px;
     max-height: min(34vh, 300px);
     margin: 0;
@@ -822,6 +847,10 @@ body {
         min-height: 0;
         border-right: 0;
         border-bottom: 1px solid var(--geo-border);
+    }
+
+    .geo-panel:has(.geo-accordion[open]) {
+        height: min(42vh, 360px);
     }
 
     .geo-panel-content {
