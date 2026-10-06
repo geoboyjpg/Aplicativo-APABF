@@ -16,8 +16,9 @@
     var downloadCloseButton = document.getElementById('geo-download-close');
     var downloadLayers = document.getElementById('geo-download-layers');
     var downloadEmpty = document.getElementById('geo-download-empty');
-    var downloadAllButton = document.getElementById('geo-download-all');
-    var downloadAllStatus = document.getElementById('geo-download-all-status');
+    var downloadSelectedButton = document.getElementById('geo-download-selected');
+    var downloadStatus = document.getElementById('geo-download-status');
+    var selectedDownloads = new Set();
     var downloadFormats = [
         { key: 'geojson', label: 'GeoJSON' },
         { key: 'kml', label: 'KML' },
@@ -157,7 +158,55 @@
             });
     }
 
+    function downloadJobKey(path, formatKey) {
+        return JSON.stringify([path, formatKey]);
+    }
+
+    function downloadFilesSequentially(jobs, button, status) {
+        if (!jobs.length) {
+            status.textContent = 'Selecione pelo menos um formato.';
+            return;
+        }
+
+        button.disabled = true;
+        status.textContent = 'Preparando os downloads selecionados…';
+        var failures = 0;
+        var queue = Promise.resolve();
+
+        jobs.forEach(function (job, index) {
+            queue = queue.then(function () {
+                job.status.textContent = 'Preparando download…';
+                return downloadFile(job.state, job.formatKey)
+                    .then(function (filename) {
+                        job.status.textContent = 'Download iniciado: ' + filename;
+                    })
+                    .catch(function (error) {
+                        failures += 1;
+                        console.error('Não foi possível baixar os dados da camada ' + job.state.definition.name + ':', error);
+                        job.status.textContent = 'Falha no download: ' + error.message;
+                    })
+                    .then(function () {
+                        if (index < jobs.length - 1) {
+                            return new Promise(function (resolve) {
+                                window.setTimeout(resolve, 500);
+                            });
+                        }
+                    });
+            });
+        });
+
+        queue.finally(function () {
+            button.disabled = false;
+            status.textContent = failures
+                ? 'Downloads concluídos com ' + failures + (failures === 1 ? ' falha.' : ' falhas.')
+                : 'Downloads selecionados iniciados.';
+        });
+    }
+
     function renderDownloadLayers() {
+        downloadLayers.querySelectorAll('.geo-download-format input:checked').forEach(function (input) {
+            selectedDownloads.add(downloadJobKey(input.dataset.layerPath, input.value));
+        });
         downloadLayers.replaceChildren();
         var activeStates = Array.from(layerStates.values()).filter(function (state) {
             return state.geoJsonLayer && map.hasLayer(state.geoJsonLayer);
@@ -166,11 +215,9 @@
         downloadLayers.hidden = activeStates.length === 0;
         downloadEmpty.textContent = 'Selecione pelo menos uma camada para baixar.';
 
-        activeStates.forEach(function (state, index) {
+        activeStates.forEach(function (state) {
             var item = document.createElement('section');
-            var selection = document.createElement('label');
-            var selectInput = document.createElement('input');
-            var title = document.createElement('span');
+            var title = document.createElement('h3');
             var options = document.createElement('fieldset');
             var legend = document.createElement('legend');
             var status = document.createElement('p');
@@ -180,14 +227,9 @@
             });
 
             item.className = 'geo-download-layer';
-            selection.className = 'geo-download-selection';
-            selectInput.type = 'checkbox';
-            selectInput.value = state.path;
-            selectInput.setAttribute('aria-label', 'Selecionar ' + state.definition.name + ' para download');
+            item.dataset.layerPath = state.path;
             title.className = 'geo-download-layer-title';
             title.textContent = state.definition.name;
-            selection.appendChild(selectInput);
-            selection.appendChild(title);
             options.className = 'geo-download-formats';
             legend.textContent = 'Formato';
             options.appendChild(legend);
@@ -198,47 +240,39 @@
             button.textContent = 'Baixar';
             button.disabled = availableFormats.length === 0;
 
-            downloadFormats.forEach(function (format) {
+            availableFormats.forEach(function (format) {
                 var label = document.createElement('label');
                 var input = document.createElement('input');
-                var url = state.definition.downloads && state.definition.downloads[format.key];
-                input.type = 'radio';
-                input.name = 'geo-download-format-' + index;
+                input.type = 'checkbox';
+                input.dataset.layerPath = state.path;
                 input.value = format.key;
-                input.disabled = !url;
-                input.checked = Boolean(url) && format === availableFormats[0];
+                input.checked = selectedDownloads.has(downloadJobKey(state.path, format.key));
                 label.className = 'geo-download-format';
-                if (!url) {
-                    label.classList.add('is-unavailable');
-                }
+                input.addEventListener('change', function () {
+                    var key = downloadJobKey(state.path, format.key);
+                    if (input.checked) {
+                        selectedDownloads.add(key);
+                    } else {
+                        selectedDownloads.delete(key);
+                    }
+                });
                 label.appendChild(input);
-                label.appendChild(document.createTextNode(url ? format.label : format.label + ' — Indisponível'));
+                label.appendChild(document.createTextNode(format.label));
                 options.appendChild(label);
             });
 
             button.addEventListener('click', function () {
-                var selected = options.querySelector('input:checked');
-                if (!selected || !state.definition.downloads[selected.value]) {
-                    status.textContent = 'O formato selecionado não está disponível para esta camada.';
-                    return;
-                }
-
-                button.disabled = true;
-                status.textContent = 'Preparando download…';
-                downloadFile(state, selected.value)
-                    .then(function (filename) {
-                        status.textContent = 'Download iniciado: ' + filename;
-                    })
-                    .catch(function (error) {
-                        console.error('Não foi possível baixar os dados da camada ' + state.definition.name + ':', error);
-                        status.textContent = 'Falha no download: ' + error.message;
-                    })
-                    .finally(function () {
-                        button.disabled = false;
-                    });
+                var jobs = Array.from(options.querySelectorAll('input:checked')).map(function (input) {
+                    return {
+                        state: state,
+                        formatKey: input.value,
+                        status: status
+                    };
+                });
+                downloadFilesSequentially(jobs, button, status);
             });
 
-            item.appendChild(selection);
+            item.appendChild(title);
             item.appendChild(options);
             item.appendChild(button);
             item.appendChild(status);
@@ -246,57 +280,60 @@
         });
     }
 
-    function downloadSelectedLayers() {
-        var selectedLayers = Array.from(downloadLayers.querySelectorAll('.geo-download-selection input:checked'));
-        if (!selectedLayers.length) {
-            downloadAllStatus.textContent = 'Selecione pelo menos um arquivo.';
-            return;
+    function downloadSelectedFormats() {
+        var jobs = Array.from(downloadLayers.querySelectorAll('.geo-download-format input:checked')).map(function (input) {
+            var item = input.closest('.geo-download-layer');
+            return {
+                state: layerStates.get(input.dataset.layerPath),
+                formatKey: input.value,
+                status: item.querySelector('.geo-download-status')
+            };
+        }).filter(function (job) {
+            return job.state && job.state.definition.downloads[job.formatKey];
+        });
+
+        downloadFilesSequentially(jobs, downloadSelectedButton, downloadStatus);
+    }
+
+    function layerStyle(state, isPoint) {
+        if (isPoint) {
+            return {
+                color: '#ffffff',
+                fillColor: state.definition.color,
+                weight: 1.5,
+                opacity: 0.9,
+                fillOpacity: 0.9
+            };
         }
+        return {
+            color: state.definition.color,
+            fillColor: state.definition.color,
+            weight: 2,
+            opacity: 0.9,
+            fillOpacity: 0.2
+        };
+    }
 
-        downloadAllButton.disabled = true;
-        downloadAllStatus.textContent = 'Preparando os downloads selecionados…';
-        var failures = 0;
-        var queue = Promise.resolve();
-
-        selectedLayers.forEach(function (selection) {
-            queue = queue.then(function () {
-                var item = selection.closest('.geo-download-layer');
-                var state = layerStates.get(selection.value);
-                var selectedFormat = item && item.querySelector('.geo-download-formats input:checked');
-                var status = item && item.querySelector('.geo-download-status');
-
-                if (!state || !selectedFormat || !state.definition.downloads[selectedFormat.value]) {
-                    failures += 1;
-                    if (status) {
-                        status.textContent = 'O formato selecionado não está disponível para esta camada.';
-                    }
-                    return;
-                }
-
-                status.textContent = 'Preparando download…';
-                return downloadFile(state, selectedFormat.value)
-                    .then(function (filename) {
-                        status.textContent = 'Download iniciado: ' + filename;
-                    })
-                    .catch(function (error) {
-                        failures += 1;
-                        console.error('Não foi possível baixar os dados da camada ' + state.definition.name + ':', error);
-                        status.textContent = 'Falha no download: ' + error.message;
-                    })
-                    .then(function () {
-                        return new Promise(function (resolve) {
-                            window.setTimeout(resolve, 500);
-                        });
-                    });
+    function applyLayerColor(layer, state) {
+        if (layer instanceof L.CircleMarker) {
+            layer.setStyle(layerStyle(state, true));
+        } else if (layer instanceof L.Path) {
+            layer.setStyle(layerStyle(state, false));
+        } else if (typeof layer.eachLayer === 'function') {
+            layer.eachLayer(function (childLayer) {
+                applyLayerColor(childLayer, state);
             });
-        });
+        }
+    }
 
-        queue.finally(function () {
-            downloadAllButton.disabled = false;
-            downloadAllStatus.textContent = failures
-                ? 'Downloads concluídos com ' + failures + (failures === 1 ? ' falha.' : ' falhas.')
-                : 'Downloads selecionados iniciados.';
-        });
+    function updateLayerColor(state, color) {
+        state.definition.color = color;
+        if (state.geoJsonLayer) {
+            state.geoJsonLayer.eachLayer(function (layer) {
+                applyLayerColor(layer, state);
+            });
+        }
+        updateLegend();
     }
 
     function geometryKind(geojson) {
@@ -324,22 +361,12 @@
         state.geometryType = geometryKind(geojson);
         return L.geoJSON(geojson, {
             style: function () {
-                return {
-                    color: state.definition.color,
-                    fillColor: state.definition.color,
-                    weight: 2,
-                    opacity: 0.9,
-                    fillOpacity: 0.2
-                };
+                return layerStyle(state, false);
             },
             pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, {
-                    radius: 6,
-                    color: '#ffffff',
-                    weight: 1.5,
-                    fillColor: state.definition.color,
-                    fillOpacity: 0.9
-                });
+                var style = layerStyle(state, true);
+                style.radius = 6;
+                return L.circleMarker(latlng, style);
             },
             onEachFeature: function (feature, layer) {
                 var maxWidth = Math.max(180, Math.min(window.innerWidth - 40, map.getSize().x - 56, 520));
@@ -445,10 +472,11 @@
                 initiallyVisible: Boolean(configured.initiallyVisible),
                 downloads: configured.downloads || {}
             };
-            var item = document.createElement('label');
+            var item = document.createElement('div');
             var checkbox = document.createElement('input');
-            var textWrapper = document.createElement('span');
+            var textWrapper = document.createElement('label');
             var name = document.createElement('span');
+            var colorPicker = document.createElement('input');
             var status = document.createElement('span');
             var state = {
                 path: path,
@@ -462,8 +490,14 @@
 
             item.className = 'geo-layer-option';
             checkbox.type = 'checkbox';
+            checkbox.id = 'geo-layer-toggle-' + index;
             checkbox.checked = definition.initiallyVisible;
             checkbox.setAttribute('aria-label', definition.name);
+            textWrapper.htmlFor = checkbox.id;
+            colorPicker.type = 'color';
+            colorPicker.className = 'geo-layer-color';
+            colorPicker.value = definition.color;
+            colorPicker.setAttribute('aria-label', 'Alterar a cor da camada ' + definition.name);
             name.className = 'geo-layer-label';
             name.textContent = definition.name;
             status.className = 'geo-layer-status';
@@ -471,10 +505,14 @@
             textWrapper.appendChild(status);
             item.appendChild(checkbox);
             item.appendChild(textWrapper);
+            item.appendChild(colorPicker);
             layerList.appendChild(item);
             layerStates.set(path, state);
             checkbox.addEventListener('change', function () {
                 handleLayerChange(state);
+            });
+            colorPicker.addEventListener('input', function () {
+                updateLayerColor(state, colorPicker.value);
             });
 
             if (checkbox.checked) {
@@ -530,6 +568,6 @@
         downloadDialog.close();
         downloadOpenButton.focus();
     });
-    downloadAllButton.addEventListener('click', downloadSelectedLayers);
+    downloadSelectedButton.addEventListener('click', downloadSelectedFormats);
     loadCatalog();
 }());

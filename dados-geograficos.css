@@ -190,7 +190,7 @@ body {
 .geo-accordion[open] {
     display: flex;
     min-height: 0;
-    flex: 1 1 0;
+    flex: 0 0 auto;
     flex-direction: column;
 }
 
@@ -363,34 +363,10 @@ body {
 }
 
 .geo-download-layer-title {
+    grid-column: 1 / -1;
     margin: 0;
     color: var(--geo-green-dark);
     font-size: 0.95rem;
-}
-
-.geo-download-selection {
-    display: flex;
-    grid-column: 1 / -1;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-
-.geo-download-selection input {
-    width: 17px;
-    height: 17px;
-    flex: 0 0 auto;
-    margin: 0;
-    accent-color: var(--geo-green);
-}
-
-.geo-download-selection .geo-download-layer-title {
-    min-width: 0;
-}
-
-.geo-download-selection input:focus-visible {
-    outline: 3px solid var(--geo-green);
-    outline-offset: 3px;
 }
 
 .geo-download-formats {
@@ -424,17 +400,13 @@ body {
     accent-color: var(--geo-green);
 }
 
-.geo-download-format.is-unavailable {
-    color: #849290;
-}
-
 .geo-download-button {
     min-width: 92px;
     min-height: 38px;
     padding: 7px 12px;
 }
 
-.geo-download-all {
+.geo-download-selected {
     width: 100%;
     margin-top: 12px;
 }
@@ -475,7 +447,7 @@ body {
 .geo-accordion[open] > .geo-accordion-content {
     max-height: none;
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
 }
 
 .geo-accordion-content > p:first-child:not(.geo-catalog-status):not(.geo-legend-empty) {
@@ -546,13 +518,28 @@ body {
 
 .geo-layer-option {
     display: grid;
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: 20px minmax(0, 1fr) 30px;
     align-items: start;
     gap: 9px;
     padding: 10px;
     background: #f6faf9;
     border: 1px solid #e6efed;
     border-radius: 9px;
+}
+
+.geo-layer-color {
+    width: 30px;
+    height: 26px;
+    padding: 2px;
+    background: #ffffff;
+    border: 1px solid var(--geo-border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.geo-layer-color:focus-visible {
+    outline: 3px solid var(--geo-green);
+    outline-offset: 2px;
 }
 
 .geo-layer-option[hidden] {
@@ -564,7 +551,7 @@ body {
     border-color: #c6ddd7;
 }
 
-.geo-layer-option input {
+.geo-layer-option input[type="checkbox"] {
     width: 17px;
     height: 17px;
     margin: 1px 0 0;
