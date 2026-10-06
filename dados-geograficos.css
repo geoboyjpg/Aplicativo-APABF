@@ -363,10 +363,34 @@ body {
 }
 
 .geo-download-layer-title {
-    grid-column: 1 / -1;
     margin: 0;
     color: var(--geo-green-dark);
     font-size: 0.95rem;
+}
+
+.geo-download-selection {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.geo-download-selection input {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    margin: 0;
+    accent-color: var(--geo-green);
+}
+
+.geo-download-selection .geo-download-layer-title {
+    min-width: 0;
+}
+
+.geo-download-selection input:focus-visible {
+    outline: 3px solid var(--geo-green);
+    outline-offset: 3px;
 }
 
 .geo-download-formats {
@@ -408,6 +432,11 @@ body {
     min-width: 92px;
     min-height: 38px;
     padding: 7px 12px;
+}
+
+.geo-download-all {
+    width: 100%;
+    margin-top: 12px;
 }
 
 .geo-download-status {
@@ -826,7 +855,6 @@ body {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .geo-download-layer-title,
     .geo-download-status {
         grid-column: 1;
     }
