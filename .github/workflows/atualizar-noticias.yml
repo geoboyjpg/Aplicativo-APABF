@@ -1,0 +1,56 @@
+name: Atualizar notícias e publicações
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Fontes a consultar
+        type: choice
+        options:
+          - all
+          - news
+          - academic
+        default: all
+        required: true
+  schedule:
+    - cron: "0 9 * * *"
+    - cron: "0 10 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Executar coletores
+        env:
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+          elif [ "${{ github.event.schedule }}" = "0 10 * * 1" ]; then
+            MODE="all"
+          else
+            MODE="news"
+          fi
+          python scripts/noticias_publicacoes.py --mode "$MODE"
+      - name: Validar JSON
+        run: python -c "import json; d=json.load(open('dados/noticias-publicacoes.json', encoding='utf-8')); assert d['schema_version'] == 1 and isinstance(d['items'], list)"
+      - name: Salvar somente quando houver alteração
+        run: |
+          git add dados/noticias-publicacoes.json
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração nos resultados; nenhum commit será criado."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Atualiza notícias e publicações" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+            git push
+          fi

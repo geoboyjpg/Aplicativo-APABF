@@ -1,0 +1,193 @@
+{
+  "rss_feeds": [
+    {
+      "name": "G1 Santa Catarina",
+      "url": "https://g1.globo.com/rss/g1/sc/santa-catarina/",
+      "type": "noticia",
+      "category": "noticia"
+    },
+    {
+      "name": "Diário do Sul",
+      "url": "https://diariodosul.com.br/rss",
+      "type": "noticia",
+      "category": "noticia"
+    },
+    {
+      "name": "Sulinfoco",
+      "url": "https://www.sulinfoco.com.br/feed/",
+      "type": "noticia",
+      "category": "noticia"
+    },
+    {
+      "name": "Notícias do Governo de Santa Catarina",
+      "url": "https://noticias.sc.gov.br/feed/",
+      "type": "noticia",
+      "category": "noticia"
+    },
+    {
+      "name": "Ministério do Meio Ambiente",
+      "url": "https://www.gov.br/mma/rss.xml",
+      "type": "institucional",
+      "category": "institucional"
+    }
+  ],
+  "openalex_queries": [
+    "APABF",
+    "APA da Baleia Franca",
+    "Imbituba lagoas",
+    "Garopaba conservação",
+    "Laguna lagoas conservação",
+    "Jaguaruna conservação",
+    "pesca artesanal litoral sul Santa Catarina",
+    "baleia-franca Santa Catarina",
+    "Lagoa de Ibiraquera"
+  ],
+  "crossref_queries": [
+    "APA da Baleia Franca",
+    "Imbituba lagoas",
+    "Garopaba conservação",
+    "Laguna lagoas conservação",
+    "Jaguaruna conservação",
+    "pesca artesanal litoral sul Santa Catarina",
+    "baleia-franca Santa Catarina"
+  ],
+  "crossref_rows_per_query": 12,
+  "openalex_results_per_query": 15,
+  "oai_initial_lookback_days": 30,
+  "oai_incremental_lookback_days": 21,
+  "oai_max_pages_per_repository": 15,
+  "oai_repositories": [
+    {
+      "name": "Repositório Institucional da UFSC",
+      "url": "https://repositorio.ufsc.br/oai/request",
+      "type": "repositorio"
+    },
+    {
+      "name": "Repositório Institucional da UNESC",
+      "url": "https://repositorio.unesc.net/server/oai/request",
+      "type": "repositorio"
+    },
+    {
+      "name": "Repositório Institucional do IFSC",
+      "url": "https://repositorio.ifsc.edu.br/server/oai/request",
+      "type": "repositorio"
+    }
+  ],
+  "unit_terms": [
+    "APA da Baleia Franca",
+    "Área de Proteção Ambiental da Baleia Franca",
+    "APABF",
+    "APA Baleia Franca"
+  ],
+  "municipalities": [
+    "Florianópolis",
+    "Palhoça",
+    "Paulo Lopes",
+    "Garopaba",
+    "Imbituba",
+    "Laguna",
+    "Jaguaruna",
+    "Içara",
+    "Balneário Rincão"
+  ],
+  "localities": [
+    "Lagoa de Ibiraquera",
+    "Lagoa do Camacho",
+    "Lagoa de Santa Marta",
+    "Lagoa do Imaruí",
+    "Lagoa do Siriú",
+    "Lagoa da Encantada",
+    "Barra da Ibiraquera",
+    "Praia do Rosa",
+    "Praia da Vila",
+    "Praia da Gamboa",
+    "Farol de Santa Marta",
+    "Cabo de Santa Marta",
+    "Praia do Ouvidor"
+  ],
+  "regional_terms": [
+    "Santa Catarina",
+    "litoral sul catarinense",
+    "sul de Santa Catarina",
+    "litoral catarinense"
+  ],
+  "themes": [
+    "conservação",
+    "biodiversidade",
+    "fauna",
+    "flora",
+    "baleia-franca",
+    "baleias-francas",
+    "baleias francas",
+    "Eubalaena australis",
+    "pesca artesanal",
+    "pesca",
+    "lagoas",
+    "lagoa costeira",
+    "lagoas costeiras",
+    "praias",
+    "costão rochoso",
+    "costões rochosos",
+    "costões",
+    "dunas",
+    "restinga",
+    "restingas",
+    "patrimônio arqueológico",
+    "sambaquis",
+    "turismo",
+    "monitoramento",
+    "pesquisa",
+    "licenciamento",
+    "zoneamento",
+    "gestão ambiental",
+    "mudanças climáticas"
+  ],
+  "generic_themes": [
+    "pesquisa"
+  ],
+  "ecosystems_and_species": [
+    "baleia-franca",
+    "Eubalaena australis",
+    "lagoa",
+    "lagoas costeiras",
+    "restinga",
+    "dunas",
+    "costões",
+    "sambaquis"
+  ],
+  "inside_area_phrases": [
+    "na APABF",
+    "da APABF",
+    "dentro da APABF",
+    "na APA da Baleia Franca",
+    "dentro da Área de Proteção Ambiental da Baleia Franca",
+    "na Área de Proteção Ambiental da Baleia Franca"
+  ],
+  "other_region_terms": [
+    "Amazonas",
+    "Amazônia",
+    "Bahia",
+    "Ceará",
+    "Paraná",
+    "Pernambuco",
+    "Rio de Janeiro",
+    "Rio Grande do Norte",
+    "Rio Grande do Sul",
+    "São Paulo",
+    "Uruguai",
+    "Argentina"
+  ],
+  "scoring": {
+    "unit_in_title_or_summary": 10,
+    "explicitly_inside_unit": 8,
+    "known_locality": 6,
+    "municipality": 3,
+    "local_theme": 3,
+    "local_species_or_ecosystem": 2,
+    "relevant_institution_or_university": 1,
+    "isolated_whale_mention": -3,
+    "explicitly_other_region": -4,
+    "high_threshold": 10,
+    "medium_threshold": 5
+  }
+}

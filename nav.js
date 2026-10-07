@@ -14,7 +14,8 @@
         { href: base + 'Zoneamento APABF/index.html', icon: 'fa-map', label: 'Mapa' },
         { href: base + 'Fiscalização/index.html', icon: 'fa-shield-alt', label: 'Fiscalização' },
         { href: base + 'PMP-na-APABF-main2/index.html', icon: 'fa-camera', label: 'Ocorrências' },
-        { href: base + 'Instrumentos Legais/index.html', icon: 'fa-gavel', label: 'Instrumentos Legais' }
+        { href: base + 'Instrumentos Legais/index.html', icon: 'fa-gavel', label: 'Instrumentos Legais' },
+        { href: base + 'noticias-publicacoes.html', icon: 'fa-newspaper', label: 'Notícias' }
     ];
 
     existingBar.innerHTML = '';

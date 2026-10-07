@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="nav.css">
+        <link rel="stylesheet" href="noticias-publicacoes.css">
+        <title>Notícias e Publicações - APABF</title>
+    </head>
+    <body>
+        <main class="news-page">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar para a tela inicial</a>
+            <header class="news-header">
+                <span class="news-kicker"><i class="fas fa-water" aria-hidden="true"></i> APA da Baleia Franca</span>
+                <h1>Notícias e Publicações</h1>
+                <p>Conteúdos de notícias, instituições, bases acadêmicas e repositórios relacionados à região da APA da Baleia Franca. A seleção é atualizada automaticamente e considera território, temas ambientais e relação com a unidade.</p>
+                <p class="last-updated" id="last-updated" aria-live="polite">Carregando a data da última atualização…</p>
+            </header>
+
+            <section class="news-tools" aria-label="Pesquisar e filtrar conteúdos">
+                <div class="filter-field search-field">
+                    <label for="news-search">Pesquisar</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input id="news-search" type="search" placeholder="Título, resumo, fonte ou localidade" autocomplete="off">
+                    </div>
+                </div>
+                <div class="filter-field">
+                    <label for="category-filter">Categoria</label>
+                    <select id="category-filter">
+                        <option value="todos">Todos</option>
+                        <option value="noticia">Notícias</option>
+                        <option value="academico">Acadêmico</option>
+                        <option value="institucional">Institucional</option>
+                        <option value="pesquisa">Pesquisa</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="date-from">De</label>
+                    <input id="date-from" type="date">
+                </div>
+                <div class="filter-field">
+                    <label for="date-to">Até</label>
+                    <input id="date-to" type="date">
+                </div>
+                <div class="filter-field">
+                    <label for="sort-order">Ordenar por</label>
+                    <select id="sort-order">
+                        <option value="relevance">Mais relevantes</option>
+                        <option value="recent">Mais recentes</option>
+                    </select>
+                </div>
+            </section>
+
+            <div class="results-heading">
+                <p id="results-count" aria-live="polite">Carregando conteúdos…</p>
+                <span class="relevance-note"><i class="fas fa-circle-check" aria-hidden="true"></i> Exibindo apenas relevância alta e média</span>
+            </div>
+            <section id="news-results" class="news-results" aria-label="Resultados de notícias e publicações"></section>
+            <p id="news-status" class="news-status" role="status">Carregando resultados…</p>
+
+            <footer class="news-disclaimer">São exibidos metadados e resumos curtos. O conteúdo integral permanece nos sites e repositórios de origem.</footer>
+        </main>
+
+        <nav class="nav-bar" aria-label="Navegação principal"></nav>
+        <script src="nav.js" data-base=""></script>
+        <script src="noticias-publicacoes.js"></script>
+    </body>
+</html>
