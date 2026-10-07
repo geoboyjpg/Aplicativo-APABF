@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T13:15:00+00:00",
+  "generated_at": "2026-10-07T14:22:58+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -32,6 +32,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.46357/bcnaturais.v15i3.183",
+      "territorial_matches": [],
       "id": "760f17e5e3f7324fcfeb"
     },
     {
@@ -56,14 +57,15 @@
           "APABF ou nome completo da unidade no título/resumo",
           "estudo ou atividade explicitamente dentro da APABF",
           "município da área da APABF: Balneário Rincão",
-          "tema relacionado à região: baleia-franca",
+          "tema relacionado à região: baleia-franca, observação de baleias",
           "espécie ou ecossistema local: baleia-franca",
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.51189/rema/2267",
+      "territorial_matches": [],
       "id": "5fdaa2a0d96fc03cb29b"
     },
     {
@@ -111,6 +113,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "d1edc703834bd705e0ba"
     },
     {
@@ -155,6 +158,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "caeb7926633e00341c0f"
     },
     {
@@ -181,9 +185,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.47749/t/unicamp.2014.943777",
+      "territorial_matches": [],
       "id": "3e2b8e1e14deae8b280c"
     },
     {
@@ -210,9 +215,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.5007/2175-7925.2022.e86477",
+      "territorial_matches": [],
       "id": "dcba259123f1531c967e"
     },
     {
@@ -251,6 +257,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "2195a4b478b222cb2981"
     },
     {
@@ -277,9 +284,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.21814/physisterrae.4635",
+      "territorial_matches": [],
       "id": "c8b0e4b17cd1fd725c08"
     },
     {
@@ -306,9 +314,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.21814/physisterrae.5508",
+      "territorial_matches": [],
       "id": "4aa40dac9c6877da0fe9"
     },
     {
@@ -351,6 +360,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.6084/m9.figshare.30680588.v1",
+      "territorial_matches": [],
       "id": "08f9870bd44a19317ac7"
     },
     {
@@ -393,6 +403,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.6084/m9.figshare.30680588",
+      "territorial_matches": [],
       "id": "6d0f12fd6cfdc01d5ccc"
     },
     {
@@ -414,15 +425,322 @@
         "reason": [
           "APABF ou nome completo da unidade no título/resumo",
           "estudo ou atividade explicitamente dentro da APABF",
-          "tema relacionado à região: baleia-franca, Eubalaena australis, turismo",
+          "tema relacionado à região: baleia-franca, Eubalaena australis, observação de baleias",
           "espécie ou ecossistema local: baleia-franca, Eubalaena australis",
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.5380/ts.v18i1.99548",
+      "territorial_matches": [],
       "id": "824ea75e6c81c03b1cb8"
+    },
+    {
+      "title": "Cicloturismo em unidades de conservação: o Caso de Sucesso Rota da Baleia Franca",
+      "summary": "As belezas naturais de uma Área de Proteção Ambiental como a APA da Baleia Franca no litoral sul de Santa Catarina – berçário natural desses mamíferos – são ao mesmo tempo a principal atração turística e o recurso mais impactado pelo turismo rápido, ostensivo e predatório. O turismo de bicicleta (cicloturismo), com seu ritmo mais lento e contemplativo, surge como uma alternativa de atividade turística em unidades…",
+      "url": "https://doi.org/10.21680/2357-8211.2023v11n1id28595",
+      "source": {
+        "name": "Crossref",
+        "type": "academica"
+      },
+      "published_at": "2022-12-19T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Rota da Baleia Franca"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 23,
+        "reason": [
+          "APABF ou nome completo da unidade no título/resumo",
+          "tema relacionado à região: conservação, baleia-franca, turismo",
+          "+7 local costeiro com contexto ambiental: Rota da Baleia Franca; baleia-franca, conservação",
+          "espécie ou ecossistema local: baleia-franca",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "10.21680/2357-8211.2023v11n1id28595",
+      "territorial_matches": [
+        {
+          "category": "trilhas",
+          "name": "Rota da Baleia Franca",
+          "matched_as": "Rota da Baleia Franca",
+          "territorial_relation": "associado_regionalmente",
+          "evidence_level": "secundaria"
+        }
+      ],
+      "id": "d5e0d9afa34e7fa3d9c0"
+    },
+    {
+      "title": "Lista comentada da avifauna da microbacia hidrográfica da Lagoa de Ibiraquera, Imbituba, SC",
+      "summary": "A avifauna da microbacia da Lagoa de Ibiraquera foi inventariada entre março de 2002 e fevereiro de 2003, através de saídas mensais de 1 a 2 dias, resultando em aproximadamente 150 horas de esforço amostral. Em cada saída foram percorridos todos os ambientes que compõem a região de estudo, como restinga, florestas, praias e dunas, lagoas e áreas antrópicas. Foram identificadas 117 espécies ao longo do estudo,…",
+      "url": "https://periodicos.ufsc.br/index.php/biotemas/article/view/21216",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2006-01-01T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Imbituba",
+        "avifauna",
+        "bird habitat use",
+        "bird species inventory",
+        "coastal dunes",
+        "coastal lagoons",
+        "restinga",
+        "seasonal occurrence"
+      ],
+      "authors": [
+        "Edwin R. Campbell Thompson",
+        "Vítor de Queiroz Piacentini"
+      ],
+      "locations": [
+        "Imbituba",
+        "Lagoa de Ibiraquera"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 22,
+        "reason": [
+          "localidade conhecida: Lagoa de Ibiraquera",
+          "município da área da APABF: Imbituba",
+          "tema relacionado à região: lagoas, praias, dunas",
+          "+7 local costeiro com contexto ambiental: Lagoa de Ibiraquera; restinga, dunas",
+          "espécie ou ecossistema local: restinga, dunas",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Lagoa de Ibiraquera",
+          "matched_as": "Lagoa de Ibiraquera",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
+      "id": "86bcfb03f3fe7349cdb4"
+    },
+    {
+      "title": "Gradiente vegetacional,variavéis ambientais e restauração na restinga da Praia do Ouvidor, Garopaba, Santa Catarina",
+      "summary": "Resumo não disponível",
+      "url": "https://hdl.handle.net/10183/17473",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2008-01-01T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Garopaba",
+        "coastal restoration",
+        "coastal vegetation",
+        "environmental variables",
+        "restinga",
+        "vegetation gradient"
+      ],
+      "authors": [
+        "Ricardo Lange Hentschel"
+      ],
+      "locations": [
+        "Garopaba",
+        "Praia do Ouvidor"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 22,
+        "reason": [
+          "localidade conhecida: Praia do Ouvidor",
+          "município da área da APABF: Garopaba",
+          "tema relacionado à região: restinga",
+          "+7 local costeiro com contexto ambiental: Praia do Ouvidor; restinga",
+          "espécie ou ecossistema local: restinga",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Praia do Ouvidor",
+          "matched_as": "Praia do Ouvidor",
+          "territorial_relation": "associado_regionalmente",
+          "evidence_level": "secundaria"
+        }
+      ],
+      "id": "7edfc28fb015d719b302"
+    },
+    {
+      "title": "Monitoramento do crescimento de juvenis de Farfantepenaeus paulensis (Perez-Farfante, 1967) com vistas a um futuro repovoamento da Lagoa de Ibiraquera, Imbituba, SC",
+      "summary": "A Lagoa de Ibiraquera, que está localizada na região sul do Brasil, estado de Santa Catarina, entre os municípios de Garopaba e Imbituba, foi foco na década passada de um programa de repovoamento com camarões marinhos. Desde então, este ambiente natural pode ter sofrido mudanças, principalmente por causas antropogênicas, sobretudo poluição doméstica e aumento do esforço de pesca, especialmente a do camarãorosa…",
+      "url": "https://doaj.org/article/08479503199e4b4e8508f8a9dc5a95b2",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2007-01-01T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Farfantepenaeus paulensis",
+        "Litopenaeus vannamei",
+        "domestic pollution",
+        "juvenile shrimp growth",
+        "shrimp aquaculture",
+        "shrimp survival"
+      ],
+      "authors": [
+        "Jesús Malpartida",
+        "Luis Alejandro Vinatea"
+      ],
+      "locations": [
+        "Garopaba",
+        "Imbituba",
+        "Lagoa de Ibiraquera"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 20,
+        "reason": [
+          "localidade conhecida: Lagoa de Ibiraquera",
+          "município da área da APABF: Garopaba, Imbituba",
+          "tema relacionado à região: pesca, poluição, monitoramento",
+          "+7 local costeiro com contexto ambiental: Lagoa de Ibiraquera; poluição, monitoramento",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Lagoa de Ibiraquera",
+          "matched_as": "Lagoa de Ibiraquera",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
+      "id": "2efa0240283db903d8a1"
+    },
+    {
+      "title": "Ensaio Preliminar da Qualidade da Água da Lagoa de Ibiraquera (SC)",
+      "summary": "A Lagoa de Ibiraquera situada se constitui de um importante sistema lagunar no litoral de Santa Catarina, entre as cidades de Imbituba e Garopaba e é utilizada para vários fins por moradores e turistas. Devido ao processo de ocupação inadequado em suas bordas, a laguna vem sofrendo uma série de impactos ambientais. Assim, estudo visou realizar uma amostragem preliminar da qualidade de água de Ibiraquera no mês de…",
+      "url": "https://doi.org/10.21166/metapre.v2i0.1129",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2019-11-11T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "CONAMA regulations",
+        "Escherichia coli",
+        "Santa Catarina coast",
+        "bacteriological parameters",
+        "coastal lagoons",
+        "coliform bacteria",
+        "detergents",
+        "dissolved oxygen",
+        "nitrogen",
+        "phosphorus",
+        "physicochemical parameters",
+        "salinity"
+      ],
+      "authors": [
+        "Artur Sobral",
+        "Eduardo Cargnin Ferreira",
+        "Renata Osório"
+      ],
+      "locations": [
+        "Garopaba",
+        "Imbituba",
+        "Lagoa de Ibiraquera",
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 20,
+        "reason": [
+          "localidade conhecida: Lagoa de Ibiraquera",
+          "município da área da APABF: Garopaba, Imbituba, Laguna",
+          "tema relacionado à região: qualidade da água, impactos ambientais",
+          "+7 local costeiro com contexto ambiental: Lagoa de Ibiraquera; qualidade da água, impactos ambientais",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.21166/metapre.v2i0.1129",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Lagoa de Ibiraquera",
+          "matched_as": "Lagoa de Ibiraquera",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
+      "id": "5575c815bb81903ba3e5"
+    },
+    {
+      "title": "Comportamentos de pares de mãe-filhote de baleias francas, Eubalaena australis (Desmoulins, 1822) nas temporadas reprodutivas de 2010 e 2011 na praia da Gamboa, Santa Catarina, Brasil",
+      "summary": "",
+      "url": "https://repositorio.unesc.net/bitstream/1/1414/1/Kamilla%20Alves%20Vieira.pdf",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2013-02-27T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Eubalaena australis",
+        "Santa Catarina",
+        "animal behavior",
+        "breeding season",
+        "humpback whale",
+        "mother-calf pairs"
+      ],
+      "authors": [
+        "Kamilla Alves Vieira"
+      ],
+      "locations": [
+        "Praia da Gamboa"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 19,
+        "reason": [
+          "localidade conhecida: Praia da Gamboa",
+          "tema relacionado à região: baleias-francas, baleias francas, Eubalaena australis",
+          "+7 local costeiro com contexto ambiental: Praia da Gamboa; baleias-francas, baleias francas",
+          "espécie ou ecossistema local: Eubalaena australis",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Praia da Gamboa",
+          "matched_as": "Praia da Gamboa",
+          "territorial_relation": "associado_regionalmente",
+          "evidence_level": "secundaria"
+        }
+      ],
+      "id": "330ba675efd1c96f82e2"
     },
     {
       "title": "Gerenciamento costeiro integrado à luz dos sistemas e da diversidade ambiental: aplicação em Jaguaruna, Santa Catarina",
@@ -468,6 +786,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "151a2b806ed5517fee53"
     },
     {
@@ -504,7 +823,105 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "3f7cd0883b3a2b7e9239"
+    },
+    {
+      "title": "Mudanças na paisagem da Lagoa de Ibiraquera e a gestão da sua fauna silvestre",
+      "summary": "",
+      "url": "https://repositorio.ufsc.br/handle/123456789/102930",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2005-01-01T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "coastal lagoons",
+        "environmental change",
+        "lagoon fauna",
+        "landscape change",
+        "wildlife management"
+      ],
+      "authors": [
+        "Rodrigo Rodrigues de Freitas"
+      ],
+      "locations": [
+        "Lagoa de Ibiraquera"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 17,
+        "reason": [
+          "localidade conhecida: Lagoa de Ibiraquera",
+          "tema relacionado à região: fauna",
+          "+7 local costeiro com contexto ambiental: Lagoa de Ibiraquera; fauna",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Lagoa de Ibiraquera",
+          "matched_as": "Lagoa de Ibiraquera",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
+      "id": "6559563ae2677adce00b"
+    },
+    {
+      "title": "ENTRE TRADIÇÃO E MODERNIDADE: A DESVALORIZAÇÃO DO PATRIMÔNIO CULTURAL NA LAGOA DE IBIRAQUERA",
+      "summary": "As evidências das interações humanas com o território podem ser observadas nos traços morfológicos das cidades, cuja permanência ou desaparecimento, é ditada por contextos históricos, políticos e culturais. Os sarilhos, por exemplo, construções populares de suporte à pesca artesanal, refletem essa diversidade cultural. Esses elementos conectam-se às paisagens costeiras e urbanas, servindo tanto para lazer quanto…",
+      "url": "https://periodicos.ufal.br/revistaimpeto/article/view/18798",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2025-12-12T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "coastal landscape",
+        "cultural diversity",
+        "cultural heritage preservation",
+        "local communities",
+        "small-scale fisheries",
+        "urban space use",
+        "urbanization"
+      ],
+      "authors": [
+        "Cláudia Aparecida de Souza Ferreira",
+        "SÉRGIO TORRES MORAES"
+      ],
+      "locations": [
+        "Lagoa de Ibiraquera"
+      ],
+      "relevance": {
+        "level": "alta",
+        "score": 17,
+        "reason": [
+          "localidade conhecida: Lagoa de Ibiraquera",
+          "tema relacionado à região: pesca artesanal, pesca",
+          "+7 local costeiro com contexto ambiental: Lagoa de Ibiraquera; pesca artesanal",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T13:02:49+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [
+        {
+          "category": "beaches",
+          "name": "Lagoa de Ibiraquera",
+          "matched_as": "Lagoa de Ibiraquera",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
+      "id": "58f21599b258843c5257"
     },
     {
       "title": "Análise do caso do Turismo de Observação de Baleias Embarcado na zona de amortecimento da APA da Baleia Franca, à luz dos princípios da Precaução e da Prevenção.",
@@ -533,7 +950,7 @@
         "score": 16,
         "reason": [
           "APABF ou nome completo da unidade no título/resumo",
-          "tema relacionado à região: baleia-franca, turismo",
+          "tema relacionado à região: baleia-franca, observação de baleias, turismo de observação",
           "espécie ou ecossistema local: baleia-franca",
           "fonte institucional ou acadêmica relevante"
         ]
@@ -541,6 +958,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "667a8dcb495413e6b061"
     },
     {
@@ -561,14 +979,15 @@
         "score": 16,
         "reason": [
           "APABF ou nome completo da unidade no título/resumo",
-          "tema relacionado à região: conservação, baleia-franca, turismo",
+          "tema relacionado à região: conservação, baleia-franca, observação de baleias",
           "espécie ou ecossistema local: baleia-franca",
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.26668/indexlawjournals/2525-9695/2015.v1i1.17",
+      "territorial_matches": [],
       "id": "98a041cf5bff9df78584"
     },
     {
@@ -602,7 +1021,7 @@
         "score": 16,
         "reason": [
           "APABF ou nome completo da unidade no título/resumo",
-          "tema relacionado à região: conservação, baleia-franca, turismo",
+          "tema relacionado à região: conservação, baleia-franca, observação de baleias",
           "espécie ou ecossistema local: baleia-franca",
           "fonte institucional ou acadêmica relevante"
         ]
@@ -610,6 +1029,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.21902/2525-9695/2015.v1i2.17",
+      "territorial_matches": [],
       "id": "570b5cbc05e9221a9adc"
     },
     {
@@ -649,6 +1069,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.6084/m9.figshare.4315901.v2",
+      "territorial_matches": [],
       "id": "f94252f15a36be6e7167"
     },
     {
@@ -691,6 +1112,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "c33100cf6c4188a0f1c3"
     },
     {
@@ -735,7 +1157,8 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5281/zenodo.19635094",
-      "id": "dc9079381531cb61459d"
+      "id": "dc9079381531cb61459d",
+      "territorial_matches": []
     },
     {
       "title": "PESCA ILEGAL E O DESMATAMENTO NA AMAZÔNIA, COMO ESSAS DUAS SITUAÇÕES SE RELACIONAM COM A APA DA BALEIA FRANCA?",
@@ -779,6 +1202,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5281/zenodo.19635093",
+      "territorial_matches": [],
       "id": "7113b30614f13b06c826"
     },
     {
@@ -821,35 +1245,8 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "ed6dc6d40b3f2597969d"
-    },
-    {
-      "title": "Cicloturismo em unidades de conservação: o Caso de Sucesso Rota da Baleia Franca",
-      "summary": "As belezas naturais de uma Área de Proteção Ambiental como a APA da Baleia Franca no litoral sul de Santa Catarina – berçário natural desses mamíferos – são ao mesmo tempo a principal atração turística e o recurso mais impactado pelo turismo rápido, ostensivo e predatório. O turismo de bicicleta (cicloturismo), com seu ritmo mais lento e contemplativo, surge como uma alternativa de atividade turística em unidades…",
-      "url": "https://doi.org/10.21680/2357-8211.2023v11n1id28595",
-      "source": {
-        "name": "Crossref",
-        "type": "academica"
-      },
-      "published_at": "2022-12-19T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [],
-      "authors": [],
-      "locations": [],
-      "relevance": {
-        "level": "alta",
-        "score": 16,
-        "reason": [
-          "APABF ou nome completo da unidade no título/resumo",
-          "tema relacionado à região: conservação, baleia-franca, turismo",
-          "espécie ou ecossistema local: baleia-franca",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "10.21680/2357-8211.2023v11n1id28595",
-      "id": "d5e0d9afa34e7fa3d9c0"
     },
     {
       "title": "Mapa para Colorir da APA da Baleia Franca",
@@ -887,6 +1284,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.6084/m9.figshare.30671420",
+      "territorial_matches": [],
       "id": "066e74db9e1e6fa9d3d9"
     },
     {
@@ -925,6 +1323,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.6084/m9.figshare.30671420.v1",
+      "territorial_matches": [],
       "id": "8b4c2186fb031ec65914"
     },
     {
@@ -969,179 +1368,8 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "a580a5f37c137c41f51e"
-    },
-    {
-      "title": "Lista comentada da avifauna da microbacia hidrográfica da Lagoa de Ibiraquera, Imbituba, SC",
-      "summary": "A avifauna da microbacia da Lagoa de Ibiraquera foi inventariada entre março de 2002 e fevereiro de 2003, através de saídas mensais de 1 a 2 dias, resultando em aproximadamente 150 horas de esforço amostral. Em cada saída foram percorridos todos os ambientes que compõem a região de estudo, como restinga, florestas, praias e dunas, lagoas e áreas antrópicas. Foram identificadas 117 espécies ao longo do estudo,…",
-      "url": "https://periodicos.ufsc.br/index.php/biotemas/article/view/21216",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2006-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Imbituba",
-        "avifauna",
-        "bird habitat use",
-        "bird species inventory",
-        "coastal dunes",
-        "coastal lagoons",
-        "restinga",
-        "seasonal occurrence"
-      ],
-      "authors": [
-        "Edwin R. Campbell Thompson",
-        "Vítor de Queiroz Piacentini"
-      ],
-      "locations": [
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 15,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Imbituba",
-          "tema relacionado à região: lagoas, praias, dunas",
-          "espécie ou ecossistema local: lagoa, restinga, dunas",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "86bcfb03f3fe7349cdb4"
-    },
-    {
-      "title": "Monitoramento do crescimento de juvenis de Farfantepenaeus paulensis (Perez-Farfante, 1967) com vistas a um futuro repovoamento da Lagoa de Ibiraquera, Imbituba, SC",
-      "summary": "A Lagoa de Ibiraquera, que está localizada na região sul do Brasil, estado de Santa Catarina, entre os municípios de Garopaba e Imbituba, foi foco na década passada de um programa de repovoamento com camarões marinhos. Desde então, este ambiente natural pode ter sofrido mudanças, principalmente por causas antropogênicas, sobretudo poluição doméstica e aumento do esforço de pesca, especialmente a do camarãorosa…",
-      "url": "https://doaj.org/article/08479503199e4b4e8508f8a9dc5a95b2",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2007-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Farfantepenaeus paulensis",
-        "Litopenaeus vannamei",
-        "domestic pollution",
-        "juvenile shrimp growth",
-        "shrimp aquaculture",
-        "shrimp survival"
-      ],
-      "authors": [
-        "Jesús Malpartida",
-        "Luis Alejandro Vinatea"
-      ],
-      "locations": [
-        "Garopaba",
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 15,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Garopaba, Imbituba",
-          "tema relacionado à região: pesca, monitoramento",
-          "espécie ou ecossistema local: lagoa",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "2efa0240283db903d8a1"
-    },
-    {
-      "title": "Gradiente vegetacional,variavéis ambientais e restauração na restinga da Praia do Ouvidor, Garopaba, Santa Catarina",
-      "summary": "Resumo não disponível",
-      "url": "https://hdl.handle.net/10183/17473",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2008-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Garopaba",
-        "coastal restoration",
-        "coastal vegetation",
-        "environmental variables",
-        "restinga",
-        "vegetation gradient"
-      ],
-      "authors": [
-        "Ricardo Lange Hentschel"
-      ],
-      "locations": [
-        "Garopaba",
-        "Praia do Ouvidor"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 15,
-        "reason": [
-          "localidade conhecida: Praia do Ouvidor",
-          "município da área da APABF: Garopaba",
-          "tema relacionado à região: restinga",
-          "espécie ou ecossistema local: restinga",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "7edfc28fb015d719b302"
-    },
-    {
-      "title": "Desvendando os problemas da atividade turística a partir de uma experiência de Agenda 21 da Lagoa de Ibiraquera (Imbituba e Garopaba, SC) e prospectando soluções sobre o caso da Prainha de Canto Grande",
-      "summary": "Diante dos impactos negativos da atividade turística na ocasião que se pensa o desenvolvimento sustentável, há que iniciar uma discussão partindo de experiências em curso. Partindo dessas reflexões, tem-se dois objetivos: desvendar os problemas associados a atividade turística a partir da experiência de Agenda 21 da Lagoa de Ibiraquera, bem como o esforço de constituição de um grupo de turismo para pensar a…",
-      "url": "https://rbciamb.com.br/Publicacoes_RBCIAMB/article/view/394",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2010-03-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Agenda 21",
-        "Garopaba",
-        "Imbituba",
-        "ecodesvelopment",
-        "sustainable development",
-        "sustainable tourism",
-        "tourism impacts"
-      ],
-      "authors": [
-        "Carlos Alberto Cioce Sampaio",
-        "Márcia Silveira de Souza"
-      ],
-      "locations": [
-        "Garopaba",
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 15,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Garopaba, Imbituba",
-          "tema relacionado à região: turismo",
-          "espécie ou ecossistema local: lagoa",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "28d8cc781dabae14ff1b"
     },
     {
       "title": "Caracterização de flora de restinga herbácea de Laguna, Santa Catarina, Brasil",
@@ -1189,6 +1417,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.21726/abc.v10i3.2161",
+      "territorial_matches": [],
       "id": "33fceb9981afcce6c837"
     },
     {
@@ -1224,6 +1453,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5281/zenodo.10307304",
+      "territorial_matches": [],
       "id": "d61022a016556e9a1164"
     },
     {
@@ -1259,393 +1489,8 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5281/zenodo.10307303",
+      "territorial_matches": [],
       "id": "e3d9542758080e0a555a"
-    },
-    {
-      "title": "Mudanças na paisagem da Lagoa de Ibiraquera e a gestão da sua fauna silvestre",
-      "summary": "",
-      "url": "https://repositorio.ufsc.br/handle/123456789/102930",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2005-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "coastal lagoons",
-        "environmental change",
-        "lagoon fauna",
-        "landscape change",
-        "wildlife management"
-      ],
-      "authors": [
-        "Rodrigo Rodrigues de Freitas"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 12,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "tema relacionado à região: fauna",
-          "espécie ou ecossistema local: lagoa",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "6559563ae2677adce00b"
-    },
-    {
-      "title": "Comportamentos de pares de mãe-filhote de baleias francas, Eubalaena australis (Desmoulins, 1822) nas temporadas reprodutivas de 2010 e 2011 na praia da Gamboa, Santa Catarina, Brasil",
-      "summary": "",
-      "url": "https://repositorio.unesc.net/bitstream/1/1414/1/Kamilla%20Alves%20Vieira.pdf",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2013-02-27T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Eubalaena australis",
-        "Santa Catarina",
-        "animal behavior",
-        "breeding season",
-        "humpback whale",
-        "mother-calf pairs"
-      ],
-      "authors": [
-        "Kamilla Alves Vieira"
-      ],
-      "locations": [
-        "Praia da Gamboa"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 12,
-        "reason": [
-          "localidade conhecida: Praia da Gamboa",
-          "tema relacionado à região: baleias-francas, baleias francas, Eubalaena australis",
-          "espécie ou ecossistema local: Eubalaena australis",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "330ba675efd1c96f82e2"
-    },
-    {
-      "title": "Efeitos das mudanças climáticas sobre os serviços ecossistêmicos da lagoa de Ibiraquera, Santa Catarina",
-      "summary": "Contexto: Os serviços ecossistêmicos (SE) podem ser definidos como “contribuições que os ecossistemas fazem para o bem-estar humano”. As zonas costeiras, onde encontram-se as lagunas costeiras, produzem uma grande diversidade de SE, beneficiando diversos grupos de atores sociais, ao mesmo tempo em que vem sofrendo uma pressão crescente da urbanização, das atividades antrópicas e dos efeitos das mudanças climáticas.…",
-      "url": "https://doi.org/10.53455/re.v6i.271",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2025-03-25T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "IPCC climate projections",
-        "climate change impacts",
-        "coastal ecosystems",
-        "coastal lagoons",
-        "ecosystem service classification",
-        "ecosystem service mapping",
-        "ecosystem services",
-        "maps in education",
-        "watershed"
-      ],
-      "authors": [
-        "João Henrique Quoos",
-        "João Vitor Cipriano",
-        "Walter Martin Widmer"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 12,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "tema relacionado à região: mudanças climáticas",
-          "espécie ou ecossistema local: lagoa",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.53455/re.v6i.271",
-      "id": "eb4868a80027d9a66ea5"
-    },
-    {
-      "title": "ENTRE TRADIÇÃO E MODERNIDADE: A DESVALORIZAÇÃO DO PATRIMÔNIO CULTURAL NA LAGOA DE IBIRAQUERA",
-      "summary": "As evidências das interações humanas com o território podem ser observadas nos traços morfológicos das cidades, cuja permanência ou desaparecimento, é ditada por contextos históricos, políticos e culturais. Os sarilhos, por exemplo, construções populares de suporte à pesca artesanal, refletem essa diversidade cultural. Esses elementos conectam-se às paisagens costeiras e urbanas, servindo tanto para lazer quanto…",
-      "url": "https://periodicos.ufal.br/revistaimpeto/article/view/18798",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2025-12-12T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "coastal landscape",
-        "cultural diversity",
-        "cultural heritage preservation",
-        "local communities",
-        "small-scale fisheries",
-        "urban space use",
-        "urbanization"
-      ],
-      "authors": [
-        "Cláudia Aparecida de Souza Ferreira",
-        "SÉRGIO TORRES MORAES"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 12,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "tema relacionado à região: pesca artesanal, pesca",
-          "espécie ou ecossistema local: lagoa",
-          "fonte institucional ou acadêmica relevante"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "58f21599b258843c5257"
-    },
-    {
-      "title": "Arranjo Produtivo Local como estratégia que promove o ecodesenvolvimento: análises das experiências de Bonito (MS), Lagoa de Ibiraquera (Garopaba e Imbituba) (SC), e Santa Rosa de Lima (SC)",
-      "summary": "A Local Productive Arrangement (LPA) can be defined as an institution which is capable of igniting processes of territorial integration, based on an attempt to harmonize the dynamics of cooperation and competition, i.e. through institutional arrangements in which there is systemic competitiveness. The objective of this work is to evaluate local production arrangement experiences, viewing them as participatory…",
-      "url": "https://doi.org/10.14210/rtva.v7n1.p69-91",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2005-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Garopaba",
-        "Imbituba",
-        "Santa Rosa de Lima",
-        "bonito",
-        "cultural tourism",
-        "eco-development",
-        "local development",
-        "local productive arrangements",
-        "natural resources",
-        "organic farming",
-        "participatory management",
-        "self-management"
-      ],
-      "authors": [
-        "Carlos Alberto Cioce Sampaio",
-        "Oklinger Mantovaneli",
-        "Vadinho Pellin"
-      ],
-      "locations": [
-        "Garopaba",
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 11,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Garopaba, Imbituba",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.14210/rtva.v7n1.p69-91",
-      "id": "c25bb477728c35919bb3"
-    },
-    {
-      "title": "Arranjo Produtivo Local como estratégia que promove o ecodesenvolvimento: análises das experiências de Bonito (MS), Lagoa de Ibiraquera (Garopaba e Imbituba) (SC), e Santa Rosa de Lima (SC) Arreglo Productivo Local como estrategia que promueve el ecodesarrollo: análisis de las experiencias de…",
-      "summary": "",
-      "url": "https://www6.univali.br/seer/index.php/rtva/article/download/538/465",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2005-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Garopaba",
-        "Imbituba",
-        "Santa Rosa de Lima",
-        "bonito",
-        "ecodesvelopment",
-        "local productive arrangements",
-        "regional development strategy",
-        "sustainable development"
-      ],
-      "authors": [
-        "Carlos Alberto",
-        "Carlos Alberto Cioce Sampaio",
-        "Oklinger Mantovaneli",
-        "Vadinho Pellin"
-      ],
-      "locations": [
-        "Garopaba",
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 11,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Garopaba, Imbituba",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "1023271fe9b9c246364e"
-    },
-    {
-      "title": "Determinação da sobrevivência e crescimento de juvenis de Farfantepenaeus paulensis (Perez-Farfante, 1967) cultivado em baixas densidades com vistas a um futuro programa de repovoamento da Lagoa de Ibiraquera, Imbituba, Santa Catarina",
-      "summary": "Dissertação (mestrado) - Universidade Federal de Santa Catarina, Centro de Ciências Agrárias. Programa de Pós-Graduação em Aquicultura.",
-      "url": "https://repositorio.ufsc.br/handle/123456789/101607",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2005-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Farfantepenaeus paulensis",
-        "estuarine shrimp",
-        "juvenile growth",
-        "juvenile survival",
-        "population restoration",
-        "shrimp aquaculture"
-      ],
-      "authors": [
-        "Jesús Joselino Malpartida Pasco"
-      ],
-      "locations": [
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 11,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Imbituba",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "74c0ed808a73268230fb"
-    },
-    {
-      "title": "Presença de Cryptosporidium SPP. e Giardia SPP. na Lagoa de Ibiraquera, em fevereiro de 2019, Imbituba- SC",
-      "summary": "The anthropogenic actions caused to the water resources ended up causing a decline in the quality of the water, and consequently causing damages to public health. The most important constituent of all living organisms, a fundamental element in life, is represented by water, an element which, in the present conditions of degradation caused by the actions of human beings, serves as a vehicle for the transmission of…",
-      "url": "https://riuni.unisul.br/handle/12345/8008",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2019-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Cryptosporidium",
-        "Giardia",
-        "Imbituba",
-        "domestic wastewater",
-        "environmental risk factors",
-        "fecal contamination",
-        "lagoon water quality",
-        "recreational water contact",
-        "waterborne protozoa",
-        "wind dispersal"
-      ],
-      "authors": [
-        "Elena Silveira Abreu"
-      ],
-      "locations": [
-        "Imbituba",
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 11,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Imbituba",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "b65555477e1069782ad8"
-    },
-    {
-      "title": "Ensaio Preliminar da Qualidade da Água da Lagoa de Ibiraquera (SC)",
-      "summary": "A Lagoa de Ibiraquera situada se constitui de um importante sistema lagunar no litoral de Santa Catarina, entre as cidades de Imbituba e Garopaba e é utilizada para vários fins por moradores e turistas. Devido ao processo de ocupação inadequado em suas bordas, a laguna vem sofrendo uma série de impactos ambientais. Assim, estudo visou realizar uma amostragem preliminar da qualidade de água de Ibiraquera no mês de…",
-      "url": "https://doi.org/10.21166/metapre.v2i0.1129",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2019-11-11T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "CONAMA regulations",
-        "Escherichia coli",
-        "Santa Catarina coast",
-        "bacteriological parameters",
-        "coastal lagoons",
-        "coliform bacteria",
-        "detergents",
-        "dissolved oxygen",
-        "nitrogen",
-        "phosphorus",
-        "physicochemical parameters",
-        "salinity"
-      ],
-      "authors": [
-        "Artur Sobral",
-        "Eduardo Cargnin Ferreira",
-        "Renata Osório"
-      ],
-      "locations": [
-        "Garopaba",
-        "Imbituba",
-        "Lagoa de Ibiraquera",
-        "Laguna"
-      ],
-      "relevance": {
-        "level": "alta",
-        "score": 11,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "município da área da APABF: Garopaba, Imbituba, Laguna",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.21166/metapre.v2i0.1129",
-      "id": "5575c815bb81903ba3e5"
     },
     {
       "title": "Geodiversity and landscape: an interpretive approach to the Right Whale Environmental Protection Area (SC)",
@@ -1680,6 +1525,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "573b094b30665ecb2be8"
     },
     {
@@ -1706,9 +1552,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.32360/acmar.v57i1.85343",
+      "territorial_matches": [],
       "id": "030ac5435f484a1dc201"
     },
     {
@@ -1738,6 +1585,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.29327/143026.2-6",
+      "territorial_matches": [],
       "id": "42908483d09f021a0998"
     },
     {
@@ -1785,6 +1633,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.7213/reb.v28i64.22133",
+      "territorial_matches": [],
       "id": "924b399c04acee14eeef"
     },
     {
@@ -1830,6 +1679,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "d4f71e158e094c37263d"
     },
     {
@@ -1881,6 +1731,15 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.1590/s1981-81222010000100008",
+      "territorial_matches": [
+        {
+          "category": "referencias_geograficas",
+          "name": "Passagem da Barra",
+          "matched_as": "Passagem da Barra",
+          "territorial_relation": "limite_legal",
+          "evidence_level": "oficial"
+        }
+      ],
       "id": "c8bfa4dc1b9182c9bed8"
     },
     {
@@ -1927,6 +1786,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5007/2175-7925.2009v22n3p193",
+      "territorial_matches": [],
       "id": "87f70ab1e74b5a4f04c9"
     },
     {
@@ -1966,6 +1826,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "d459581308a5ae42e432"
     },
     {
@@ -2016,6 +1877,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.12741/ebrasilis.v5i1.147",
+      "territorial_matches": [],
       "id": "ac55cada2335b421e809"
     },
     {
@@ -2061,6 +1923,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "08a45fe7c2fc85936779"
     },
     {
@@ -2092,6 +1955,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.11606/d.44.2004.tde-27082015-155817",
+      "territorial_matches": [],
       "id": "1be71face0adc1db8f5a"
     },
     {
@@ -2137,6 +2001,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.34024/revbea.2016.v11.2231",
+      "territorial_matches": [],
       "id": "36095b86bca11908de6b"
     },
     {
@@ -2182,6 +2047,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5380/dma.v44i0.54977",
+      "territorial_matches": [],
       "id": "85064b0e7170a7dae447"
     },
     {
@@ -2213,6 +2079,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.51189/iii-conbracib/8548",
+      "territorial_matches": [],
       "id": "3d149c5dbbf72abb3e53"
     },
     {
@@ -2261,6 +2128,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.51189/conbiv2024/30402",
+      "territorial_matches": [],
       "id": "9b6bb7d7bdaaaeb1fcf1"
     },
     {
@@ -2302,7 +2170,40 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "40f167c19b1fe23b87c4"
+      "id": "40f167c19b1fe23b87c4",
+      "territorial_matches": []
+    },
+    {
+      "title": "Dinâmica da qualidade da água de uma laguna costeira: caso da Lagoa de Garopaba - SC",
+      "summary": "RESUMO - A zona costeira de Santa Catarina tem enfrentado desafios crescentes em função do modelo de desenvolvimento econômico adotado. Este estudo analisou a variação espacial e temporal dos parâmetros físicos e químicos de qualidade da água e sua relação com as condições meteorológicas em dois períodos distintos do ciclo sazonal na Lagoa de Garopaba (SC). Foram realizadas duas campanhas de coleta de amostras…",
+      "url": "https://doi.org/10.5016/geociencias.v45i1.19572",
+      "source": {
+        "name": "Crossref",
+        "type": "academica"
+      },
+      "published_at": "2026-03-31T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Garopaba",
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 9,
+        "reason": [
+          "município da área da APABF: Garopaba, Laguna",
+          "tema relacionado à região: qualidade da água",
+          "espécie ou ecossistema local: lagoa",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T14:22:58+00:00",
+      "guid": "",
+      "doi": "10.5016/geociencias.v45i1.19572",
+      "territorial_matches": [],
+      "id": "6c0975dffbcc111f842e"
     },
     {
       "title": "Programa de monitoramento ambiental integrado da Bacia Hidrográfica da Lagoa do Peri, Florianópolis-SC",
@@ -2331,7 +2232,7 @@
         "score": 9,
         "reason": [
           "município da área da APABF: Florianópolis",
-          "tema relacionado à região: monitoramento",
+          "tema relacionado à região: qualidade da água, monitoramento",
           "espécie ou ecossistema local: lagoa",
           "fonte institucional ou acadêmica relevante"
         ]
@@ -2339,250 +2240,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "98a43c4ad4acb0243a1f"
-    },
-    {
-      "title": "Mudanças nas características composicionais das águas da lagoa de Ibiraquera (SC) em resposta a dinâmica de abertura e fechamento de sua desembocadura",
-      "summary": "The aim of this paper was to hydrochemically characterize Ibiraquera Lagoon (SC) and verify the changes in water column related to the opening dynamics of its mouth. The monthly monitoring of five physical-chemical properties and dissolved inorganic nutrients from march 2003 to april 2004 demonstrated the mixohaline nature of this lagoon, which presents well oxygenated waters, low turbidity and low inorganic…",
-      "url": "https://doi.org/10.14210/bjast.v9n2.p39-47",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2005-10-17T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "dissolved inorganic nutrients",
-        "dissolved oxygen",
-        "lagoon circulation",
-        "salinity",
-        "sand bars",
-        "sediment nutrient release",
-        "silica",
-        "water level fluctuations"
-      ],
-      "authors": [
-        "Carla Bonetti",
-        "E. Beltrame",
-        "João de Andrade Bonetti"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.14210/bjast.v9n2.p39-47",
-      "id": "a16eae10a1c831a39324"
-    },
-    {
-      "title": "Negociando conflitos: Análise do caso da gestão da abertura da barra da lagoa de ibiraquera, Santa Catarina",
-      "summary": "Este artigo visa analisar o conflito em torno da abertura da barra da Lagoa de Ibiraquera, Santa Catarina, a fim de avaliar em que medida a proposta de uma nova forma de gestão, que mobilize novas inter-relações entre diferentes instituições e atores, pode ser eficaz na negociação de conflitos, sejam eles implícitos ou explícitos, ligados à gestão de um recurso natural de uso comum. A base teórica e metodológica…",
-      "url": "https://agritrop.cirad.fr/567320",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2012-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "clientelism",
-        "common-pool resource management",
-        "conflict negotiation",
-        "environmental impact",
-        "institutional design",
-        "integrated resource management",
-        "local mobilization",
-        "natural resource governance",
-        "participatory processes"
-      ],
-      "authors": [
-        "Claire Marie Thuillier Cerdan",
-        "Mariana Aquilante Policarpo"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "fd0a75907b8214df05ff"
-    },
-    {
-      "title": "Biogeografia e cobertura vegetal original da paisagem da Lagoa de Ibiraquera (Santa Catarina, Brazil)",
-      "summary": "Na Zona Costeira, a influencia do embasamento pedologico-geologico sobre as variacoes da cobertura vegetal e tao efetiva que estudos biogeograficos necessitam abordar aspectos geologicos, pedologicos e hipsometricos associados a vegetacao. Portanto, a biogeografia da Paisagem da Lagoa de Ibiraquera (Santa Catarina, Brasil) e apresentada atraves de mapas na escala de 1:52.000 versando sobre os seguintes temas:…",
-      "url": "https://biblat.unam.mx/es/revista/geografia-rio-claro/articulo/biogeografia-e-geografia-vegetal-original-da-paisagem-da-lagoa-de-ibiraquera-santa-catarina-brasil",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2013-01-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Atlantic Forest",
-        "biogeography",
-        "coastal landscape",
-        "hypsometry",
-        "land cover mapping",
-        "plant-soil interactions",
-        "restinga vegetation",
-        "soil science"
-      ],
-      "authors": [
-        "Anna Beltrame",
-        "Rodrigo Rodrigues de Freitas"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "97a34139ec0e24d4e759"
-    },
-    {
-      "title": "Mudanças no uso e cobertura da terra do entorno da Lagoa de Ibiraquera (Santa Catarina, Brasil) no período de 1957 a 2011",
-      "summary": "A compreensão das forças direcionadoras das mudanças no uso e cobertura da terra requer o uso de diferentes métodos de pesquisa e um enfoque interdisciplinar. As mudanças ocorridas nos últimos 130 anos na paisagem do entorno da Lagoa de Ibiraquera (Santa Catarina, Brasil) são analisadas em duas fases: (i) de 1880 até o final da década de 1970 e (ii) desde o início dos anos 1980 até 2011. Foram classificadas as…",
-      "url": "https://doi.org/10.5007/2177-5230.2012v27n54p77",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2013-09-01T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Santa Catarina coast",
-        "coastal landscape change",
-        "forest-to-agriculture conversion",
-        "land use and land cover change",
-        "reforestation",
-        "restinga",
-        "road network",
-        "tourism development",
-        "urbanization"
-      ],
-      "authors": [
-        "Rodrigo Rodrigues de Freitas",
-        "Ângela de Veiga Beltrame"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.5007/2177-5230.2012v27n54p77",
-      "id": "ee8e873ffea1ec315f46"
-    },
-    {
-      "title": "Mudanças no uso e cobertura da terra do entorno da Lagoa de Ibiraquera (Santa Catarina, Brasil) no período de 1957 a 2011",
-      "summary": "A compreensão das forças direcionadoras das mudanças no uso e cobertura da terra requer o uso de diferentes métodos de pesquisa e um enfoque interdisciplinar. As mudanças ocorridas nos últimos 130 anos na paisagem do entorno da Lagoa de Ibiraquera (Santa Catarina, Brasil) são analisadas em duas fases: (i) de 1880 até o final da década de 1970 e (ii) desde o início dos anos 1980 até 2011. Foram classificadas as…",
-      "url": "https://doi.org/10.5007/30679",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2013-09-11T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Santa Catarina",
-        "coastal landscape",
-        "land use and land cover change",
-        "reforestation",
-        "restinga",
-        "road network",
-        "tourism",
-        "urbanization"
-      ],
-      "authors": [
-        "Rodrigo Rodrigues de Freitas",
-        "Ângela de Veiga Beltrame"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "https://doi.org/10.5007/30679",
-      "id": "59bfc3922f4141e49bad"
-    },
-    {
-      "title": "BIOGEOGRAFIA E COBERTURA VEGETAL ORIGINAL DA PAISAGEM DA LAGOA DE IBIRAQUERA (SANTA CATARINA, BRASIL)",
-      "summary": "Na Zona Costeira, a influência do embasamento pedológico-geológico sobre as variações da cobertura vegetal é tão efetiva que estudos biogeográficos necessitam abordar aspectos geológicos, pedológicos e hipsométricos associados à vegetação. Portanto, a biogeografia da Paisagem da Lagoa de Ibiraquera (Santa Catarina, Brasil) é apresentada através de mapas na escala de 1:52.000 versando sobre os seguintes temas:…",
-      "url": "https://periodicos.rc.biblioteca.unesp.br/index.php/ageteo/article/view/8174",
-      "source": {
-        "name": "OpenAlex",
-        "type": "academica"
-      },
-      "published_at": "2013-12-30T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [
-        "Atlantic Forest",
-        "biogeography",
-        "coastal landscape",
-        "hypsometry",
-        "land cover mapping",
-        "plant-soil interactions",
-        "restinga vegetation",
-        "soil science"
-      ],
-      "authors": [
-        "Rodrigo Rodrigues de Freitas",
-        "Ângela de Veiga Beltrame"
-      ],
-      "locations": [
-        "Lagoa de Ibiraquera"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 8,
-        "reason": [
-          "localidade conhecida: Lagoa de Ibiraquera",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:02:49+00:00",
-      "guid": "",
-      "doi": "",
-      "id": "4d759470437601d43cb7"
+      "id": "98a43c4ad4acb0243a1f",
+      "territorial_matches": []
     },
     {
       "title": "O patrimônio sacro e a Igreja Matriz Santo Antônio dos Anjos de Laguna: Explorando possibilidades de conservação",
@@ -2611,6 +2270,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.29327/9786527219705.1138424",
+      "territorial_matches": [],
       "id": "0c3bfd458f4380a1a91d"
     },
     {
@@ -2655,6 +2315,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.11606/t.44.1993.tde-11032013-133424",
+      "territorial_matches": [],
       "id": "6d44917d4aeaa8159a24"
     },
     {
@@ -2697,6 +2358,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "9074a7102fed3bf3d613"
     },
     {
@@ -2741,6 +2403,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.1590/s1414-753x2011000200003",
+      "territorial_matches": [],
       "id": "74c8626a4f06c549761f"
     },
     {
@@ -2779,6 +2442,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "679f3f005725617e26df"
     },
     {
@@ -2808,6 +2472,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.37002/biodiversidadebrasileira.v2i2.272",
+      "territorial_matches": [],
       "id": "90dde21ee91ece1afb6d"
     },
     {
@@ -2851,6 +2516,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "1463756ce168e4bedecf"
     },
     {
@@ -2890,7 +2556,49 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "0fcb0dfc42ac51d4a579"
+    },
+    {
+      "title": "Caracterização geológica, geomorfológica e evolutiva do litoral sul de Jaguaruna, SC/Brasil: subsídios à gestão costeira",
+      "summary": "Compreender os processos evolutivos que ocorreram para a conformação atual do ambiente costeiro é de suma importância para estudos relacionados ao planejamento e a gestão do litoral. O presente trabalho tem como objetivo caracterizar a barreira costeira holocênica do setor sul de Jaguaruna-SC, do ponto de vista geológico, geomorfológico e evolutivo, através de dados de superfície e de subsuperfície, a fim de…",
+      "url": "https://hdl.handle.net/10183/133639",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2015-01-01T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Jaguaruna",
+        "beaches",
+        "coastal dunes",
+        "coastal evolution",
+        "coastal geomorphology",
+        "coastal zone management",
+        "erosion surfaces",
+        "lagoon sediments"
+      ],
+      "authors": [
+        "Renato Amabile Leal"
+      ],
+      "locations": [
+        "Jaguaruna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 7,
+        "reason": [
+          "município da área da APABF: Jaguaruna",
+          "tema relacionado à região: gestão costeira",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T14:22:58+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "efd26b78d5425492314a"
     },
     {
       "title": "Lagoas de Imbituba, SC: Margens encantadas que contribuem para um estudo etnoponímico",
@@ -2916,9 +2624,10 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:15:00+00:00",
+      "collected_at": "2026-10-07T14:22:58+00:00",
       "guid": "",
       "doi": "10.11606/d.8.2012.tde-25102012-100314",
+      "territorial_matches": [],
       "id": "29b0ddacf26eddcff6c1"
     },
     {
@@ -2963,6 +2672,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.21726/rcc.v8i3.199",
+      "territorial_matches": [],
       "id": "3e4a555e0490395ed511"
     },
     {
@@ -2992,7 +2702,95 @@
       "collected_at": "2026-10-07T13:07:02+00:00",
       "guid": "",
       "doi": "10.47749/t/unicamp.2001.253791",
+      "territorial_matches": [],
       "id": "4d2575effc295daf3415"
+    },
+    {
+      "title": "Uma visão política-administrativa e morfológica dos balneários Esplanada e Campo Bom do Município de Jaguaruna, SC",
+      "summary": "Historicamente, a urbanização litorânea se deu de forma desordenada e desplanejada causando grande pressão sobre os ambientes naturais. Com a finalidade de planejar o espaço e organizar os atores, surge a Gestão Costeira Integrada; alternativa que permite a avaliação e organização dos conflitos. O presente trabalho foi realizado na região centro-sul do Município de Jaguaruna/SC, nos balneários Esplanada e Campo…",
+      "url": "https://doi.org/10.20502/rbg.v22i4.1806",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2021-09-15T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Jaguaruna",
+        "beach morphodynamics",
+        "coastal urbanization",
+        "coastal zone management",
+        "ground penetrating radar",
+        "integrated coastal zone management",
+        "land use mapping",
+        "local government capacity",
+        "socio-environmental conditions"
+      ],
+      "authors": [
+        "Cíntia Becker",
+        "Eduardo Guimarães Barboza",
+        "Eduardo Marques Martins"
+      ],
+      "locations": [
+        "Jaguaruna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 7,
+        "reason": [
+          "município da área da APABF: Jaguaruna",
+          "tema relacionado à região: gestão costeira",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T14:22:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.20502/rbg.v22i4.1806",
+      "territorial_matches": [],
+      "id": "3cddb807fa8e5128a44e"
+    },
+    {
+      "title": "DELIVERY E TAKE-AWAY SUSTENTÁVEL: UM ESTUDO MULTICASO DAS EMBALAGENS UTILIZADAS POR LANCHONETES E RESTAURANTES DE GAROPABA (SC)",
+      "summary": "Novas posturas estão sendo adotadas pelas organizações para manter relações mais saudáveis com o meio ambiente, deixando de lado a questão de apenas consumir e produzir sem se preocupar com o destino final dos resíduos gerados. Isto traz à tona as escolhas de embalagens pelas empresas e o seu ciclo de vida. Este artigo teve como objetivo analisar os fatores e critérios na adoção das embalagens sustentáveis no…",
+      "url": "https://relise.eco.br/index.php/relise/article/view/575",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2022-07-11T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Garopaba",
+        "delivery services",
+        "economic impact of COVID-19",
+        "fast food restaurants",
+        "food packaging",
+        "local suppliers",
+        "packaging costs",
+        "sustainable packaging",
+        "takeaway food"
+      ],
+      "authors": [
+        "Fabiana de Agapito Kangerski",
+        "Lucélia Souza Barbosa"
+      ],
+      "locations": [
+        "Garopaba"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 7,
+        "reason": [
+          "município da área da APABF: Garopaba",
+          "tema relacionado à região: resíduos",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-07T14:22:58+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "aa9c69629f89f56c7065"
     },
     {
       "title": "Restauração ecológica para o SocioBioCotidiano: Nexus + no contexto da catástrofe climática no território do PAN Lagoas do Sul",
@@ -3039,6 +2837,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.18472/sustdeb.v15n2.2024.54267",
+      "territorial_matches": [],
       "id": "7d3e4e43464de4a2946f"
     },
     {
@@ -3085,6 +2884,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.51189/integrar/rema/4566",
+      "territorial_matches": [],
       "id": "ee063910f416e1e0f1be"
     },
     {
@@ -3121,7 +2921,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "499c4f339ae5e74c4a50"
+      "id": "499c4f339ae5e74c4a50",
+      "territorial_matches": []
     },
     {
       "title": "Programa bandeira azul e as praias de Florianópolis: uma análise das potencialidades da ilha",
@@ -3157,7 +2958,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "0b154f280c791043f374"
+      "id": "0b154f280c791043f374",
+      "territorial_matches": []
     },
     {
       "title": "Representação da forma do perfil praial a partir de equações analíticas e imagens de satélite",
@@ -3193,7 +2995,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "b8ce7601ab38916ac2a7"
+      "id": "b8ce7601ab38916ac2a7",
+      "territorial_matches": []
     },
     {
       "title": "Levantamento bibliográfico da flora de Florianópolis - Você conhece as plantas da sua cidade?",
@@ -3228,7 +3031,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "5db4c2fefa7dca79d41f"
+      "id": "5db4c2fefa7dca79d41f",
+      "territorial_matches": []
     },
     {
       "title": "Resgate histórico da flora de Florianópolis - Você conhece as plantas da sua cidade?",
@@ -3264,7 +3068,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "8f658f412eff43370dbe"
+      "id": "8f658f412eff43370dbe",
+      "territorial_matches": []
     },
     {
       "title": "Efeito da salinidade na metamorfose e no assentamento da ostra Crassostrea rhizophorae (Guilding, 1828), e na fisiologia alimentar das ostras como importância econômica para o Brasil",
@@ -3299,7 +3104,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "0d00220bbd9428457529"
+      "id": "0d00220bbd9428457529",
+      "territorial_matches": []
     },
     {
       "title": "O impacto das mudanças climáticas em eventos extremos de ondas e suas implicações para projetos de estruturas marinhas",
@@ -3334,7 +3140,8 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
-      "id": "5da8b9881e775f11ae84"
+      "id": "5da8b9881e775f11ae84",
+      "territorial_matches": []
     },
     {
       "title": "Instrumento de verificação para licenciamento ambiental de ETES compactas em empreendimentos multifamiliares: estudo de caso no bairro Campeche, Florianópolis",
@@ -3370,6 +3177,7 @@
       "collected_at": "2026-10-07T13:05:16+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "5deafa2cfbea49c0c797"
     },
     {
@@ -3404,6 +3212,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "72f556c07d2724a2ca21"
     },
     {
@@ -3444,6 +3253,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5007/2175-7925.2011v24n2p109",
+      "territorial_matches": [],
       "id": "fe326da374a9accaadc6"
     },
     {
@@ -3484,6 +3294,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "ff2634eef15fe7396057"
     },
     {
@@ -3511,6 +3322,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.11606/d.44.2009.tde-19082009-102541",
+      "territorial_matches": [],
       "id": "bfcc987c84942b11b66b"
     },
     {
@@ -3538,6 +3350,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.11606/d.71.2010.tde-21062010-100432",
+      "territorial_matches": [],
       "id": "4f656d37501ff6efc2b0"
     },
     {
@@ -3565,6 +3378,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "10.11606/t.71.2021.tde-20042021-161057",
+      "territorial_matches": [],
       "id": "2b6d42bc00182e5d3413"
     },
     {
@@ -3608,6 +3422,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5007/2175-7925.2022.e85071",
+      "territorial_matches": [],
       "id": "5a4c0a4058d95f75a30f"
     },
     {
@@ -3651,6 +3466,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "c70797879c869fd3ff29"
     },
     {
@@ -3679,7 +3495,8 @@
       "collected_at": "2026-10-07T13:08:54+00:00",
       "guid": "https://noticias.sc.gov.br/?p=1646",
       "doi": "",
-      "id": "0e4127322f6f8bdba64c"
+      "id": "0e4127322f6f8bdba64c",
+      "territorial_matches": []
     },
     {
       "title": "Composição e abundância da ictiofauna de duas lagunas costeiras da América do Sul austral: Lagoa do Peixe (31ºS; 51ºW), Brasil e laguna Mar Chiquita (37ºS; 57ºW), Argentina",
@@ -3722,6 +3539,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.4013/5442",
+      "territorial_matches": [],
       "id": "f04ac73ba17e4c7efa07"
     },
     {
@@ -3758,6 +3576,7 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "",
+      "territorial_matches": [],
       "id": "aa801afd19a400f6d0d0"
     },
     {
@@ -3794,36 +3613,8 @@
       "collected_at": "2026-10-07T13:02:49+00:00",
       "guid": "",
       "doi": "https://doi.org/10.18817/26755122.29.4.2025.4364",
+      "territorial_matches": [],
       "id": "5792f76687a20d70a16a"
-    },
-    {
-      "title": "Dinâmica da qualidade da água de uma laguna costeira: caso da Lagoa de Garopaba - SC",
-      "summary": "RESUMO - A zona costeira de Santa Catarina tem enfrentado desafios crescentes em função do modelo de desenvolvimento econômico adotado. Este estudo analisou a variação espacial e temporal dos parâmetros físicos e químicos de qualidade da água e sua relação com as condições meteorológicas em dois períodos distintos do ciclo sazonal na Lagoa de Garopaba (SC). Foram realizadas duas campanhas de coleta de amostras…",
-      "url": "https://doi.org/10.5016/geociencias.v45i1.19572",
-      "source": {
-        "name": "Crossref",
-        "type": "academica"
-      },
-      "published_at": "2026-03-31T00:00:00+00:00",
-      "category": "academico",
-      "keywords": [],
-      "authors": [],
-      "locations": [
-        "Garopaba",
-        "Laguna"
-      ],
-      "relevance": {
-        "level": "media",
-        "score": 5,
-        "reason": [
-          "município da área da APABF: Garopaba, Laguna",
-          "espécie ou ecossistema local: lagoa"
-        ]
-      },
-      "collected_at": "2026-10-07T13:15:00+00:00",
-      "guid": "",
-      "doi": "10.5016/geociencias.v45i1.19572",
-      "id": "6c0975dffbcc111f842e"
     }
   ]
 }

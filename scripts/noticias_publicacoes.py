@@ -234,51 +234,155 @@ def matching_terms(terms: list[str], content: str) -> list[str]:
     return [term for term in terms if phrase_in_text(term, content)]
 
 
+def find_territorial_matches(content: str, territorial: dict) -> list[dict]:
+    candidates = []
+    for group, records in territorial.items():
+        if not isinstance(records, list):
+            continue
+        for record in records:
+            if not isinstance(record, dict) or not record.get("name"):
+                continue
+            terms = [record["name"], *record.get("aliases", [])]
+            found = matching_terms(terms, content)
+            if found:
+                candidates.append({
+                    "category": group,
+                    "name": record["name"],
+                    "matched_as": max(found, key=len),
+                    "territorial_relation": record.get("territorial_relation", ""),
+                    "evidence_level": record.get("evidence_level", ""),
+                })
+    candidates.sort(key=lambda match: len(normalized_text(match["matched_as"])), reverse=True)
+    matches = []
+    for candidate in candidates:
+        candidate_term = normalized_text(candidate["matched_as"])
+        if any(
+            phrase_in_text(candidate_term, normalized_text(match["matched_as"]))
+            for match in matches
+        ):
+            continue
+        matches.append(candidate)
+    return matches
+
+
+def remove_phrases(content: str, phrases: list[str]) -> str:
+    for phrase in sorted(set(phrases), key=len, reverse=True):
+        normalized = normalized_text(phrase)
+        if normalized:
+            content = re.sub(
+                r"(?<!\w)" + re.escape(normalized) + r"(?!\w)",
+                " ",
+                content,
+            )
+    return re.sub(r"\s+", " ", content).strip()
+
+
 def classify(item: dict, config: dict) -> bool:
     title = normalized_text(item["title"])
     summary = normalized_text(item["summary"])
     content = f"{title} {summary}"
     points = config["scoring"]
+    territorial = config.get("territorial", {})
+    territorial_points = territorial.get("scoring", {})
     score = 0
     reasons: list[str] = []
     locations: list[str] = []
 
     unit_terms = matching_terms(config["unit_terms"], content)
+    inside_terms = matching_terms(config["inside_area_phrases"], content)
+    municipality_terms = matching_terms(config["municipalities"], content)
+    raw_territorial_matches = find_territorial_matches(content, territorial)
+    ambiguous_regions = matching_terms(
+        territorial.get("ambiguous_region_terms", config.get("other_region_terms", [])),
+        content,
+    )
+    ambiguous_other_region = bool(
+        ambiguous_regions
+        and not unit_terms
+        and not inside_terms
+        and not municipality_terms
+    )
+    territorial_matches = [] if ambiguous_other_region else raw_territorial_matches
+    matched_names = [match["matched_as"] for match in territorial_matches]
+    topic_content = remove_phrases(content, matched_names)
+    environmental_terms = matching_terms(
+        territorial.get("environmental_terms", []), topic_content
+    )
+    nature_terms = matching_terms(
+        territorial.get("nature_tourism_terms", []), topic_content
+    )
+    has_domain_topic = bool(environmental_terms or nature_terms)
+    primary_matches = [
+        match for match in territorial_matches
+        if match["category"] != "referencias_geograficas"
+    ]
+    reference_matches = [
+        match for match in territorial_matches
+        if match["category"] == "referencias_geograficas"
+    ]
+
     if unit_terms:
         score += points["unit_in_title_or_summary"]
         reasons.append("APABF ou nome completo da unidade no título/resumo")
 
-    inside_terms = matching_terms(config["inside_area_phrases"], content)
     if inside_terms:
         score += points["explicitly_inside_unit"]
         reasons.append("estudo ou atividade explicitamente dentro da APABF")
 
     locality_terms = matching_terms(config["localities"], content)
-    if locality_terms:
+    if ambiguous_other_region:
+        locality_terms = []
+    if locality_terms and (not primary_matches or has_domain_topic):
         score += points["known_locality"]
         locations.extend(locality_terms)
         reasons.append("localidade conhecida: " + ", ".join(locality_terms[:3]))
 
-    municipality_terms = matching_terms(config["municipalities"], content)
     if municipality_terms:
         score += points["municipality"]
         locations.extend(municipality_terms)
         reasons.append("município da área da APABF: " + ", ".join(municipality_terms[:3]))
 
     regional_terms = matching_terms(config["regional_terms"], content)
-    has_geographic_evidence = bool(unit_terms or inside_terms or locality_terms or municipality_terms or regional_terms)
-    theme_terms = matching_terms(config["themes"], content)
+    has_geographic_evidence = bool(
+        unit_terms or inside_terms or locality_terms or municipality_terms
+        or regional_terms or territorial_matches
+    )
+    theme_terms = matching_terms(config["themes"], topic_content)
     directly_relevant_themes = [
         term for term in theme_terms
         if normalized_text(term) not in {
             normalized_text(value) for value in config.get("generic_themes", [])
         }
     ]
+    if primary_matches and not has_domain_topic:
+        directly_relevant_themes = []
     if has_geographic_evidence and directly_relevant_themes:
         score += points["local_theme"]
         reasons.append("tema relacionado à região: " + ", ".join(directly_relevant_themes[:3]))
 
-    species_terms = matching_terms(config["ecosystems_and_species"], content)
+    if primary_matches and has_domain_topic:
+        names = ", ".join(dict.fromkeys(match["name"] for match in primary_matches))
+        if environmental_terms:
+            bonus = territorial_points.get("environmental_topic_bonus", 0)
+            score += bonus
+            reasons.append(
+                f"+{bonus} local costeiro com contexto ambiental: {names}; "
+                + ", ".join(environmental_terms[:2])
+            )
+        elif nature_terms:
+            bonus = territorial_points.get("nature_tourism_bonus", 0)
+            score += bonus
+            reasons.append(
+                f"+{bonus} local costeiro com turismo de natureza: {names}; "
+                + ", ".join(nature_terms[:2])
+            )
+        locations.extend(match["name"] for match in primary_matches)
+    elif reference_matches and has_domain_topic:
+        names = ", ".join(dict.fromkeys(match["name"] for match in reference_matches))
+        reasons.append(f"referência geográfica auxiliar: {names}")
+        locations.extend(match["name"] for match in reference_matches)
+
+    species_terms = matching_terms(config["ecosystems_and_species"], topic_content)
     if species_terms:
         score += points["local_species_or_ecosystem"]
         reasons.append("espécie ou ecossistema local: " + ", ".join(species_terms[:3]))
@@ -287,7 +391,7 @@ def classify(item: dict, config: dict) -> bool:
         score += points["relevant_institution_or_university"]
         reasons.append("fonte institucional ou acadêmica relevante")
 
-    whale_terms = matching_terms(["baleia-franca", "Eubalaena australis"], content)
+    whale_terms = matching_terms(["baleia-franca", "Eubalaena australis"], topic_content)
     if whale_terms and not has_geographic_evidence:
         score += points["isolated_whale_mention"]
         reasons.append("menção isolada a baleia-franca sem relação regional identificada")
@@ -298,6 +402,7 @@ def classify(item: dict, config: dict) -> bool:
         reasons.append("contexto explicitamente de outra região: " + ", ".join(other_regions[:2]))
 
     item["locations"] = sorted(set(locations))
+    item["territorial_matches"] = territorial_matches
     item["relevance"] = {
         "level": (
             "alta" if score >= points["high_threshold"]
@@ -585,6 +690,12 @@ def item_content(item: dict) -> str:
     return json.dumps(comparable, ensure_ascii=False, sort_keys=True)
 
 
+def items_changed(previous: list[dict], current: list[dict]) -> bool:
+    return json.dumps(previous, ensure_ascii=False, sort_keys=True) != json.dumps(
+        current, ensure_ascii=False, sort_keys=True
+    )
+
+
 def merge_items(previous: list[dict], new_items: list[dict], now: str) -> tuple[list[dict], int, int]:
     merged: dict[str, dict] = {}
     key_index: dict[str, str] = {}
@@ -677,6 +788,7 @@ def run(mode: str) -> None:
             time.sleep(0.25)
 
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    original_items = json.loads(json.dumps(old_data.get("items", []), ensure_ascii=False))
     old_items = []
     discarded_existing = 0
     for item in old_data.get("items", []):
@@ -687,7 +799,7 @@ def run(mode: str) -> None:
     merged, duplicate_count, added_count = merge_items(old_items, new_items, now)
     high_count = sum(item.get("relevance", {}).get("level") == "alta" for item in merged)
     medium_count = sum(item.get("relevance", {}).get("level") == "media" for item in merged)
-    changed = json.dumps(merged, ensure_ascii=False, sort_keys=True) != json.dumps(old_items, ensure_ascii=False, sort_keys=True)
+    changed = items_changed(original_items, merged)
     output = {
         "schema_version": 1,
         "generated_at": now if changed or not previous else previous.get("generated_at", now),
