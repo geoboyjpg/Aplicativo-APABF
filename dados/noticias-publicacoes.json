@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T14:22:58+00:00",
+  "generated_at": "2026-10-09T15:51:10+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -3497,6 +3497,92 @@
       "doi": "",
       "id": "0e4127322f6f8bdba64c",
       "territorial_matches": []
+    },
+    {
+      "title": "Mar de surfe a refúgio familiar: veja as praias de SC que estrearam em prêmio internacional de qualidade ambiental",
+      "summary": "Veja as praias de SC que estrearam em prêmio internacional de qualidade ambiental Seis novas praias e uma marina de Santa Catarina foram reconhecidas pelo programa Bandeira Azul, selo que destaca destinos no quesito ambiental. O resultado da temporada 2026/2027 foi divulgado nesta semana. 🏖️ As novidades da lista, considerada o \"Oscar das Praias\", incluem três destinos em Florianópolis, dois no Norte e um no Sul do…",
+      "url": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/veja-as-praias-sc-estrearam-bandeira-azul-qualidade-ambiental.ghtml",
+      "source": {
+        "name": "G1 Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T03:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Florianópolis"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Florianópolis",
+          "tema relacionado à região: praias"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/veja-as-praias-sc-estrearam-bandeira-azul-qualidade-ambiental.ghtml",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "2f13464ebb092ea19c94"
+    },
+    {
+      "title": "Perda de filhote e busca por 'lugar seguro': a história por trás do elefante-marinho flagrado bocejando em praia de SC",
+      "summary": "Elefante-marinho é flagrado bocejando e coçando a cabeça praia de sc - A fêmea de elefante-marinho-do-sul vista bocejando e coçando a cabeça em uma praia de São Francisco do Sul, no Norte de Santa Catarina, é o mesmo animal que perdeu um filhote em Jaguaruna, no Sul do estado, no fim do mês passado. A conclusão, baseada em marcas no corpo do indivíduo, foi divulgada pelo Projeto de Monitoramento de Praias da Bacia…",
+      "url": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/historia-por-tras-elefante-marinho-flagrado-bocejando-sc.ghtml",
+      "source": {
+        "name": "G1 Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T07:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Jaguaruna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Jaguaruna",
+          "tema relacionado à região: praias, monitoramento"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/historia-por-tras-elefante-marinho-flagrado-bocejando-sc.ghtml",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "d4cbea200bd3d408310a"
+    },
+    {
+      "title": "Farol de Santa Marta terá visitação",
+      "summary": "Acesso será liberado mediante doação de 1 kg de alimento não perecível",
+      "url": "https://diariodosul.com.br/variedades/farol-de-santa-marta-tera-visitacao-76487",
+      "source": {
+        "name": "Diário do Sul",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T09:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Farol de Santa Marta"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "localidade conhecida: Farol de Santa Marta"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://diariodosul.com.br/variedades/farol-de-santa-marta-tera-visitacao-76487",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "44be6dcdd3f2cc3a676a"
     },
     {
       "title": "Composição e abundância da ictiofauna de duas lagunas costeiras da América do Sul austral: Lagoa do Peixe (31ºS; 51ºW), Brasil e laguna Mar Chiquita (37ºS; 57ºW), Argentina",
