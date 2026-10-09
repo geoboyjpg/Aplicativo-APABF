@@ -65,12 +65,13 @@ body {
     align-items: center;
     gap: 10px;
     padding: 5px 10px;
-    color: rgba(255, 255, 255, 0.86);
+    color: #171d1c;
     font-size: 0.68rem;
     line-height: 1.3;
-    background: rgba(8, 49, 59, 0.34);
+    background: rgba(232, 241, 239, 0.9);
     border: 1px solid rgba(208, 247, 241, 0.2);
     border-radius: 10px;
+    backdrop-filter: blur(5px);
 }
 
 .geo-institutional-logos {
@@ -97,7 +98,7 @@ body {
 }
 
 .geo-institutional-motto {
-    color: #ffffff;
+    color: #171d1c;
     font-size: 0.78rem;
     font-style: italic;
     font-weight: 700;

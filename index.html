@@ -442,7 +442,7 @@
             </section>
 
             <nav class="secondary-links" aria-label="Informações complementares">
-                <a href="sobre-apa.html" class="secondary-link"><i class="fas fa-info-circle" aria-hidden="true"></i> Sobre a APA</a>
+                <a href="noticias-publicacoes.html" class="secondary-link"><i class="fas fa-newspaper" aria-hidden="true"></i> Notícias</a>
                 <a href="sobre-icmbio.html" class="secondary-link"><i class="fas fa-building" aria-hidden="true"></i> Sobre o ICMBio</a>
                 <a href="mailto:apadabaleiafranca@icmbio.gov.br" class="secondary-link"><i class="fas fa-envelope" aria-hidden="true"></i> Fale com a APA</a>
                 <a href="https://www.instagram.com/apadabaleiafranca.icmbio/" class="secondary-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i> Instagram</a>
@@ -475,21 +475,21 @@
 
         <script>
             const fotosDisponiveis = [
-                'Baleias Siriú.JPG',
-                'Barra de Ibiraquera.JPG',
-                'Costao Rosa Sul.JPG',
-                'Farol de Sta Marta.JPG',
-                'Ilha das Araras.JPG',
-                'Ilhote do Ouvidor.JPG',
-                'Ilhote do Ouvidor2.JPG',
-                'Ilhote do Siriú.JPG',
-                'Ilhote do Siriú2.JPG',
-                'Lagoa do Paes Leme.JPG',
-                'Mangue Laguna.JPG',
-                'Praia da Gamboa.JPG',
-                'Praia do Ouvidor.JPG',
-                'Ranchos Praia do Ouvidor.JPG',
-                'Sambaqui Farol Santa Marta.JPG'
+                'Baleias Siriú.webp',
+                'Barra de Ibiraquera.webp',
+                'Costao Rosa Sul.webp',
+                'Farol de Sta Marta.webp',
+                'Ilha das Araras.webp',
+                'Ilhote do Ouvidor.webp',
+                'Ilhote do Ouvidor2.webp',
+                'Ilhote do Siriú.webp',
+                'Ilhote do Siriú2.webp',
+                'Lagoa do Paes Leme.webp',
+                'Mangue Laguna.webp',
+                'Praia da Gamboa.webp',
+                'Praia do Ouvidor.webp',
+                'Ranchos Praia do Ouvidor.webp',
+                'Sambaqui Farol Santa Marta.webp'
             ];
 
             function selecionarFotoDeFundo() {
@@ -498,7 +498,7 @@
                 }
 
                 const foto = fotosDisponiveis[Math.floor(Math.random() * fotosDisponiveis.length)];
-                document.body.style.setProperty('--background-image', `url("${encodeURI(`fotos/${foto}`)}")`);
+                document.body.style.setProperty('--background-image', `url("${encodeURI(`fotos/otimizadas/${foto}`)}")`);
             }
 
             selecionarFotoDeFundo();

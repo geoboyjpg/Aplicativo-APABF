@@ -13,7 +13,6 @@ body {
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    padding-bottom: 116px;
     color: #203638;
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #146666 0%, #0f5252 100%);
@@ -323,7 +322,4 @@ body {
         font-size: 1.04rem;
     }
 
-    body {
-        padding-bottom: 104px;
-    }
 }
