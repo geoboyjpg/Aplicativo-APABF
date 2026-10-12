@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T15:51:10+00:00",
+  "generated_at": "2026-10-12T18:39:30+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -2242,6 +2242,36 @@
       "doi": "",
       "id": "98a43c4ad4acb0243a1f",
       "territorial_matches": []
+    },
+    {
+      "title": "Filhote de toninha ameaçada de extinção é resgatado no Farol de Santa Marta, em Laguna",
+      "summary": "Animal foi encontrado na Praia da Galheta por dois surfistas e encaminhado para atendimento especializado; causas do encalhe ainda serão investigadas. The post Filhote de toninha ameaçada de extinção é resgatado no Farol de Santa Marta, em Laguna appeared first on Sulinfoco .",
+      "url": "https://sulinfoco.com.br/filhote-de-toninha-ameacada-de-extincao-e-resgatado-no-farol-de-santa-marta-em-laguna",
+      "source": {
+        "name": "Sulinfoco",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-12T16:22:22+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Farol de Santa Marta",
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 9,
+        "reason": [
+          "localidade conhecida: Farol de Santa Marta",
+          "município da área da APABF: Laguna"
+        ]
+      },
+      "collected_at": "2026-10-12T18:39:30+00:00",
+      "guid": "https://www.sulinfoco.com.br/?p=551354",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "b4af9276a7df20526aaa"
     },
     {
       "title": "O patrimônio sacro e a Igreja Matriz Santo Antônio dos Anjos de Laguna: Explorando possibilidades de conservação",
