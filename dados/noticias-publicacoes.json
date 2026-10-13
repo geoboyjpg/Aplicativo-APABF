@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T14:22:58+00:00",
+  "generated_at": "2026-10-12T19:39:58+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -29,7 +29,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.46357/bcnaturais.v15i3.183",
       "territorial_matches": [],
@@ -62,7 +62,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.51189/rema/2267",
       "territorial_matches": [],
@@ -185,7 +185,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.47749/t/unicamp.2014.943777",
       "territorial_matches": [],
@@ -215,7 +215,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.5007/2175-7925.2022.e86477",
       "territorial_matches": [],
@@ -284,7 +284,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.21814/physisterrae.4635",
       "territorial_matches": [],
@@ -314,7 +314,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.21814/physisterrae.5508",
       "territorial_matches": [],
@@ -430,7 +430,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.5380/ts.v18i1.99548",
       "territorial_matches": [],
@@ -462,7 +462,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.21680/2357-8211.2023v11n1id28595",
       "territorial_matches": [
@@ -497,7 +497,7 @@
         "seasonal occurrence"
       ],
       "authors": [
-        "Edwin R. Campbell Thompson",
+        "Edwin Campbell-Thompson",
         "Vítor de Queiroz Piacentini"
       ],
       "locations": [
@@ -516,7 +516,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "",
       "territorial_matches": [
@@ -600,7 +600,7 @@
         "shrimp survival"
       ],
       "authors": [
-        "Jesús Malpartida",
+        "Jesús Joselino Malpartida Pasco",
         "Luis Alejandro Vinatea"
       ],
       "locations": [
@@ -619,7 +619,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "",
       "territorial_matches": [
@@ -893,8 +893,8 @@
         "urbanization"
       ],
       "authors": [
-        "Cláudia Aparecida de Souza Ferreira",
-        "SÉRGIO TORRES MORAES"
+        "Claudia Aparecida De Souza Ferreira",
+        "Sérgio Torres Moraes"
       ],
       "locations": [
         "Lagoa de Ibiraquera"
@@ -909,7 +909,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "",
       "territorial_matches": [
@@ -984,7 +984,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.26668/indexlawjournals/2525-9695/2015.v1i1.17",
       "territorial_matches": [],
@@ -1114,6 +1114,48 @@
       "doi": "",
       "territorial_matches": [],
       "id": "c33100cf6c4188a0f1c3"
+    },
+    {
+      "title": "Economia social e solidária, governança e turismo no âmbito do desenvolvimento territorial sustentável",
+      "summary": "Este estudo analisa a ação de organizações de economia social e solidária que atuam no setor do turismo no território da Área de Proteção Ambiental da Baleia Franca, em Santa Catarina, Brasil. Tendo como base a abordagem do Desenvolvimento Territorial Sustentável - DTS, o estudo foi realizado mediante o emprego da pesquisa ação-participativa na rede de organizações TOBTerra. Neste contexto, o problema de pesquisa…",
+      "url": "https://doi.org/10.5007/2175-8077.2018v20n50p93",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2018-04-30T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Santa Catarina",
+        "basket of goods",
+        "coastal tourism",
+        "collective action",
+        "interorganizational conflict",
+        "social and solidarity economy",
+        "sustainable territorial development",
+        "territorial governance",
+        "tourism"
+      ],
+      "authors": [
+        "Matias Poli Sperb",
+        "Maurício Serva"
+      ],
+      "locations": [],
+      "relevance": {
+        "level": "alta",
+        "score": 16,
+        "reason": [
+          "APABF ou nome completo da unidade no título/resumo",
+          "tema relacionado à região: baleia-franca, turismo",
+          "espécie ou ecossistema local: baleia-franca",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.5007/2175-8077.2018v20n50p93",
+      "territorial_matches": [],
+      "id": "e1ae5d96b4ff1a30fec7"
     },
     {
       "title": "PESCA ILEGAL E O DESMATAMENTO NA AMAZÔNIA, COMO ESSAS DUAS SITUAÇÕES SE RELACIONAM COM A APA DA BALEIA FRANCA?",
@@ -1552,7 +1594,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.32360/acmar.v57i1.85343",
       "territorial_matches": [],
@@ -1635,6 +1677,45 @@
       "doi": "https://doi.org/10.7213/reb.v28i64.22133",
       "territorial_matches": [],
       "id": "924b399c04acee14eeef"
+    },
+    {
+      "title": "Da prática da exploração ao discurso da preservação: usos e abusos da baleia franca na história de Imbituba",
+      "summary": "Provocar uma leitura crítica sobre algumas práticas do turismo e a ‘venda’ das paisagens do município de Imbituba, no sul de Santa Catarina, especialmente promovida pela presença anual da baleia franca em suas enseadas é o que objetiva o presente artigo. Para tanto, será fei-ta uma breve análise sobre o ápice e a decadência da pesca da baleia no Brasil e no litoral ca-tarinense até a decisão do Estado em investir…",
+      "url": "https://ojs.sites.ufsc.br/index.php/sceh/article/view/50",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2008-06-09T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Imbituba",
+        "Santa Catarina coast",
+        "humpback whale",
+        "oral history",
+        "whale watching tourism"
+      ],
+      "authors": [
+        "Giuliano Albuquerque de Medeiros"
+      ],
+      "locations": [
+        "Imbituba"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 9,
+        "reason": [
+          "município da área da APABF: Imbituba",
+          "tema relacionado à região: baleia-franca, pesca, turismo",
+          "espécie ou ecossistema local: baleia-franca",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "a70c0a7a06d656f9dd11"
     },
     {
       "title": "Uso do solo e conservação ambiental no Parque Nacional da Lagoa do Peixe e entorno (RS)",
@@ -2083,6 +2164,49 @@
       "id": "3d149c5dbbf72abb3e53"
     },
     {
+      "title": "Education and heritage – subthemes: heritage education, interpretation and presentation of cultural heritage, heritage for our sambaquis generations in Laguna-SC: an Interpretation Center as a way to appreciate and safeguard cultural heritage",
+      "summary": "The sambaquis, Brazilian archeological and cultural heritage, are constructions where traces of prehistoric daily habits such as utensils, zoolites, food remains, tools, adornments, including burials, can be found. Through archeological analyzes, the continuous presence of ancient peoples was recognized in a sedentary way, as they located close to water slides – sources of food – and above the level of the sea of…",
+      "url": "https://doi.org/10.54033/cadpedv21n2-005",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2024-02-06T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Laguna, Santa Catarina",
+        "archaeological heritage management",
+        "coastal management plans",
+        "cultural heritage preservation",
+        "heritage education",
+        "landscape heritage",
+        "sambaquis",
+        "urban expansion"
+      ],
+      "authors": [
+        "Américo Hiroyuki Hara",
+        "Indio Vignes"
+      ],
+      "locations": [
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 9,
+        "reason": [
+          "município da área da APABF: Laguna",
+          "tema relacionado à região: sambaquis",
+          "espécie ou ecossistema local: sambaquis",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.54033/cadpedv21n2-005",
+      "territorial_matches": [],
+      "id": "f8fce656a10f70ea5ea9"
+    },
+    {
       "title": "LEVANTAMENTO POPULACIONAL DO CARANGUEJO-FANTASMA (OCYPODE QUADRATA) NA PRAIA DE SIRIÚ, GAROPABA/SC",
       "summary": "O caranguejo semiterrestre Ocypode quadrata, popularmente conhecido como caranguejofantasma, é um crustáceo da família Ocypodidae, amplamente distribuído na costa oeste do Oceano Atlântico.Esses animais habitam praias arenosas tropicais e subtropicais, construindo tocas em forma de \"J\" ou \"U\" no nível supra litoral até a área de dunas, sendo essenciais para a sobrevivência da espécie diante de predadores e impactos…",
       "url": "https://doi.org/10.51189/conbiv2024/30402",
@@ -2199,7 +2323,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.5016/geociencias.v45i1.19572",
       "territorial_matches": [],
@@ -2242,6 +2366,36 @@
       "doi": "",
       "id": "98a43c4ad4acb0243a1f",
       "territorial_matches": []
+    },
+    {
+      "title": "Filhote de toninha ameaçada de extinção é resgatado no Farol de Santa Marta, em Laguna",
+      "summary": "Animal foi encontrado na Praia da Galheta por dois surfistas e encaminhado para atendimento especializado; causas do encalhe ainda serão investigadas. The post Filhote de toninha ameaçada de extinção é resgatado no Farol de Santa Marta, em Laguna appeared first on Sulinfoco .",
+      "url": "https://sulinfoco.com.br/filhote-de-toninha-ameacada-de-extincao-e-resgatado-no-farol-de-santa-marta-em-laguna",
+      "source": {
+        "name": "Sulinfoco",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-12T16:22:22+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Farol de Santa Marta",
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 9,
+        "reason": [
+          "localidade conhecida: Farol de Santa Marta",
+          "município da área da APABF: Laguna"
+        ]
+      },
+      "collected_at": "2026-10-12T18:39:30+00:00",
+      "guid": "https://www.sulinfoco.com.br/?p=551354",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "b4af9276a7df20526aaa"
     },
     {
       "title": "O patrimônio sacro e a Igreja Matriz Santo Antônio dos Anjos de Laguna: Explorando possibilidades de conservação",
@@ -2624,7 +2778,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T14:22:58+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "10.11606/d.8.2012.tde-25102012-100314",
       "territorial_matches": [],
@@ -2632,13 +2786,13 @@
     },
     {
       "title": "Ação de educação patrimonial na comunidade de Campo Bom, município de Jaguaruna – SC",
-      "summary": "O Grupo de Pesquisa em Educação Patrimonial e Arqueologia (Grupep) da Universidade do Sul de Santa Catarina (Unisul) atua há 19 anos no desenvolvimento de pesquisas e na difusão do patrimônio arqueológico, com enfoque no patrimônio catarinense. Ao longo desses anos o grupo desenvolveu inúmeras ações educativas, entre as quais propomos apresentar neste relato as realizadas no âmbito do Programa de Salvamento…",
+      "summary": "Grupo de Pesquisa em Educação Patrimonial e Arqueologia (Grupep) da Universidade do Sul de Santa Catarina (Unisul) atua há 19 anos no desenvolvimento de pesquisas e na difusão do patrimônio arqueológico, com enfoque no patrimônio catarinense. Ao longo desses anos o grupo desenvolveu inúmeras ações educativas, entre as quais propomos apresentar neste relato as realizadas no âmbito do Programa de Salvamento…",
       "url": "https://doi.org/10.21726/rcc.v8i3.199",
       "source": {
         "name": "OpenAlex",
         "type": "academica"
       },
-      "published_at": "2019-12-16T00:00:00+00:00",
+      "published_at": "2019-12-12T00:00:00+00:00",
       "category": "academico",
       "keywords": [
         "Jaguaruna",
@@ -2649,8 +2803,7 @@
         "heritage education",
         "ludopedagogy",
         "regional heritage",
-        "school field trips",
-        "sense of belonging"
+        "school field trips"
       ],
       "authors": [
         "Bruna Cataneo Zamparetti",
@@ -2669,7 +2822,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "https://doi.org/10.21726/rcc.v8i3.199",
       "territorial_matches": [],
@@ -2748,6 +2901,47 @@
       "doi": "https://doi.org/10.20502/rbg.v22i4.1806",
       "territorial_matches": [],
       "id": "3cddb807fa8e5128a44e"
+    },
+    {
+      "title": "O aperfeiçoamento profissional e a prática da educação ambiental de egressos dos cursos de Guia de Turismo e Condutor Ambiental do IFSC Garopaba",
+      "summary": "O IFSC Câmpus Garopaba atua na capacitação de Condutores Ambientais e Guias de Turismo que atuam e atendem uma demanda no turismo da região. Os profissionais necessitam de atualização em algumas práticas laborais. Nesse contexto, o projeto objetivou a realização do aperfeiçoamento profissional dos egressos, visitas técnicas e trilhas. Criando um espaço para o debate do desenvolvimento territorial sustentável,…",
+      "url": "https://doi.org/10.35700/ca201901171-762668",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2021-10-12T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "best practices",
+        "environmental education",
+        "nature trails",
+        "professional development",
+        "sustainable territorial development",
+        "technical visits",
+        "tour guides"
+      ],
+      "authors": [
+        "Cristiane Bossoni",
+        "Juliani Brignol Walotek"
+      ],
+      "locations": [
+        "Garopaba"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 7,
+        "reason": [
+          "município da área da APABF: Garopaba",
+          "tema relacionado à região: turismo",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.35700/ca201901171-762668",
+      "territorial_matches": [],
+      "id": "f5e2fcea6ec2e8bc24af"
     },
     {
       "title": "DELIVERY E TAKE-AWAY SUSTENTÁVEL: UM ESTUDO MULTICASO DAS EMBALAGENS UTILIZADAS POR LANCHONETES E RESTAURANTES DE GAROPABA (SC)",
@@ -2886,6 +3080,46 @@
       "doi": "https://doi.org/10.51189/integrar/rema/4566",
       "territorial_matches": [],
       "id": "ee063910f416e1e0f1be"
+    },
+    {
+      "title": "O planejamento turístico desintegrado das unidades de conservação, praias e trilhas em Palhoça (SC, Brasil)",
+      "summary": "Este manuscrito, em forma da PONTO DE VISTA, procura defender que as três unidades de conservação (UCs), as praias e as trilhas localizadas em Palhoça (SC) são visitadas sem um conjunto de ações de planejamento turístico, no intuito de manter a paisagem natural e de melhorar a atividade turística, diante do fluxo de trilheiros nas estações frias e quentes do ano. Para tanto, analisa-se a sobreposição das áreas em…",
+      "url": "https://doi.org/10.55028/3exwxv43",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2026-06-18T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "Palhoça",
+        "beaches",
+        "hiking trails",
+        "natural landscape preservation",
+        "protected areas",
+        "territorial dynamics",
+        "tourism planning"
+      ],
+      "authors": [
+        "Karina Martins da Cruz"
+      ],
+      "locations": [
+        "Palhoça"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 7,
+        "reason": [
+          "município da área da APABF: Palhoça",
+          "tema relacionado à região: conservação, praias",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.55028/3exwxv43",
+      "territorial_matches": [],
+      "id": "3d0d1cc57fd0afc34a0e"
     },
     {
       "title": "Análise das transformações na vegetação do município de Biguaçu - SC: estudo fitogeográfico utilizando imagens multitemporais e ferramentas SIG",
@@ -3257,6 +3491,44 @@
       "id": "fe326da374a9accaadc6"
     },
     {
+      "title": "Micromorfologia de sítios concheiros da Ameroca do Sul: Arqueoestratigrafia e processos de Formação de Sambaquis (Santa Catarina, Brasil) e concheros (Terra do Fogo, Argentina",
+      "summary": "ResumoO estudo de oito sambaquis do litoral sul do Estado de Santa Catarina e de um concheiro da Terra do Fogo permitiu entender a dinâmica dos processos de formação de diferentes tipos de concheiros.No caso dos sambaquis catarinenses, o objetivo principal foi compreender os processos de formação culturais (atividades humanas) e naturais (tafonômicos) e suas mudanças ao longo do tempo, a partir da análise…",
+      "url": "https://doi.org/10.11606/t.44.2012.tde-24072013-145242",
+      "source": {
+        "name": "OpenAlex",
+        "type": "academica"
+      },
+      "published_at": "2012-11-09T00:00:00+00:00",
+      "category": "academico",
+      "keywords": [
+        "archaeological stratigraphy",
+        "concheros",
+        "microstratigraphy",
+        "sambaquis",
+        "shell burning",
+        "shell middens",
+        "taphonomy"
+      ],
+      "authors": [
+        "Ximena S. Villagrán"
+      ],
+      "locations": [],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "tema relacionado à região: sambaquis",
+          "espécie ou ecossistema local: sambaquis",
+          "fonte institucional ou acadêmica relevante"
+        ]
+      },
+      "collected_at": "2026-10-12T19:39:58+00:00",
+      "guid": "",
+      "doi": "https://doi.org/10.11606/t.44.2012.tde-24072013-145242",
+      "territorial_matches": [],
+      "id": "fa06d876afe7d3b2e033"
+    },
+    {
       "title": "Ecologia acústica de pares fêmea-filhote de baleia franca austral (Eubalaena australis) (Desmoulins, 1822) em águas costeiras do estado de Santa Catarina, Brasil",
       "summary": "Remote acoustic sensing has been used to investigate several aspects of cetacean ecology and behaviour as occurrence, population density and impacts of anthropogenic sounds on communication systems. Nonetheless, the efficiency of PAM methods depends on the ability of researchers to detect and interpret acoustic signals and therefore on baseline information about natural features of the target species’vocal…",
       "url": "https://repositorio.ufrn.br/jspui/handle/123456789/20465",
@@ -3402,7 +3674,7 @@
         "southern right whale"
       ],
       "authors": [
-        "Camila Rosana Morais de Mederios",
+        "Camila R. Morais",
         "Carolina Bezamat",
         "Daiana Proença Bezerra",
         "Eduardo P. Renault‐Braga",
@@ -3419,7 +3691,7 @@
           "fonte institucional ou acadêmica relevante"
         ]
       },
-      "collected_at": "2026-10-07T13:02:49+00:00",
+      "collected_at": "2026-10-12T19:39:58+00:00",
       "guid": "",
       "doi": "https://doi.org/10.5007/2175-7925.2022.e85071",
       "territorial_matches": [],
@@ -3497,6 +3769,92 @@
       "doi": "",
       "id": "0e4127322f6f8bdba64c",
       "territorial_matches": []
+    },
+    {
+      "title": "Mar de surfe a refúgio familiar: veja as praias de SC que estrearam em prêmio internacional de qualidade ambiental",
+      "summary": "Veja as praias de SC que estrearam em prêmio internacional de qualidade ambiental Seis novas praias e uma marina de Santa Catarina foram reconhecidas pelo programa Bandeira Azul, selo que destaca destinos no quesito ambiental. O resultado da temporada 2026/2027 foi divulgado nesta semana. 🏖️ As novidades da lista, considerada o \"Oscar das Praias\", incluem três destinos em Florianópolis, dois no Norte e um no Sul do…",
+      "url": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/veja-as-praias-sc-estrearam-bandeira-azul-qualidade-ambiental.ghtml",
+      "source": {
+        "name": "G1 Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T03:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Florianópolis"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Florianópolis",
+          "tema relacionado à região: praias"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/veja-as-praias-sc-estrearam-bandeira-azul-qualidade-ambiental.ghtml",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "2f13464ebb092ea19c94"
+    },
+    {
+      "title": "Perda de filhote e busca por 'lugar seguro': a história por trás do elefante-marinho flagrado bocejando em praia de SC",
+      "summary": "Elefante-marinho é flagrado bocejando e coçando a cabeça praia de sc - A fêmea de elefante-marinho-do-sul vista bocejando e coçando a cabeça em uma praia de São Francisco do Sul, no Norte de Santa Catarina, é o mesmo animal que perdeu um filhote em Jaguaruna, no Sul do estado, no fim do mês passado. A conclusão, baseada em marcas no corpo do indivíduo, foi divulgada pelo Projeto de Monitoramento de Praias da Bacia…",
+      "url": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/historia-por-tras-elefante-marinho-flagrado-bocejando-sc.ghtml",
+      "source": {
+        "name": "G1 Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T07:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Jaguaruna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Jaguaruna",
+          "tema relacionado à região: praias, monitoramento"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/09/historia-por-tras-elefante-marinho-flagrado-bocejando-sc.ghtml",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "d4cbea200bd3d408310a"
+    },
+    {
+      "title": "Farol de Santa Marta terá visitação",
+      "summary": "Acesso será liberado mediante doação de 1 kg de alimento não perecível",
+      "url": "https://diariodosul.com.br/variedades/farol-de-santa-marta-tera-visitacao-76487",
+      "source": {
+        "name": "Diário do Sul",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-09T09:00:00+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Farol de Santa Marta"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "localidade conhecida: Farol de Santa Marta"
+        ]
+      },
+      "collected_at": "2026-10-09T15:51:10+00:00",
+      "guid": "https://diariodosul.com.br/variedades/farol-de-santa-marta-tera-visitacao-76487",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "44be6dcdd3f2cc3a676a"
     },
     {
       "title": "Composição e abundância da ictiofauna de duas lagunas costeiras da América do Sul austral: Lagoa do Peixe (31ºS; 51ºW), Brasil e laguna Mar Chiquita (37ºS; 57ºW), Argentina",
