@@ -943,6 +943,7 @@
         <script src="js/leaflet.photon.js"></script>
         <script src="data/RedesdeEmalhe_1.js"></script>
         <script src="data/LimitesdaAPABF_2.js"></script>
+        <script src="js/instrumentos-camadas-novas.js"></script>
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:18, minZoom:1
@@ -1052,7 +1053,7 @@
 
         function style_RedesdeEmalhe_1_0(feature) {
             switch(String(feature.properties['fid'])) {
-                case '9':
+                case '18':
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
@@ -1067,7 +1068,7 @@
                 interactive: true,
             }
                     break;
-                case '10':
+                case '19':
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
@@ -1082,7 +1083,7 @@
                 interactive: true,
             }
                     break;
-                case '12':
+                case '21':
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
@@ -1097,7 +1098,7 @@
                 interactive: true,
             }
                     break;
-                case '13.0':
+                case '20':
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
@@ -1198,7 +1199,7 @@
             }
         }
         map.createPane('pane_LimitesdaAPABF_2');
-        map.getPane('pane_LimitesdaAPABF_2').style.zIndex = 402;
+        map.getPane('pane_LimitesdaAPABF_2').style.zIndex = 407;
         map.getPane('pane_LimitesdaAPABF_2').style['mix-blend-mode'] = 'normal';
         var layer_LimitesdaAPABF_2 = new L.geoJson(json_LimitesdaAPABF_2, {
             attribution: '',
@@ -1211,11 +1212,13 @@
         });
         bounds_group.addLayer(layer_LimitesdaAPABF_2);
         map.addLayer(layer_LimitesdaAPABF_2);
+        var instrumentosCamadasNovas = InstrumentosCamadasNovas.create(L);
         var overlaysTree = [
         {label: '<b>Limites APABF</b>',  selectAllCheckbox: true, children: [
             {label: '<span style="display:inline-block;width:16px;height:16px;background-color:rgba(235,255,0,1.0);border:2px solid #333;margin-right:8px;vertical-align:middle;"></span> Limites da APABF', layer: layer_LimitesdaAPABF_2},]},
         {label: '<b>Instrumentos Legais Interativo</b>',  selectAllCheckbox: true, children: [
-            {label: '<b>Redes de Emalhe</b>', selectAllCheckbox: true, children: redesdeEmalheLayers}]},
+            {label: '<b>Redes de Emalhe (áreas)</b>', selectAllCheckbox: true, children: redesdeEmalheLayers},
+            ...instrumentosCamadasNovas.entries]},
             {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
@@ -1227,6 +1230,7 @@
             collapsed: true,
         });
         lay.addTo(map);
+        instrumentosCamadasNovas.bind(map);
         setBounds();
         
         // Table functionality

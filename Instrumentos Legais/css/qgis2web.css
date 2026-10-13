@@ -165,6 +165,11 @@
 		}
         .leaflet-control-layers-expanded {
 			padding-left: 6px;
+            max-height: calc(100vh - 24px);
+            max-width: min(88vw, 420px);
+            overflow: auto;
+            overscroll-behavior: contain;
+            box-sizing: border-box;
 		}	
         .leaflet-control-layers-expanded .leaflet-control-layers-toggle {
             display: block;
