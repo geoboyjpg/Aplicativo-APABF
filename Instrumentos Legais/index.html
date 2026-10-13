@@ -1035,6 +1035,9 @@
         function pop_RedesdeEmalhe_1(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
+                        <th scope="row">Identificador</th><td>' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
                         <td colspan="2"><strong>Instrumento Legal</strong><br />' + (feature.properties['Instrumento Legal'] !== null ? autolinker.link(String(feature.properties['Instrumento Legal']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
@@ -1042,6 +1045,9 @@
                     </tr>\
                     <tr>\
                         <td colspan="2"><strong>Abrangência</strong><br />' + (feature.properties['Abrangência'] !== null ? autolinker.link(String(feature.properties['Abrangência']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Legenda</strong><br />' + (feature.properties['Legenda'] !== null ? autolinker.link(String(feature.properties['Legenda']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -1051,20 +1057,26 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
+        function escapeLayerLabel(value) {
+			var element = document.createElement('span');
+			element.textContent = value;
+			return element.innerHTML;
+        }
+
         function style_RedesdeEmalhe_1_0(feature) {
             switch(String(feature.properties['fid'])) {
                 case '18':
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: '#082f49',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(4,178,255,1.0)',
+                fillOpacity: 0.42,
+                fillColor: '#2563eb',
                 interactive: true,
             }
                     break;
@@ -1072,14 +1084,14 @@
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: '#082f49',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(52,214,255,1.0)',
+                fillOpacity: 0.42,
+                fillColor: '#0ea5e9',
                 interactive: true,
             }
                     break;
@@ -1087,14 +1099,14 @@
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: '#082f49',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(123,166,219,1.0)',
+                fillOpacity: 0.42,
+                fillColor: '#1e40af',
                 interactive: true,
             }
                     break;
@@ -1102,14 +1114,14 @@
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: '#082f49',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(11,86,181,1.0)',
+                fillOpacity: 0.42,
+                fillColor: '#60a5fa',
                 interactive: true,
             }
                     break;
@@ -1117,14 +1129,14 @@
                     return {
                 pane: 'pane_RedesdeEmalhe_1',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: '#082f49',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(4,178,255,1.0)',
+                fillOpacity: 0.42,
+                fillColor: '#2563eb',
                 interactive: true,
             }
                     break;
@@ -1161,17 +1173,18 @@
             // Get instrument name
             var instrumentoLegal = feature.properties['Instrumento Legal'] || 'Feição ' + feature.properties['fid'];
             
-            // Create legend entry with color box and instrument name
-            var colorIndicator = '<span style="display:inline-block;width:16px;height:16px;background-color:' + featureColor + ';border:2px solid #333;margin-right:8px;vertical-align:middle;"></span>';
+            // Keep the polygon sample and its legal reference on one legend line.
+            var colorIndicator = '<span class="instrument-legend-symbol instrument-legend-symbol-polygon" style="--legend-color:' + featureColor + '"></span> ';
             
             redesdeEmalheLayers.push({
-                label: colorIndicator + instrumentoLegal,
-                layer: featureLayer
+                label: colorIndicator + '<span class="instrument-legend-text">' + escapeLayerLabel(instrumentoLegal) + '</span>',
+                layer: featureLayer,
+                featureLayer: featureLayer,
+                feature: feature
             });
         });
         
         bounds_group.addLayer(layer_RedesdeEmalhe_1);
-        map.addLayer(layer_RedesdeEmalhe_1);
         function pop_LimitesdaAPABF_2(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
@@ -1189,13 +1202,13 @@
             return {
                 pane: 'pane_LimitesdaAPABF_2',
                 opacity: 1,
-                color: 'rgba(235,255,0,1.0)',
+                color: '#0284c7',
                 dashArray: '',
                 lineCap: 'round',
                 lineJoin: 'round',
-                weight: 4.0,
+                weight: 5.0,
                 fillOpacity: 0,
-                interactive: false,
+                interactive: true,
             }
         }
         map.createPane('pane_LimitesdaAPABF_2');
@@ -1203,7 +1216,7 @@
         map.getPane('pane_LimitesdaAPABF_2').style['mix-blend-mode'] = 'normal';
         var layer_LimitesdaAPABF_2 = new L.geoJson(json_LimitesdaAPABF_2, {
             attribution: '',
-            interactive: false,
+            interactive: true,
             dataVar: 'json_LimitesdaAPABF_2',
             layerName: 'layer_LimitesdaAPABF_2',
             pane: 'pane_LimitesdaAPABF_2',
@@ -1213,11 +1226,12 @@
         bounds_group.addLayer(layer_LimitesdaAPABF_2);
         map.addLayer(layer_LimitesdaAPABF_2);
         var instrumentosCamadasNovas = InstrumentosCamadasNovas.create(L);
+        var limiteLegendSymbol = '<span class="instrument-legend-symbol instrument-legend-symbol-line" style="--legend-color:#0284c7"></span>';
         var overlaysTree = [
         {label: '<b>Limites APABF</b>',  selectAllCheckbox: true, children: [
-            {label: '<span style="display:inline-block;width:16px;height:16px;background-color:rgba(235,255,0,1.0);border:2px solid #333;margin-right:8px;vertical-align:middle;"></span> Limites da APABF', layer: layer_LimitesdaAPABF_2},]},
+            {label: limiteLegendSymbol + '<span class="instrument-legend-text">Limites da APABF</span>', layer: layer_LimitesdaAPABF_2},]},
         {label: '<b>Instrumentos Legais Interativo</b>',  selectAllCheckbox: true, children: [
-            {label: '<b>Redes de Emalhe (áreas)</b>', selectAllCheckbox: true, children: redesdeEmalheLayers},
+            {label: '<b>Redes de Emalhe — áreas</b>', selectAllCheckbox: true, children: redesdeEmalheLayers},
             ...instrumentosCamadasNovas.entries]},
             {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
@@ -1237,92 +1251,176 @@
         var tableBody;
         var searchInput;
         var restoreAllBtn;
-        var featureLayers = [];
-        var allLayersVisible = true;
-        
-        // Populate table with data
-        function populateTable() {
-            tableBody.innerHTML = '';
-            json_RedesdeEmalhe_1.features.forEach(function(feature, index) {
-                var row = document.createElement('tr');
-                var instrumentoLegal = feature.properties['Instrumento Legal'] || '';
-                var descricao = feature.properties['Descrição'] || '';
-                var abrangencia = feature.properties['Abrangência'] || '';
-                
-                row.innerHTML = `
-                    <td><strong>${instrumentoLegal}</strong></td>
-                    <td>${descricao}</td>
-                    <td>${abrangencia}</td>
-                    <td><button class="locate-btn" data-index="${index}">🔍</button></td>
-                `;
-                
-                row.dataset.index = index;
-                row.addEventListener('click', function() {
-                    highlightFeature(index);
+        var searchStatus;
+        var searchRecords = [];
+        var searchLoadPromise = null;
+
+        function initialSearchRecords() {
+            var records = json_RedesdeEmalhe_1.features.map(function(feature, index) {
+                return {
+                    key: 'redes-emalhe-areas:' + feature.properties.fid,
+                    feature: feature,
+                    layerName: 'Redes de Emalhe — áreas',
+                    leafletLayer: redesdeEmalheLayers[index].featureLayer
+                };
+            });
+            json_LimitesdaAPABF_2.features.forEach(function(feature) {
+                records.push({
+                    key: 'limites-apabf:' + feature.properties.Id,
+                    feature: feature,
+                    layerName: 'Limites da APABF',
+                    leafletLayer: layer_LimitesdaAPABF_2
                 });
-                
+            });
+            return records;
+        }
+
+        function featureValue(feature, keys, fallback) {
+            var properties = feature.properties || {};
+            for (var i = 0; i < keys.length; i++) {
+                var value = properties[keys[i]];
+                if (value !== null && value !== undefined && String(value).trim()) {
+                    return String(value);
+                }
+            }
+            return fallback || '';
+        }
+
+        function renderSearchRecords(records) {
+            tableBody.replaceChildren();
+            records.forEach(function(record) {
+                var properties = record.feature.properties || {};
+                var row = document.createElement('tr');
+                var legalCell = document.createElement('td');
+                var descriptionCell = document.createElement('td');
+                var coverageCell = document.createElement('td');
+                var actionCell = document.createElement('td');
+                var locateButton = document.createElement('button');
+
+                legalCell.textContent = featureValue(record.feature, ['Instrumento Legal'], record.layerName);
+                legalCell.style.fontWeight = '600';
+                descriptionCell.textContent = featureValue(record.feature, ['Descrição', 'Descri��o', 'Legenda 2', 'Legenda']);
+                coverageCell.textContent = featureValue(record.feature, ['Abrangência', 'Agrangência', 'Abrang�ncia'], record.layerName);
+                row.dataset.searchText = (record.layerName + ' ' + JSON.stringify(properties)).toLocaleLowerCase('pt-BR');
+                row.addEventListener('click', function() {
+                    focusSearchRecord(record);
+                });
+
+                locateButton.type = 'button';
+                locateButton.className = 'locate-btn';
+                locateButton.textContent = '🔍';
+                locateButton.title = 'Localizar esta feição no mapa';
+                locateButton.setAttribute('aria-label', 'Localizar ' + legalCell.textContent);
+                locateButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    focusSearchRecord(record);
+                });
+                actionCell.appendChild(locateButton);
+                row.append(legalCell, descriptionCell, coverageCell, actionCell);
                 tableBody.appendChild(row);
             });
-            
-            // Add event listeners to locate buttons
-            document.querySelectorAll('.locate-btn').forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var index = parseInt(this.dataset.index);
-                    focusOnFeature(index);
+        }
+
+        function loadSearchRecords() {
+            if (searchLoadPromise) {
+                return searchLoadPromise;
+            }
+
+            var existingRecords = initialSearchRecords();
+            searchStatus.textContent = 'Carregando as camadas para pesquisa…';
+            searchLoadPromise = instrumentosCamadasNovas.loadSearchFeatures().then(function(collections) {
+                var records = existingRecords.slice();
+                collections.forEach(function(collection) {
+                    collection.features.forEach(function(feature, index) {
+                        records.push({
+                            key: collection.definition.path + ':' + (feature.id || (feature.properties || {}).fid || index),
+                            feature: feature,
+                            layerName: collection.definition.name,
+                            definition: collection.definition
+                        });
+                    });
                 });
+                searchRecords = records;
+                return records;
+            }).catch(function(error) {
+                searchLoadPromise = null;
+                console.error('Não foi possível carregar as camadas para pesquisa:', error);
+                searchStatus.textContent = 'Falha ao carregar as camadas para pesquisa.';
+                throw error;
+            });
+            return searchLoadPromise;
+        }
+
+        function focusSearchRecord(record) {
+            if (record.definition) {
+                instrumentosCamadasNovas.focusFeature(record.definition, record.feature.properties.fid)
+                    .catch(function(error) {
+                        console.error('Não foi possível localizar a feição no mapa:', error);
+                    });
+                return;
+            }
+
+            var featureLayer = record.leafletLayer;
+            if (!map.hasLayer(featureLayer)) {
+                map.addLayer(featureLayer);
+            }
+            var bounds = featureLayer.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            }
+            window.setTimeout(function() {
+                featureLayer.eachLayer(function(layer) {
+                    if (typeof layer.openPopup === 'function') {
+                        layer.openPopup(bounds.isValid() ? bounds.getCenter() : undefined);
+                    }
+                });
+            }, 250);
+        }
+
+        function filterSearchRecords() {
+            var query = searchInput.value.trim().toLocaleLowerCase('pt-BR');
+            if (!query) {
+                renderSearchRecords(searchRecords.length ? searchRecords : initialSearchRecords());
+                searchStatus.textContent = '';
+                return;
+            }
+
+            searchStatus.textContent = 'Pesquisando nas camadas disponíveis…';
+            loadSearchRecords().then(function(records) {
+                var currentQuery = searchInput.value.trim().toLocaleLowerCase('pt-BR');
+                if (query !== currentQuery) {
+                    return;
+                }
+                var matches = records.filter(function(record) {
+                    var properties = record.feature.properties || {};
+                    return (record.layerName + ' ' + JSON.stringify(properties))
+                        .toLocaleLowerCase('pt-BR').indexOf(currentQuery) !== -1;
+                });
+                renderSearchRecords(matches);
+                searchStatus.textContent = matches.length
+                    ? matches.length + (matches.length === 1 ? ' feição encontrada.' : ' feições encontradas.')
+                    : 'Nenhuma feição corresponde à pesquisa.';
+                var failedLayers = instrumentosCamadasNovas.definitions.filter(function(definition) {
+                    return !definition.state.geojson;
+                });
+                if (failedLayers.length) {
+                    searchStatus.textContent += ' ' + failedLayers.length + ' camada(s) indisponível(is).';
+                }
+            }).catch(function(error) {
+                console.error('A pesquisa não pôde ser concluída:', error);
+                searchStatus.textContent = 'A pesquisa não pôde ser concluída.';
             });
         }
-        
-        // Highlight feature on map when table row is clicked
-        function highlightFeature(index) {
-            var feature = json_RedesdeEmalhe_1.features[index];
-            if (feature && feature.geometry && feature.geometry.coordinates) {
-                var bounds = L.geoJson(feature).getBounds();
-                map.fitBounds(bounds, {padding: [50, 50]});
-            }
-        }
-        
-        // Focus on specific feature and hide others
-        function focusOnFeature(index) {
-            // Hide all individual layers
-            redesdeEmalheLayers.forEach(function(layerObj) {
-                if (map.hasLayer(layerObj.layer)) {
-                    map.removeLayer(layerObj.layer);
-                }
-            });
-            
-            // Show only the selected layer
-            var selectedLayer = redesdeEmalheLayers[index];
-            if (selectedLayer && selectedLayer.layer) {
-                map.addLayer(selectedLayer.layer);
-                
-                // Zoom to the feature
-                var feature = json_RedesdeEmalhe_1.features[index];
-                if (feature && feature.geometry && feature.geometry.coordinates) {
-                    var bounds = L.geoJson(feature).getBounds();
-                    map.fitBounds(bounds, {padding: [50, 50]});
-                }
-            }
-            
-            allLayersVisible = false;
-        }
-        
-        // Restore all layers
+
         function restoreAllLayers() {
-            // Show all individual layers
             redesdeEmalheLayers.forEach(function(layerObj) {
                 if (!map.hasLayer(layerObj.layer)) {
                     map.addLayer(layerObj.layer);
                 }
             });
-            
-            // Fit bounds to show all features
             if (layer_RedesdeEmalhe_1) {
                 map.fitBounds(layer_RedesdeEmalhe_1.getBounds(), {padding: [50, 50]});
             }
-            
-            allLayersVisible = true;
         }
         
         
@@ -1397,10 +1495,11 @@
 
                 <div id="tab-instrumentos" class="tab-content">
                     <div class="instrumentos-section">
-                        <h4>Instrumentos Legais - Redes de Emalhe</h4>
-                        <p>Confira a lista de instrumentos legais e pesquise por nome, descrição ou abrangência.</p>
+                        <h4>Instrumentos Legais e camadas</h4>
+                        <p>Pesquise por instrumento legal, descrição, abrangência ou atributo das feições geográficas.</p>
                         <div id="search-container">
-                            <input type="text" id="search-input" placeholder="Pesquisar por nome, descrição ou abrangência...">
+                            <input type="search" id="search-input" placeholder="Pesquisar instrumentos e feições..." aria-label="Pesquisar instrumentos e feições">
+                            <p id="search-status" role="status" aria-live="polite"></p>
                         </div>
                         <div id="table-container">
                             <table id="data-table">
@@ -1627,32 +1726,17 @@
             // Inicialização da tabela de Instrumentos Legais
             tableBody = document.getElementById('table-body');
             searchInput = document.getElementById('search-input');
+            searchStatus = document.getElementById('search-status');
             restoreAllBtn = document.getElementById('restore-all-btn');
 
-            // Search functionality
-            searchInput.addEventListener('input', function() {
-                var searchTerm = this.value.toLowerCase();
-                var rows = tableBody.getElementsByTagName('tr');
-                
-                for (var i = 0; i < rows.length; i++) {
-                    var row = rows[i];
-                    var text = row.textContent.toLowerCase();
-                    
-                    if (text.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                }
-            });
+            searchInput.addEventListener('input', filterSearchRecords);
 
             // Restore all button event listener
             restoreAllBtn.addEventListener('click', function() {
                 restoreAllLayers();
             });
 
-            // Initialize table
-            populateTable();
+            renderSearchRecords(initialSearchRecords());
 
             // Botão de abrir ajuda
             if (btnAbrirAjuda) {

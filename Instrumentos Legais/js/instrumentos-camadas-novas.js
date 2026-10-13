@@ -8,16 +8,16 @@
             pane: 'pane_instrumentos_arrasto',
             zIndex: 402,
             colors: {
-                '1': '#d7dd1d',
-                '2': '#ec5a75',
-                '3': '#ab6bd2',
-                '4': '#49df6a'
+                '1': '#60a5fa',
+                '2': '#1d4ed8',
+                '3': '#2563eb',
+                '4': '#0ea5e9'
             },
-            legend: [
-                ['#d7dd1d', 'Proibido arrasto cujas malhas no túnel e saco sejam &lt; 90mm'],
-                ['#ec5a75', 'Proibido arrasto industrial'],
-                ['#ab6bd2', 'Proibido arrasto para embarcações > 10 AB'],
-                ['#49df6a', 'Proibido arrasto']
+            legendItems: [
+                ['1', 'Portaria SUDEPE N° N-26 de 1983'],
+                ['2', 'Plano de Manejo APABF, 2018 - Normas ZMULT'],
+                ['3', 'Portaria IBAMA N° 107-N de 1992'],
+                ['4', 'Portaria SUDEPE N° 51-N de 26 de outubro de 1983']
             ]
         },
         {
@@ -26,18 +26,18 @@
             pane: 'pane_instrumentos_outras_artes',
             zIndex: 403,
             colors: {
-                '5': '#dd5641',
-                '6': '#51d761',
-                '7': '#d254c3',
-                '8': '#6dc2cd',
-                '9': '#7f74d7'
+                '5': '#075985',
+                '6': '#2563eb',
+                '7': '#0ea5e9',
+                '8': '#60a5fa',
+                '9': '#1e40af'
             },
-            legend: [
-                ['#dd5641', 'Restrições sazonais de pesca'],
-                ['#51d761', 'Proibido pesca de cerco'],
-                ['#d254c3', 'Proibido pesca de tarrafa'],
-                ['#6dc2cd', 'Proibido pesca subaquática'],
-                ['#7f74d7', 'Proibido cerco flutuante']
+            legendItems: [
+                ['5', 'Portaria Interministerial SG-PR/MMA Nº 24 de 15 de maio de 2018'],
+                ['6', 'Portaria Interministerial SG-PR/MMA Nº 24 de 15 de maio de 2018'],
+                ['7', 'Plano de Manejo APABF, 2018 - Normas ZMULT'],
+                ['8', 'Instrução Normativa MMA n° 41/2005'],
+                ['9', 'Portaria IBAMA n° 5-N/1994']
             ]
         },
         {
@@ -46,24 +46,24 @@
             pane: 'pane_instrumentos_protecao_areas',
             zIndex: 404,
             colors: {
-                '10': '#e19a21',
-                '11': '#10e094',
-                '12': '#e97478',
-                '13': '#e180c4',
-                '14': '#54beec',
-                '15': '#c980f0',
-                '16': '#75e471',
-                '17': '#5c5ee6'
+                '10': '#0369a1',
+                '11': '#38bdf8',
+                '12': '#1d4ed8',
+                '13': '#0ea5e9',
+                '14': '#60a5fa',
+                '15': '#075985',
+                '16': '#2563eb',
+                '17': '#7dd3fc'
             },
-            legend: [
-                ['#e19a21', 'Proibido pesca da anchova'],
-                ['#10e094', 'Proibido pesca amadora'],
-                ['#e97478', 'Proibido qualquer tipo de pesca'],
-                ['#e180c4', 'Restrições a esportes náuticos e pesca amadora na safra da tainha'],
-                ['#54beec', 'Proibida pesca da tainha'],
-                ['#c980f0', 'Proibido qualquer tipo de pesca'],
-                ['#75e471', '15/03 a 15/09: proibido pesca, exceto tarrafa'],
-                ['#5c5ee6', 'Proibido qualquer tipo de pesca']
+            legendItems: [
+                ['10', 'Instrução Normativa Interministerial MPA MMA nº 02/2009'],
+                ['11', 'Plano de Manejo APABF, 2018 - Normas ZMULT'],
+                ['12', 'Plano de Manejo APABF, 2018 - Normas ZCON'],
+                ['13', 'Plano de Manejo APABF, 2018 - Normas ZMULT'],
+                ['14', 'Plano de Manejo APABF, 2018 - Normas ZMULT'],
+                ['15', 'Portaria IBAMA n° 115 N/1993'],
+                ['16', 'Portaria Interministerial SG-PR/MMA Nº 24 de 15 de maio de 2018'],
+                ['17', 'Portaria IBAMA N° 27-N de 1999']
             ]
         },
         {
@@ -72,13 +72,14 @@
             pane: 'pane_instrumentos_redes_linhas',
             zIndex: 405,
             colors: {
-                '1': '#ff7500',
-                '2': '#ee00ff'
+                '1': '#075985',
+                '2': '#38bdf8'
             },
             line: true,
-            legend: [
-                ['#ff7500', 'Proíbe a utilização de redes de emalhar fixas'],
-                ['#ee00ff', 'Permite redes de emalhar fixas, derivantes e arrasto de praia']
+            outlined: true,
+            legendItems: [
+                ['1', 'PORTARIA IBAMA/SC N° 54-N, DE 9 DE JUNHO DE 1999'],
+                ['2', 'PORTARIA IBAMA/SC N° 54-N, DE 9 DE JUNHO DE 1999']
             ]
         },
         {
@@ -87,14 +88,14 @@
             pane: 'pane_instrumentos_protecao_linhas',
             zIndex: 406,
             colors: {
-                '1': '#e77148',
-                '2': '#14d500'
+                '1': '#1d4ed8',
+                '2': '#7dd3fc'
             },
             line: true,
             outlined: true,
-            legend: [
-                ['#e77148', 'Proteção de Recursos Pesqueiros (feição 1)'],
-                ['#14d500', 'Proteção de Recursos Pesqueiros (feição 2)']
+            legendItems: [
+                ['1', 'Portaria IBAMA N° 27-N de 1999'],
+                ['2', 'Portaria IBAMA N° 27-N de 1999']
             ]
         }
     ];
@@ -134,33 +135,63 @@
         return definition.colors[String(properties.fid)] || '#12647a';
     }
 
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (character) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[character];
+        });
+    }
+
+    function legendSymbol(definition, color) {
+        if (definition.line) {
+            return '<span class="instrument-legend-symbol instrument-legend-symbol-line" style="--legend-color:' +
+                color + '"></span>';
+        }
+        return '<span class="instrument-legend-symbol instrument-legend-symbol-polygon" style="--legend-color:' +
+            color + '"></span>';
+    }
+
+    function layerLegend(definition) {
+        return definition.legendItems.map(function (item) {
+            var color = definition.colors[item[0]];
+            return '<span class="instrument-legend-entry">' + legendSymbol(definition, color) +
+                '<span>' + escapeHtml(item[1]) + '</span></span>';
+        }).join('');
+    }
+
     function featureStyle(definition, feature, outlined) {
         var color = featureColor(definition, feature);
         if (definition.line) {
             return {
-                color: outlined ? '#000000' : color,
-                weight: outlined ? 4 : 3,
-                opacity: 1,
+                color: outlined ? '#e0f2fe' : color,
+                weight: outlined ? 6 : 3.5,
+                opacity: outlined ? 0.96 : 1,
                 lineCap: 'butt',
                 lineJoin: 'miter'
             };
         }
         return {
-            color: '#232323',
-            weight: 1,
+            color: '#082f49',
+            weight: 1.2,
             opacity: 1,
             fillColor: color,
-            fillOpacity: 1
+            fillOpacity: 0.42
         };
     }
 
-    function createLayer(leaflet, definition, geojson) {
+    function createLayer(leaflet, definition, geojson, state) {
         var options = {
             pane: definition.pane,
             style: function (feature) {
                 return featureStyle(definition, feature, false);
             },
             onEachFeature: function (feature, layer) {
+                state.featureLayers.set(String(feature.properties && feature.properties.fid), layer);
                 layer.bindPopup(createPopup(feature), { maxHeight: 400 });
             }
         };
@@ -179,64 +210,110 @@
     }
 
     function create(leaflet) {
+        var mapInstance;
         var entries = layerDefinitions.map(function (definition) {
-            var group = leaflet.layerGroup();
             var state = {
                 definition: definition,
-                group: group,
-                loaded: false,
-                loading: false
+                group: leaflet.layerGroup(),
+                featureLayers: new Map(),
+                geojson: null,
+                loadPromise: null
             };
 
             definition.state = state;
 
             return {
-                label: '<b>' + definition.name + '</b><br />' + definition.legend.map(function (item) {
-                    return '<span style="display:inline-block;width:12px;height:12px;background:' + item[0] +
-                        ';border:1px solid #333;margin-right:5px;"></span>' + item[1];
-                }).join('<br />'),
-                layer: group
+                label: '<span class="instrument-legend-layer">' + layerLegend(definition) + '</span>',
+                layer: state.group
             };
         });
 
-        return {
-            entries: entries,
-            bind: function (map) {
-                layerDefinitions.forEach(function (definition) {
-                    map.createPane(definition.pane);
-                    map.getPane(definition.pane).style.zIndex = definition.zIndex;
-                    map.getPane(definition.pane).style.pointerEvents = 'auto';
+        function loadDefinition(definition) {
+            var state = definition.state;
+            if (state.loadPromise) {
+                return state.loadPromise;
+            }
+            if (state.geojson) {
+                return Promise.resolve(state.geojson);
+            }
+
+            state.loadPromise = fetch(definition.path)
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status + ' ao carregar ' + definition.path);
+                    }
+                    return response.json();
+                })
+                .then(function (geojson) {
+                    if (!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)) {
+                        throw new Error('GeoJSON inválido em ' + definition.path);
+                    }
+                    state.geojson = geojson;
+                    state.group.addLayer(createLayer(leaflet, definition, geojson, state));
+                    return geojson;
+                })
+                .catch(function (error) {
+                    state.loadPromise = null;
+                    throw error;
                 });
 
-                map.on('overlayadd', function (event) {
-                    layerDefinitions.forEach(function (definition) {
-                        var state = definition.state;
-                        if (event.layer !== state.group || state.loaded || state.loading) {
-                            return;
-                        }
+            return state.loadPromise;
+        }
 
-                        state.loading = true;
-                        fetch(definition.path)
-                            .then(function (response) {
-                                if (!response.ok) {
-                                    throw new Error('HTTP ' + response.status + ' ao carregar ' + definition.path);
-                                }
-                                return response.json();
-                            })
-                            .then(function (geojson) {
-                                if (!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)) {
-                                    throw new Error('GeoJSON inválido em ' + definition.path);
-                                }
-                                state.group.addLayer(createLayer(leaflet, definition, geojson));
-                                state.loaded = true;
-                            })
-                            .catch(function (error) {
+        return {
+            entries: entries,
+            definitions: layerDefinitions,
+            bind: function (targetMap) {
+                mapInstance = targetMap;
+                layerDefinitions.forEach(function (definition) {
+                    targetMap.createPane(definition.pane);
+                    targetMap.getPane(definition.pane).style.zIndex = definition.zIndex;
+                    targetMap.getPane(definition.pane).style.pointerEvents = 'auto';
+                });
+
+                targetMap.on('overlayadd', function (event) {
+                    layerDefinitions.forEach(function (definition) {
+                        if (event.layer === definition.state.group) {
+                            loadDefinition(definition).catch(function (error) {
                                 console.error('Não foi possível carregar a camada ' + definition.name + ':', error);
-                            })
-                            .finally(function () {
-                                state.loading = false;
                             });
+                        }
                     });
+                });
+            },
+            loadSearchFeatures: function () {
+                return Promise.all(layerDefinitions.map(function (definition) {
+                    return loadDefinition(definition)
+                        .then(function (geojson) {
+                            return { definition: definition, features: geojson.features };
+                        })
+                        .catch(function (error) {
+                            console.error('Não foi possível pesquisar a camada ' + definition.name + ':', error);
+                            return { definition: definition, features: [], error: error };
+                        });
+                }));
+            },
+            focusFeature: function (definition, featureId) {
+                var self = this;
+                return loadDefinition(definition).then(function () {
+                    var state = definition.state;
+                    var featureLayer = state.featureLayers.get(String(featureId));
+                    if (!featureLayer) {
+                        throw new Error('A feição ' + featureId + ' não foi encontrada em ' + definition.path);
+                    }
+                    if (!mapInstance.hasLayer(state.group)) {
+                        mapInstance.addLayer(state.group);
+                    }
+                    var bounds = featureLayer.getBounds();
+                    if (bounds.isValid()) {
+                        mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+                    }
+                    window.setTimeout(function () {
+                        if (typeof featureLayer.openPopup === 'function') {
+                            featureLayer.openPopup(bounds.isValid() ? bounds.getCenter() : undefined);
+                        }
+                    }, 250);
+                    return self;
                 });
             }
         };

@@ -171,6 +171,42 @@
             overscroll-behavior: contain;
             box-sizing: border-box;
 		}	
+        .leaflet-control-layers-list {
+            max-width: min(82vw, 390px);
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+        .leaflet-layerstree-header-name {
+            white-space: nowrap;
+            font-size: 10px;
+        }
+        .instrument-legend-layer,
+        .instrument-legend-entry {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .instrument-legend-entry {
+            margin-right: 9px;
+        }
+        .instrument-legend-symbol {
+            display: inline-block;
+            flex: 0 0 auto;
+        }
+        .instrument-legend-symbol-polygon {
+            width: 13px;
+            height: 9px;
+            background: color-mix(in srgb, var(--legend-color) 42%, white);
+            border: 1px solid #082f49;
+        }
+        .instrument-legend-symbol-line {
+            width: 18px;
+            height: 0;
+            border-top: 3px solid var(--legend-color);
+            box-shadow: 0 1px 0 #e0f2fe;
+        }
         .leaflet-control-layers-expanded .leaflet-control-layers-toggle {
             display: block;
             background-image: none;
