@@ -1057,12 +1057,6 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function escapeLayerLabel(value) {
-			var element = document.createElement('span');
-			element.textContent = value;
-			return element.innerHTML;
-        }
-
         function style_RedesdeEmalhe_1_0(feature) {
             switch(String(feature.properties['fid'])) {
                 case '18':
@@ -1147,7 +1141,7 @@
         map.getPane('pane_RedesdeEmalhe_1').style['mix-blend-mode'] = 'normal';
         map.getPane('pane_RedesdeEmalhe_1').style.pointerEvents = 'auto';
         
-        // Create individual layers for each feature in Redes de Emalhe
+        var instrumentosCamadasNovas = InstrumentosCamadasNovas.create(L);
         var redesdeEmalheLayers = [];
         var layer_RedesdeEmalhe_1 = new L.featureGroup();
         
@@ -1162,23 +1156,23 @@
             
             // Add to feature group
             layer_RedesdeEmalhe_1.addLayer(featureLayer);
-            
-            // Add individual layer to map
-            map.addLayer(featureLayer);
-            
+
             // Get color from style function
             var featureStyle = style_RedesdeEmalhe_1_0(feature);
             var featureColor = featureStyle.fillColor;
-            
+
             // Get instrument name
             var instrumentoLegal = feature.properties['Instrumento Legal'] || 'Feição ' + feature.properties['fid'];
-            
-            // Keep the polygon sample and its legal reference on one legend line.
-            var colorIndicator = '<span class="instrument-legend-symbol instrument-legend-symbol-polygon" style="--legend-color:' + featureColor + '"></span> ';
-            
+            var lawLayer = instrumentosCamadasNovas.registerFeature(
+                instrumentoLegal,
+                'Redes de Emalhe — áreas',
+                featureLayer,
+                { color: featureColor, line: false },
+                'redes_emalhe'
+            );
+
             redesdeEmalheLayers.push({
-                label: colorIndicator + '<span class="instrument-legend-text">' + escapeLayerLabel(instrumentoLegal) + '</span>',
-                layer: featureLayer,
+                layer: lawLayer,
                 featureLayer: featureLayer,
                 feature: feature
             });
@@ -1225,15 +1219,14 @@
         });
         bounds_group.addLayer(layer_LimitesdaAPABF_2);
         map.addLayer(layer_LimitesdaAPABF_2);
-        var instrumentosCamadasNovas = InstrumentosCamadasNovas.create(L);
         var limiteLegendSymbol = '<span class="instrument-legend-symbol instrument-legend-symbol-line" style="--legend-color:#0284c7"></span>';
         var overlaysTree = [
-        {label: '<b>Limites APABF</b>',  selectAllCheckbox: true, children: [
-            {label: limiteLegendSymbol + '<span class="instrument-legend-text">Limites da APABF</span>', layer: layer_LimitesdaAPABF_2},]},
-        {label: '<b>Instrumentos Legais Interativo</b>',  selectAllCheckbox: true, children: [
-            {label: '<b>Redes de Emalhe — áreas</b>', selectAllCheckbox: true, children: redesdeEmalheLayers},
-            ...instrumentosCamadasNovas.entries]},
-            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+            instrumentosCamadasNovas.legendTree(),
+            {label: '<b>Limites APABF</b>', selectAllCheckbox: true, children: [
+                {label: limiteLegendSymbol + '<span class="instrument-legend-text">Limites da APABF</span>', layer: layer_LimitesdaAPABF_2}
+            ]},
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0}
+        ];
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -1261,7 +1254,8 @@
                     key: 'redes-emalhe-areas:' + feature.properties.fid,
                     feature: feature,
                     layerName: 'Redes de Emalhe — áreas',
-                    leafletLayer: redesdeEmalheLayers[index].featureLayer
+                    leafletLayer: redesdeEmalheLayers[index].featureLayer,
+                    layerGroup: redesdeEmalheLayers[index].layer
                 };
             });
             json_LimitesdaAPABF_2.features.forEach(function(feature) {
@@ -1361,8 +1355,8 @@
             }
 
             var featureLayer = record.leafletLayer;
-            if (!map.hasLayer(featureLayer)) {
-                map.addLayer(featureLayer);
+            if (!map.hasLayer(record.layerGroup)) {
+                map.addLayer(record.layerGroup);
             }
             var bounds = featureLayer.getBounds();
             if (bounds.isValid()) {
@@ -1532,7 +1526,7 @@
             <a href="../Fiscalização/index.html" class="nav-btn" title="Fiscalização">
                 <i class="fas fa-shield-alt"></i>
             </a>
-            <a href="index.html" class="nav-btn" title="Instrumentos Legais">
+            <a href="../Legislação Pesqueira/index.html" class="nav-btn" title="Instrumentos Legais">
                 <i class="fas fa-gavel"></i>
             </a>
         </div>

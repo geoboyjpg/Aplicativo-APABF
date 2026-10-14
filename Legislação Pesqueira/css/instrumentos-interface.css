@@ -1,0 +1,453 @@
+.sidebar-toggle,
+.btn-centralizar,
+.sidebar,
+.popup-ajuda-conteudo,
+#popupInicial > div {
+    font-family: Arial, sans-serif;
+}
+
+.sidebar-toggle {
+    position: fixed;
+    z-index: 1001;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(18, 95, 95, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.sidebar-toggle i {
+    font-size: 18px;
+}
+
+.sidebar {
+    position: fixed;
+    z-index: 1002;
+    top: 0;
+    left: min(-600px, -100vw);
+    display: flex;
+    width: min(600px, 100vw);
+    height: 100vh;
+    height: 100dvh;
+    flex-direction: column;
+    background: #fff;
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+    transition: left 0.3s ease;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.96), rgba(18, 95, 95, 0.78));
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.sidebar-close,
+.popup-ajuda-fechar {
+    padding: 5px;
+    color: #fff;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.sidebar-tabs {
+    display: flex;
+    flex: 0 0 auto;
+    border-bottom: 2px solid #e0e0e0;
+    background: #f8f8f8;
+}
+
+.tab-button {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 6px;
+    color: #666;
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+}
+
+.tab-button.active {
+    color: #125f5f;
+    background: #fff;
+    border-bottom-color: #125f5f;
+}
+
+.tab-button i {
+    font-size: 18px;
+}
+
+.tab-button span {
+    font-size: 12px;
+}
+
+.sidebar-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 20px;
+    color: #333;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.sidebar-content h4 {
+    margin: 18px 0 10px;
+    padding-bottom: 7px;
+    color: #146666;
+    border-bottom: 2px solid #146666;
+    font-size: 17px;
+}
+
+.sidebar-content h4:first-child {
+    margin-top: 0;
+}
+
+.sidebar-content p,
+.sidebar-content li {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.sidebar-content li {
+    margin: 8px 0;
+}
+
+.sidebar-content #search-container {
+    padding: 10px 0;
+}
+
+.sidebar-content #search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+#search-status {
+    min-height: 1.2em;
+    margin: 6px 0;
+    color: #555;
+    font-size: 12px;
+}
+
+.sidebar-content #table-container {
+    max-height: calc(100dvh - 300px);
+    overflow: auto;
+}
+
+.sidebar-content #data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sidebar-content #data-table th {
+    position: sticky;
+    top: 0;
+    padding: 10px 8px;
+    color: #495057;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 12px;
+    text-align: left;
+}
+
+.sidebar-content #data-table td {
+    padding: 10px 8px;
+    color: #333;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 12px;
+}
+
+.sidebar-content #data-table tbody tr {
+    cursor: pointer;
+}
+
+.sidebar-content #data-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.sidebar-content #data-table th:last-child,
+.sidebar-content #data-table td:last-child {
+    width: 48px;
+    text-align: center;
+}
+
+.locate-btn {
+    padding: 5px 8px;
+    color: #fff;
+    background: #007bff;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+#restore-all-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 15px;
+    color: #fff;
+    background: #218838;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: none;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+.leaflet-control-zoom {
+    margin-top: 60px !important;
+}
+
+.btn-centralizar {
+    position: fixed;
+    z-index: 1001;
+    bottom: 112px;
+    left: 50%;
+    padding: 12px 30px;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(18, 95, 95, 0.96), rgba(18, 95, 95, 0.78));
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transform: translateX(-50%);
+}
+
+.btn-centralizar:disabled {
+    cursor: wait;
+    opacity: 0.75;
+}
+
+.location-legal-popup {
+    max-width: min(560px, calc(100vw - 36px));
+}
+
+.location-legal-query {
+    max-height: 60vh;
+    overflow: auto;
+    font-size: var(--map-font-size-small, 12px);
+}
+
+.location-legal-query h3 {
+    margin: 0 28px 8px 0;
+    font-size: 16px;
+}
+
+.location-query-note {
+    padding: var(--map-space-2, 8px);
+}
+
+.location-query-note ul {
+    margin: var(--map-space-2, 8px) 0 0;
+    padding-left: 20px;
+}
+
+.location-query-disclaimer {
+    font-size: 11px;
+}
+
+.logos-container {
+    position: fixed;
+    z-index: 999;
+    right: 12px;
+    bottom: 88px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logos-container img {
+    max-width: 80px;
+    max-height: 32px;
+    object-fit: contain;
+}
+
+#popupAjuda,
+#popupInicial {
+    position: fixed;
+    z-index: 10001;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.58);
+    box-sizing: border-box;
+}
+
+.popup-ajuda-conteudo,
+#popupInicial > div {
+    width: min(560px, 100%);
+    max-height: 88vh;
+    overflow: auto;
+    padding: 24px;
+    color: var(--map-color-text, #222);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    line-height: 1.6;
+}
+
+.popup-ajuda-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -24px -24px 18px;
+    padding: 16px 20px;
+    color: #fff;
+    background: #125f5f;
+    border-radius: 12px 12px 0 0;
+}
+
+.popup-ajuda-header h3 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.popup-ajuda-conteudo li {
+    margin: 8px 0;
+}
+
+.popup-ajuda-conteudo a {
+    color: #0876a5;
+    font-weight: 600;
+}
+
+.location-query-status {
+    min-height: 1.4em;
+    color: var(--map-color-error, #8a2e2e);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.popup-inicial-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--map-space-2, 8px);
+}
+
+.botao-ajuda {
+    padding: 11px 16px;
+    color: #fff;
+    background: var(--map-color-primary, #125f5f);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .sidebar-toggle {
+        right: 10px;
+        left: auto;
+        width: 36px;
+        height: 36px;
+    }
+
+    .leaflet-control-layers-expanded {
+        box-sizing: border-box;
+        max-width: calc(100vw - 12px);
+        max-height: calc(100dvh - 24px);
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .leaflet-control-layers-list {
+        max-width: 100%;
+    }
+
+    .leaflet-layerstree-header label {
+        max-width: 100%;
+    }
+
+    .instrument-legal-name {
+        display: inline-block;
+        max-width: calc(100vw - 170px);
+        overflow-wrap: anywhere;
+        vertical-align: top;
+    }
+
+    .tab-button span {
+        font-size: 11px;
+    }
+
+    .sidebar-content {
+        padding: 15px;
+    }
+
+    .btn-centralizar {
+        bottom: 108px;
+    }
+
+    .logos-container {
+        right: 8px;
+        bottom: 92px;
+    }
+
+    .logos-container img {
+        max-width: 64px;
+        max-height: 26px;
+    }
+
+    .nav-bar .nav-btn {
+        min-width: 0 !important;
+    }
+
+    .nav-bar .nav-btn-label {
+        max-width: 72px;
+        white-space: normal !important;
+        text-align: center;
+    }
+}

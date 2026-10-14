@@ -165,47 +165,69 @@
 		}
         .leaflet-control-layers-expanded {
 			padding-left: 6px;
-            max-height: calc(100vh - 24px);
-            max-width: min(88vw, 420px);
-            overflow: auto;
-            overscroll-behavior: contain;
-            box-sizing: border-box;
 		}	
-        .leaflet-control-layers-list {
-            max-width: min(82vw, 390px);
-            overflow-x: auto;
-            overflow-y: visible;
-        }
-        .leaflet-layerstree-header-name {
-            white-space: nowrap;
-            font-size: 10px;
-        }
-        .instrument-legend-layer,
-        .instrument-legend-entry {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            vertical-align: middle;
-        }
-        .instrument-legend-entry {
-            margin-right: 9px;
-        }
         .instrument-legend-symbol {
             display: inline-block;
-            flex: 0 0 auto;
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
         }
         .instrument-legend-symbol-polygon {
-            width: 13px;
-            height: 9px;
             background: color-mix(in srgb, var(--legend-color) 42%, white);
             border: 1px solid #082f49;
         }
         .instrument-legend-symbol-line {
-            width: 18px;
-            height: 0;
-            border-top: 3px solid var(--legend-color);
-            box-shadow: 0 1px 0 #e0f2fe;
+            background: linear-gradient(transparent 43%, var(--legend-color) 43% 62%, transparent 62%);
+        }
+        .leaflet-layerstree-node .leaflet-layerstree-header label {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        .leaflet-layerstree-node .leaflet-layerstree-header label input[type="checkbox"] {
+            flex: 0 0 auto;
+            margin-top: 3px;
+        }
+        .leaflet-layerstree-header-name {
+            display: flex;
+            align-items: flex-start;
+            flex: 1 1 auto;
+            gap: 5px;
+            min-width: 0;
+            padding-left: 0;
+        }
+        .instrument-legend-text {
+            flex: 1 1 auto;
+            min-width: 0;
+            vertical-align: middle;
+            overflow-wrap: anywhere;
+        }
+        .instrument-legend-symbols {
+            display: inline-flex;
+            gap: 3px;
+            flex: 0 0 auto;
+            padding-top: 2px;
+        }
+        @media (max-width: 600px) {
+            .leaflet-control-layers-expanded {
+                max-width: min(90vw, 350px);
+                max-height: calc(100vh - 20px);
+                box-sizing: border-box;
+            }
+            .leaflet-control-layers-expanded .leaflet-control-layers-list {
+                max-width: min(calc(90vw - 20px), 320px);
+                max-height: calc(100vh - 64px);
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            .leaflet-layerstree-node .leaflet-layerstree-header label {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
         }
         .leaflet-control-layers-expanded .leaflet-control-layers-toggle {
             display: block;

@@ -5,6 +5,8 @@
         {
             name: 'Arrasto (áreas)',
             path: 'data/Arrasto_4.geojson',
+            legendGroup: 'arrasto',
+            legendOrder: 2,
             pane: 'pane_instrumentos_arrasto',
             zIndex: 402,
             colors: {
@@ -23,6 +25,8 @@
         {
             name: 'Outras Artes de Pesca (áreas)',
             path: 'data/OutrasArtesdePesca_3.geojson',
+            legendGroup: 'outras_artes',
+            legendOrder: 3,
             pane: 'pane_instrumentos_outras_artes',
             zIndex: 403,
             colors: {
@@ -43,6 +47,8 @@
         {
             name: 'Proteção de Recursos Pesqueiros (áreas)',
             path: 'data/ProteodeRecursosPesqueiros_2.geojson',
+            legendGroup: 'protecao_areas',
+            legendOrder: 4,
             pane: 'pane_instrumentos_protecao_areas',
             zIndex: 404,
             colors: {
@@ -69,6 +75,8 @@
         {
             name: 'Redes de Emalhe (linhas)',
             path: 'data/RedesdeEmalhe_5.geojson',
+            legendGroup: 'redes_emalhe',
+            legendOrder: 1,
             pane: 'pane_instrumentos_redes_linhas',
             zIndex: 405,
             colors: {
@@ -85,6 +93,8 @@
         {
             name: 'Proteção de Recursos Pesqueiros (linhas)',
             path: 'data/ProteodeRecursosPesqueiros_6.geojson',
+            legendGroup: 'protecao_linhas',
+            legendOrder: 0,
             pane: 'pane_instrumentos_protecao_linhas',
             zIndex: 406,
             colors: {
@@ -99,6 +109,18 @@
             ]
         }
     ];
+
+    var legendGroups = [
+        { key: 'protecao_linhas', label: 'Proteção de Recursos Pesqueiros', order: 0 },
+        { key: 'redes_emalhe', label: 'Redes de Emalhe', order: 1 },
+        { key: 'arrasto', label: 'Arrasto', order: 2 },
+        { key: 'outras_artes', label: 'Outras Artes de Pesca', order: 3 },
+        { key: 'protecao_areas', label: 'Proteção de Recursos Pesqueiros', order: 4 }
+    ];
+
+    function normalizeLegalName(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+    }
 
     function createPopup(feature) {
         var container = document.createElement('div');
@@ -132,7 +154,7 @@
 
     function featureColor(definition, feature) {
         var properties = feature.properties || {};
-        return definition.colors[String(properties.fid)] || '#12647a';
+        return definition.colors[String(properties.fid)] || '#1d4ed8';
     }
 
     function escapeHtml(value) {
@@ -156,12 +178,12 @@
             color + '"></span>';
     }
 
-    function layerLegend(definition) {
-        return definition.legendItems.map(function (item) {
-            var color = definition.colors[item[0]];
-            return '<span class="instrument-legend-entry">' + legendSymbol(definition, color) +
-                '<span>' + escapeHtml(item[1]) + '</span></span>';
+    function renderLawLabel(entry) {
+        var symbols = entry.symbols.map(function (symbol) {
+            return legendSymbol(symbol.definition, symbol.color);
         }).join('');
+        return (symbols ? '<span class="instrument-legend-symbols" aria-hidden="true">' + symbols + '</span>' : '') +
+            '<span class="instrument-legend-text">' + escapeHtml(entry.name) + '</span>';
     }
 
     function featureStyle(definition, feature, outlined) {
@@ -184,48 +206,135 @@
         };
     }
 
-    function createLayer(leaflet, definition, geojson, state) {
+    function createFeatureLayer(leaflet, definition, feature, state) {
         var options = {
             pane: definition.pane,
             style: function (feature) {
                 return featureStyle(definition, feature, false);
             },
             onEachFeature: function (feature, layer) {
-                state.featureLayers.set(String(feature.properties && feature.properties.fid), layer);
                 layer.bindPopup(createPopup(feature), { maxHeight: 400 });
             }
         };
 
+        var featureLayer;
         if (definition.outlined) {
-            var outline = leaflet.geoJSON(geojson, {
+            var outline = leaflet.geoJSON(feature, {
                 pane: definition.pane,
                 style: function (feature) {
                     return featureStyle(definition, feature, true);
                 }
             });
-            var coloredLines = leaflet.geoJSON(geojson, options);
-            return leaflet.layerGroup([outline, coloredLines]);
+            var coloredLines = leaflet.geoJSON(feature, options);
+            featureLayer = leaflet.layerGroup([outline, coloredLines]);
+        } else {
+            featureLayer = leaflet.geoJSON(feature, options);
         }
-        return leaflet.geoJSON(geojson, options);
+        state.featureLayers.set(String(feature.properties && feature.properties.fid), featureLayer);
+        return featureLayer;
+    }
+
+    function openFeaturePopup(featureLayer, latlng) {
+        if (typeof featureLayer.openPopup === 'function') {
+            featureLayer.openPopup(latlng);
+            return;
+        }
+        if (typeof featureLayer.eachLayer === 'function') {
+            featureLayer.eachLayer(function (childLayer) {
+                openFeaturePopup(childLayer, latlng);
+            });
+        }
     }
 
     function create(leaflet) {
         var mapInstance;
-        var entries = layerDefinitions.map(function (definition) {
+        var entriesByName = new Map();
+        var entriesByLayer = new Map();
+
+        function getEntry(name, definition, featureOrder) {
+            var key = normalizeLegalName(name);
+            if (!key) {
+                throw new Error('Feição sem o atributo Instrumento Legal.');
+            }
+            if (!entriesByName.has(key)) {
+                var entry = {
+                    name: String(name).trim(),
+                    layer: leaflet.layerGroup(),
+                    definitions: new Map(),
+                    symbols: [],
+                    group: legendGroups.find(function (group) {
+                        return group.key === (definition && definition.legendGroup);
+                    }),
+                    order: definition ? definition.legendOrder * 1000 + featureOrder : Number.MAX_SAFE_INTEGER,
+                    hasExternalFeatures: false,
+                    controlEntry: null
+                };
+                if (!entry.group) {
+                    throw new Error('Não foi possível determinar a tipologia do instrumento legal: ' + name);
+                }
+                entry.controlEntry = {
+                    label: renderLawLabel(entry),
+                    layer: entry.layer,
+                    sortOrder: entry.order
+                };
+                entriesByName.set(key, entry);
+                entriesByLayer.set(entry.layer, entry);
+            } else if (definition) {
+                var existingEntry = entriesByName.get(key);
+                var group = legendGroups.find(function (item) {
+                    return item.key === definition.legendGroup;
+                });
+                if (group && group.order < existingEntry.group.order) {
+                    existingEntry.group = group;
+                }
+                existingEntry.order = Math.min(
+                    existingEntry.order,
+                    definition.legendOrder * 1000 + featureOrder
+                );
+                existingEntry.controlEntry.sortOrder = existingEntry.order;
+            }
+            return entriesByName.get(key);
+        }
+
+        function addSymbol(entry, definition, color, featureOrder) {
+            var symbolExists = entry.symbols.some(function (symbol) {
+                return symbol.definition === definition && symbol.color === color;
+            });
+            if (!symbolExists) {
+                entry.symbols.push({
+                    definition: definition,
+                    color: color,
+                    order: definition.legendOrder * 1000 + featureOrder
+                });
+                entry.symbols.sort(function (first, second) {
+                    return first.order - second.order;
+                });
+            }
+            entry.controlEntry.label = renderLawLabel(entry);
+        }
+
+        function addDefinitionToEntry(entry, definition) {
+            entry.definitions.set(definition, definition);
+        }
+
+        layerDefinitions.forEach(function (definition) {
+            definition.legendItems.forEach(function (item, index) {
+                var entry = getEntry(item[1], definition, index);
+                addDefinitionToEntry(entry, definition);
+                addSymbol(entry, definition, definition.colors[item[0]], index);
+            });
+        });
+
+        layerDefinitions.forEach(function (definition) {
             var state = {
                 definition: definition,
-                group: leaflet.layerGroup(),
                 featureLayers: new Map(),
+                featureEntries: new Map(),
                 geojson: null,
                 loadPromise: null
             };
 
             definition.state = state;
-
-            return {
-                label: '<span class="instrument-legend-layer">' + layerLegend(definition) + '</span>',
-                layer: state.group
-            };
         });
 
         function loadDefinition(definition) {
@@ -248,21 +357,112 @@
                     if (!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)) {
                         throw new Error('GeoJSON inválido em ' + definition.path);
                     }
+                    var featureEntries = new Map();
+                    geojson.features.forEach(function (feature) {
+                        var properties = feature.properties || {};
+                        var fid = String(properties.fid);
+                        var expectedItemIndex = definition.legendItems.findIndex(function (item) {
+                            return String(item[0]) === fid;
+                        });
+                        var expectedItem = definition.legendItems[expectedItemIndex];
+                        var legalName = properties['Instrumento Legal'];
+                        if (expectedItemIndex === -1 ||
+                            normalizeLegalName(expectedItem[1]) !== normalizeLegalName(legalName)) {
+                            throw new Error('Vínculo entre feição e instrumento legal inválido em ' +
+                                definition.path + ' (fid ' + fid + ').');
+                        }
+                        if (featureEntries.has(fid)) {
+                            throw new Error('Identificador de feição duplicado em ' + definition.path +
+                                ' (fid ' + fid + ').');
+                        }
+                        featureEntries.set(fid, getEntry(legalName, definition, expectedItemIndex));
+                    });
                     state.geojson = geojson;
-                    state.group.addLayer(createLayer(leaflet, definition, geojson, state));
+                    geojson.features.forEach(function (feature) {
+                        var fid = String(feature.properties && feature.properties.fid);
+                        if (state.featureLayers.has(fid)) {
+                            return;
+                        }
+                        var featureLayer = createFeatureLayer(leaflet, definition, feature, state);
+                        var entry = featureEntries.get(fid);
+                        state.featureEntries.set(fid, entry);
+                        entry.layer.addLayer(featureLayer);
+                        addDefinitionToEntry(entry, definition);
+                    });
                     return geojson;
                 })
                 .catch(function (error) {
                     state.loadPromise = null;
+                    state.geojson = null;
+                    state.featureLayers.forEach(function (featureLayer, fid) {
+                        var entry = state.featureEntries.get(fid);
+                        if (entry) {
+                            entry.layer.removeLayer(featureLayer);
+                        }
+                    });
+                    state.featureLayers.clear();
+                    state.featureEntries.clear();
                     throw error;
                 });
 
             return state.loadPromise;
         }
 
+        function loadEntryDefinitions(entry) {
+            return Promise.all(Array.from(entry.definitions.keys()).map(function (definition) {
+                return loadDefinition(definition).catch(function (error) {
+                    console.error('Não foi possível carregar a camada ' + definition.name + ':', error);
+                });
+            }));
+        }
+
         return {
-            entries: entries,
             definitions: layerDefinitions,
+            legendTree: function () {
+                return {
+                    label: '<b>Instrumentos Legais 13_10</b>',
+                    children: legendGroups.map(function (group) {
+                        var children = Array.from(entriesByName.values())
+                            .filter(function (entry) {
+                                return entry.group.key === group.key;
+                            })
+                            .sort(function (first, second) {
+                                return first.order - second.order ||
+                                    first.name.localeCompare(second.name, 'pt-BR');
+                            })
+                            .map(function (entry) {
+                                return entry.controlEntry;
+                            });
+                        return { label: group.label, children: children };
+                    })
+                };
+            },
+            registerFeature: function (legalName, typology, layer, symbol, legendGroup) {
+                var entry = getEntry(legalName, {
+                    legendGroup: legendGroup,
+                    legendOrder: legendGroups.find(function (group) {
+                        return group.key === legendGroup;
+                    }).order
+                }, Number.MAX_SAFE_INTEGER);
+                entry.layer.addLayer(layer);
+                entry.hasExternalFeatures = true;
+                var symbolExists = entry.symbols.some(function (item) {
+                    return item.typology === typology && item.color === symbol.color && item.line === symbol.line;
+                });
+                if (!symbolExists) {
+                    entry.symbols.push({
+                        definition: { line: Boolean(symbol.line) },
+                        typology: typology,
+                        color: symbol.color,
+                        order: Number.MAX_SAFE_INTEGER
+                    });
+                }
+                entry.symbols.sort(function (first, second) {
+                    return first.order - second.order;
+                });
+                entry.controlEntry.label = renderLawLabel(entry);
+                return entry.layer;
+            },
             bind: function (targetMap) {
                 mapInstance = targetMap;
                 layerDefinitions.forEach(function (definition) {
@@ -272,13 +472,16 @@
                 });
 
                 targetMap.on('overlayadd', function (event) {
-                    layerDefinitions.forEach(function (definition) {
-                        if (event.layer === definition.state.group) {
-                            loadDefinition(definition).catch(function (error) {
-                                console.error('Não foi possível carregar a camada ' + definition.name + ':', error);
-                            });
-                        }
-                    });
+                    var entry = entriesByLayer.get(event.layer);
+                    if (entry) {
+                        loadEntryDefinitions(entry);
+                    }
+                });
+                entriesByName.forEach(function (entry) {
+                    if (entry.hasExternalFeatures && !targetMap.hasLayer(entry.layer)) {
+                        targetMap.addLayer(entry.layer);
+                        loadEntryDefinitions(entry);
+                    }
                 });
             },
             loadSearchFeatures: function () {
@@ -301,17 +504,19 @@
                     if (!featureLayer) {
                         throw new Error('A feição ' + featureId + ' não foi encontrada em ' + definition.path);
                     }
-                    if (!mapInstance.hasLayer(state.group)) {
-                        mapInstance.addLayer(state.group);
+                    var entry = state.featureEntries.get(String(featureId));
+                    if (!entry) {
+                        throw new Error('O instrumento legal da feição ' + featureId + ' não foi encontrado.');
+                    }
+                    if (!mapInstance.hasLayer(entry.layer)) {
+                        mapInstance.addLayer(entry.layer);
                     }
                     var bounds = featureLayer.getBounds();
                     if (bounds.isValid()) {
                         mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
                     }
                     window.setTimeout(function () {
-                        if (typeof featureLayer.openPopup === 'function') {
-                            featureLayer.openPopup(bounds.isValid() ? bounds.getCenter() : undefined);
-                        }
+                        openFeaturePopup(featureLayer, bounds.isValid() ? bounds.getCenter() : undefined);
                     }, 250);
                     return self;
                 });
