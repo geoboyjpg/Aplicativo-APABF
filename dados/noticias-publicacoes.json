@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-13T16:44:59+00:00",
+  "generated_at": "2026-10-15T13:59:24+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -3612,6 +3612,35 @@
       "doi": "",
       "territorial_matches": [],
       "id": "12f74709f68d4d03301d"
+    },
+    {
+      "title": "Aeroporto de Florianópolis é eleito o melhor da América do Sul pela 1ª vez",
+      "summary": "Aeroporto Internacional Hercílio Luz, em Florianópolis Floripa Airport/Divulgação O Floripa Airport, em Florianópolis, conquistou pela primeira vez o título de melhor aeroporto da América do Sul no World Travel Awards. A premiação é considerada uma das mais importantes do setor de turismo global. Administrado pela Zurich Airport Brasil, o terminal venceu na categoria “South America’s Leading Airport 2026” e, agora,…",
+      "url": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/14/aeroporto-florianopolis-eleito-melhor-america-sul.ghtml",
+      "source": {
+        "name": "G1 Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-14T17:30:18+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Florianópolis"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Florianópolis",
+          "tema relacionado à região: turismo"
+        ]
+      },
+      "collected_at": "2026-10-15T13:59:24+00:00",
+      "guid": "https://g1.globo.com/sc/santa-catarina/noticia/2026/10/14/aeroporto-florianopolis-eleito-melhor-america-sul.ghtml",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "6b04d3d3c70cdab955d2"
     },
     {
       "title": "Composição e abundância da ictiofauna de duas lagunas costeiras da América do Sul austral: Lagoa do Peixe (31ºS; 51ºW), Brasil e laguna Mar Chiquita (37ºS; 57ºW), Argentina",
