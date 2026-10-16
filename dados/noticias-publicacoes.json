@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-15T13:59:24+00:00",
+  "generated_at": "2026-10-16T13:46:02+00:00",
   "items": [
     {
       "title": "Etnoecologia comportamental da baleia-franca-austral Eubalaena australis (Desmoulins, 1822) por meio do conhecimento ecológico local de pescadores artesanais na Área de Proteção Ambiental da Baleia Franca, Sul do Brasil",
@@ -3641,6 +3641,64 @@
       "doi": "",
       "territorial_matches": [],
       "id": "6b04d3d3c70cdab955d2"
+    },
+    {
+      "title": "Projetos apoiados pela Fapesc apresentam resultados para o controle do maruim e Aedes aegypti em Santa Catarina",
+      "summary": "Evento será realizado em dezembro no Auditório da Epagri, em Florianópolis (Foto: Arquivo Ascom) Pesquisadores catarinenses vão apresentar, no dia 16 de dezembro, os resultados de projetos de pesquisa e inovação voltados ao monitoramento, prevenção e controle dos mosquitos Maruim e Aedes aegypti em Santa Catarina. Os projetos receberam apoio de três editais lançados em 2024 pela Fundação de Amparo à Pesquisa e…",
+      "url": "https://noticias.sc.gov.br/projetos-apoiados-pela-fapesc-apresentam-resultados-para-o-controle-do-maruim-e-aedes-aegypti-em-santa-catarina",
+      "source": {
+        "name": "Notícias do Governo de Santa Catarina",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-16T02:04:56+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Florianópolis"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Florianópolis",
+          "tema relacionado à região: monitoramento"
+        ]
+      },
+      "collected_at": "2026-10-16T13:46:02+00:00",
+      "guid": "https://noticias.sc.gov.br/?p=412287",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "19744fd44ce416ae6a9a"
+    },
+    {
+      "title": "Barco de pesca com oito tripulantes bate nos molhes e fica parcialmente submerso em Laguna",
+      "summary": "Embarcação sofreu danos no casco e começou a receber água após a colisão; um dos tripulantes precisou de atendimento dos bombeiros. The post Barco de pesca com oito tripulantes bate nos molhes e fica parcialmente submerso em Laguna appeared first on Sulinfoco .",
+      "url": "https://sulinfoco.com.br/barco-de-pesca-com-oito-tripulantes-bate-nos-molhes-e-fica-parcialmente-submerso-em-laguna",
+      "source": {
+        "name": "Sulinfoco",
+        "type": "noticia"
+      },
+      "published_at": "2026-10-16T11:01:33+00:00",
+      "category": "noticia",
+      "keywords": [],
+      "authors": [],
+      "locations": [
+        "Laguna"
+      ],
+      "relevance": {
+        "level": "media",
+        "score": 6,
+        "reason": [
+          "município da área da APABF: Laguna",
+          "tema relacionado à região: pesca"
+        ]
+      },
+      "collected_at": "2026-10-16T13:46:02+00:00",
+      "guid": "https://www.sulinfoco.com.br/?p=551794",
+      "doi": "",
+      "territorial_matches": [],
+      "id": "883f6be12ecca92cee85"
     },
     {
       "title": "Composição e abundância da ictiofauna de duas lagunas costeiras da América do Sul austral: Lagoa do Peixe (31ºS; 51ºW), Brasil e laguna Mar Chiquita (37ºS; 57ºW), Argentina",
