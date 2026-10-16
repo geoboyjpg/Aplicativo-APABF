@@ -135,6 +135,39 @@
                 transform: translateY(-1px);
             }
 
+            .trails-cta-wrap {
+                margin-top: 30px;
+                text-align: center;
+            }
+
+            .trails-cta {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 14px 28px;
+                color: #fff;
+                background: linear-gradient(135deg, rgba(18, 95, 95, 0.96), rgba(18, 95, 95, 0.78));
+                border: 1px solid rgba(255, 255, 255, 0.28);
+                border-radius: 12px;
+                text-decoration: none;
+                font-size: 16px;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                transition: all 0.3s ease;
+            }
+
+            .trails-cta:hover {
+                background: linear-gradient(135deg, rgba(18, 95, 95, 0.98), rgba(18, 95, 95, 0.82));
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+                text-decoration: none;
+            }
+
+            .trails-cta:focus-visible {
+                outline: 3px solid #b9ece3;
+                outline-offset: 3px;
+            }
+
             @media (max-width: 768px) {
                 .page-title {
                     font-size: 24px;
@@ -169,7 +202,7 @@
         <title>Sobre a APA - APABF</title>
             <link rel="stylesheet" href="nav.css">
     </head>
-    <body>
+    <body class="map-ui">
         <div class="page-container">
             <a href="index.html" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Voltar para a tela inicial
@@ -304,6 +337,12 @@
                 <h2>Contato</h2>
                 <p>Para mais informações, entre em contato:</p>
                 <p><i class="fas fa-envelope"></i> <a href="mailto:apadabaleiafranca@icmbio.gov.br">apadabaleiafranca@icmbio.gov.br</a></p>
+                <div class="trails-cta-wrap">
+                    <a class="trails-cta" href="Trilha%20Caminhos%20da%20Baleia%20Franca/index.html">
+                        <i class="fas fa-route" aria-hidden="true"></i>
+                        Acesse as trilhas da APABF
+                    </a>
+                </div>
             </div>
         </div>
 

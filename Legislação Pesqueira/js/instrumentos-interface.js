@@ -1,6 +1,32 @@
 (function (global) {
     'use strict';
 
+    var legislationDocuments = new Map([
+        ['instrução normativa interministerial mpa mma nº 02/2009',
+            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA.pdf'],
+        ['plano de manejo apabf, 2018 - normas zmult', 'Plano de Manejo APABF.pdf'],
+        ['plano de manejo apabf, 2018 - normas zcon', 'Plano de Manejo APABF.pdf'],
+        ['portaria ibama n° 115 n/1993', 'Portaria IBAMA n115 N1993.pdf'],
+        ['portaria interministerial sg-pr/mma nº 24 de 15 de maio de 2018',
+            '1611893586_PORTARIA Nº 24, DE 15 DE MAIO DE 2018 - Diário Oficial da União - Imprensa Nacional.pdf'],
+        ['portaria ibama n° 27-n de 1999', 'PORTARIA Nº 27, DE 10 DE MARÇO DE 1999.pdf'],
+        ['in interministerial mpa/mma n° 12 de 2012',
+            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
+        ['instrução normativa interministerial mpa-mma nº 12/2012',
+            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
+        ['portaria ibama/sc n° 54-n, de 9 de junho de 1999',
+            'PORTARIA IBAMA_SC N° 54-N DE 9 DE JUNHO DE 1999.pdf'],
+        ['portaria sudepe n° n-26 de 1983', 'Portaria SUDEPE N° N-26 de 1983.pdf'],
+        ['portaria ibama n° 107-n de 1992', 'Portaria n° 107-N de 29 de setembro de 1992.pdf'],
+        ['portaria sudepe n° 51-n de 26 de outubro de 1983',
+            'Portaria n° N-51 de 26 de outubro de 1983.pdf'],
+        ['portaria ibama n° 5-n/1994', 'Portaria n° 5-N, de 27 de janeiro de 1994.pdf']
+    ]);
+
+    function normalizeLegalName(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+    }
+
     function featureValue(feature, keys) {
         var properties = feature.properties || {};
         for (var index = 0; index < keys.length; index += 1) {
@@ -51,8 +77,22 @@
                 var actionCell = document.createElement('td');
                 var locateButton = document.createElement('button');
 
-                legalCell.textContent = record.legalName;
                 legalCell.style.fontWeight = '600';
+                var documentFile = legislationDocuments.get(normalizeLegalName(record.legalName));
+                if (documentFile) {
+                    var legalLink = document.createElement('a');
+                    legalLink.className = 'instrument-legal-link';
+                    legalLink.href = '../Legislações%20PDFs/' + encodeURIComponent(documentFile);
+                    legalLink.target = '_blank';
+                    legalLink.rel = 'noopener';
+                    legalLink.textContent = record.legalName;
+                    legalLink.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                    });
+                    legalCell.appendChild(legalLink);
+                } else {
+                    legalCell.textContent = record.legalName;
+                }
                 descriptionCell.textContent = featureValue(feature, ['Descrição', 'Descricao', 'Legenda 2', 'Legenda']);
                 coverageCell.textContent = featureValue(feature, ['Abrangência', 'Agrangência', 'Abrangencia']) ||
                     record.category;
@@ -64,7 +104,10 @@
 
                 locateButton.type = 'button';
                 locateButton.className = 'locate-btn';
-                locateButton.textContent = '⌖';
+                var searchIcon = document.createElement('i');
+                searchIcon.className = 'fas fa-search';
+                searchIcon.setAttribute('aria-hidden', 'true');
+                locateButton.appendChild(searchIcon);
                 locateButton.title = 'Localizar esta feição no mapa';
                 locateButton.setAttribute('aria-label', 'Localizar ' + record.legalName);
                 locateButton.addEventListener('click', function (event) {

@@ -167,6 +167,13 @@
                 if (specRecords.has(String(fid))) {
                     throw new Error('fid duplicado na camada ' + spec.key + ': ' + fid);
                 }
+                var categoryKey = spec.category;
+                var featureCategory = categories.find(function (item) {
+                    return item.key === categoryKey;
+                });
+                if (!featureCategory) {
+                    throw new Error('Tipologia não configurada para a feição ' + sourceId + '.');
+                }
 
                 var image = spec.legendImages[featureOrder];
                 if (!image) {
@@ -175,9 +182,12 @@
                 var entry = {
                     id: sourceId,
                     name: legalName,
-                    category: spec.category,
+                    category: categoryKey,
                     categoryOrder: specOrder,
-                    order: featureOrder,
+                    order: spec.categoryOrderOverrides &&
+                        spec.categoryOrderOverrides[String(fid)] !== undefined
+                        ? spec.categoryOrderOverrides[String(fid)]
+                        : featureOrder,
                     fid: String(fid),
                     layer: leaflet.layerGroup(),
                     symbols: [image],
@@ -189,7 +199,7 @@
                     sourceId: sourceId,
                     fid: String(fid),
                     legalName: legalName,
-                    category: category.label,
+                    category: featureCategory.label,
                     feature: feature,
                     layer: entry.layer,
                     featureLayers: []
@@ -249,6 +259,11 @@
             if (!record || !record.featureLayers.length) {
                 throw new Error('Não foi possível localizar a feição solicitada no mapa.');
             }
+            entries.forEach(function (entry) {
+                if (entry.layer !== record.layer && map.hasLayer(entry.layer)) {
+                    map.removeLayer(entry.layer);
+                }
+            });
             if (!map.hasLayer(record.layer)) {
                 map.addLayer(record.layer);
             }

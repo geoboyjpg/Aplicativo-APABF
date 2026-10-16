@@ -150,6 +150,28 @@
     padding: 10px 0;
 }
 
+.instrument-legal-link {
+    color: #0876a5;
+    font-weight: 600;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+.instrument-legal-link:hover {
+    text-decoration-style: solid;
+}
+
+.instrument-legal-link:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid #125f5f;
+    outline-offset: 2px;
+}
+
+.search-instructions {
+    max-width: 60ch;
+    margin-bottom: 8px;
+}
+
 .sidebar-content #search-input {
     width: 100%;
     padding: 10px 12px;
@@ -208,7 +230,11 @@
 }
 
 .locate-btn {
-    padding: 5px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 6px;
     color: #fff;
     background: #007bff;
     border: 0;

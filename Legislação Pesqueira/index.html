@@ -819,7 +819,11 @@
         var instrumentosLegais = InstrumentosLegais.create(map, L, [
             {
                 key: 'protecao-linhas',
-                category: 'protecao-linhas',
+                category: 'protecao-areas',
+                categoryOrderOverrides: {
+                    '1': 8,
+                    '2': 9
+                },
                 layer: layer_ProteodeRecursosPesqueiros_7,
                 collection: json_ProteodeRecursosPesqueiros_7,
                 legendImages: [
@@ -829,7 +833,11 @@
             },
             {
                 key: 'redes-linhas',
-                category: 'redes-linhas',
+                category: 'redes-areas',
+                categoryOrderOverrides: {
+                    '1': 4,
+                    '2': 5
+                },
                 layer: layer_RedesdeEmalhe_6,
                 collection: json_RedesdeEmalhe_6,
                 legendImages: [
@@ -891,8 +899,6 @@
                 ]
             }
         ], [
-            { key: 'protecao-linhas', label: 'Proteção de Recursos Pesqueiros' },
-            { key: 'redes-linhas', label: 'Redes de Emalhe' },
             { key: 'arrasto', label: 'Arrasto' },
             { key: 'outras-artes', label: 'Outras Artes de Pesca' },
             { key: 'protecao-areas', label: 'Proteção de Recursos Pesqueiros' },
@@ -968,7 +974,7 @@
                 </section>
                 <section id="tab-instrumentos" class="tab-content">
                     <h4>Instrumentos Legais e feições</h4>
-                    <p>Pesquise por instrumento legal, descrição, abrangência ou atributo geográfico.</p>
+                    <p class="search-instructions">Pesquise por instrumento legal, descrição, abrangência ou atributo geográfico. Clique no nome de um instrumento legal para consultar sua legislação em PDF e baixá-la pelo visualizador.</p>
                     <div id="search-container">
                         <input type="search" id="search-input" placeholder="Pesquisar instrumentos e feições..." aria-label="Pesquisar instrumentos e feições">
                         <p id="search-status" role="status" aria-live="polite"></p>
