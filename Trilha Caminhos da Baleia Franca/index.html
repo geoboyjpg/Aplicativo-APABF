@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="../map-components.css">
         <link rel="stylesheet" href="css/trilhas-interface.css">
@@ -24,7 +25,7 @@
         </style>
         <title>Caminhos da Baleia Franca | APA da Baleia Franca</title>
     </head>
-    <body>
+    <body class="map-ui">
         <div id="map">
         </div>
         <script src="js/qgis2web_expressions.js"></script>
@@ -321,7 +322,7 @@
                         <h5 id="trail-selection-name"></h5>
                         <p id="trail-selection-summary"></p>
                         <p class="trail-routing-privacy">
-                            A localização é necessária para identificar o extremo mais próximo da trilha.
+                            A localização ajuda a escolher o extremo mais próximo; sem ela, será usado o primeiro extremo válido.
                         </p>
                         <button id="trail-find-access" class="trail-directions-button" type="button">
                             <i class="fas fa-location-arrow" aria-hidden="true"></i>
@@ -362,11 +363,28 @@
         </button>
         <nav class="nav-bar" aria-label="Navegação principal"></nav>
 
-        <div id="popupInicial" class="map-popup-overlay trail-welcome" role="dialog" aria-modal="true"
+        <div id="popupInicial" class="map-popup-overlay" role="dialog" aria-modal="true"
             aria-labelledby="popupInicialTitle">
-            <div class="map-popup map-popup--modal map-popup--compact trail-welcome-card">
+            <div class="map-popup map-popup--modal map-popup--welcome">
                 <h2 id="popupInicialTitle" class="map-popup__title map-popup__title--modal">Caminhos da Baleia Franca</h2>
-                <p class="map-popup__description">Consulte os percursos de trilhas representados na área de interesse da APABF, encontre caminhos e visualize seus traçados no mapa.</p>
+                <p class="map-popup__description">
+                    Explore trilhas localizadas na Área de Proteção Ambiental da Baleia Franca e conheça caminhos que conectam paisagens naturais, comunidades e o patrimônio ambiental da região.
+                </p>
+                <p class="map-popup__description">
+                    Consulte as trilhas cadastradas, verifique suas distâncias e municípios e visualize sua distribuição no mapa.
+                </p>
+                <section class="map-popup__section">
+                    <h3 class="map-popup__subtitle">Como utilizar o mapa</h3>
+                    <ul class="map-popup__list">
+                        <li><strong>Pesquise as trilhas:</strong> encontre um percurso pelo nome ou município na aba Trilhas.</li>
+                        <li><strong>Localize uma trilha:</strong> use o botão com a lupa para centralizar o percurso selecionado.</li>
+                        <li><strong>Explore os percursos:</strong> navegue pelo mapa para conhecer a localização e a distribuição das trilhas.</li>
+                        <li><strong>Planeje seu deslocamento:</strong> use “Como chegar” para abrir o destino em um aplicativo externo, quando disponível.</li>
+                    </ul>
+                </section>
+                <p class="map-popup__description">
+                    Explore com atenção e contribua para a conservação ambiental, respeitando as características naturais e as orientações aplicáveis a cada local.
+                </p>
                 <div class="map-popup__actions">
                     <button id="btnExplorarMapa" class="map-ui-button map-ui-button--primary" type="button">
                         <i class="fas fa-map-marked-alt" aria-hidden="true"></i> Explorar o mapa

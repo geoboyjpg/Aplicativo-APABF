@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="../map-components.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="css/instrumentos-interface.css">
         <link rel="stylesheet" href="../nav.css">
@@ -1023,9 +1024,9 @@
             </div>
         </div>
 
-        <div id="popupInicial" role="dialog" aria-modal="true" aria-labelledby="popupInicialTitle">
-            <div class="popup-inicial-conteudo map-popup map-popup--welcome">
-                <h2 id="popupInicialTitle" class="map-popup__title">⚖️ Instrumentos Legais de Pesca</h2>
+        <div id="popupInicial" class="map-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="popupInicialTitle">
+            <div class="map-popup map-popup--modal map-popup--welcome">
+                <h2 id="popupInicialTitle" class="map-popup__title map-popup__title--modal">⚖️ Instrumentos Legais de Pesca</h2>
                 <p class="map-popup__description">Este mapa apresenta os instrumentos legais que regulam a pesca na Área de Proteção Ambiental da Baleia Franca, incluindo portarias, resoluções e normas que estabelecem áreas de restrição e diretrizes para a atividade pesqueira.</p>
                 <section class="popup-inicial-secao map-popup__section">
                     <h3 class="map-popup__subtitle">🗺️ Visualizar instrumentos no mapa</h3>

@@ -59,12 +59,20 @@
     }
 
     function closestEndpoint(geometry, userCoordinates) {
-        if (!validPoint(userCoordinates)) {
+        var hasLocation = userCoordinates !== undefined && userCoordinates !== null;
+        if (hasLocation && !validPoint(userCoordinates)) {
             throw new Error('Coordenadas da localização atual inválidas.');
         }
         var endpoints = geometryEndpoints(geometry);
         if (!endpoints.length) {
             throw new Error('A geometria da trilha não possui extremos válidos.');
+        }
+        if (!hasLocation) {
+            return {
+                ...endpoints[0],
+                coordinates: endpoints[0].coordinates.slice(0, 2),
+                distance: null
+            };
         }
         return endpoints.reduce(function (closest, endpoint) {
             var distance = distanceMeters(userCoordinates, endpoint.coordinates);

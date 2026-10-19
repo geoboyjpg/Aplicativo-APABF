@@ -39,7 +39,7 @@
         var wazeLink = document.getElementById('trail-waze-link');
         var findAccessButton = document.getElementById('trail-find-access');
         var routingStatus = document.getElementById('trail-routing-status');
-        var navigation = global.TrilhaNavegacao;
+        var trailNavigation = global.TrilhaNavegacao;
         var navigationRequestId = 0;
         var selectedHalo = null;
         var selectedHighlight = null;
@@ -47,8 +47,14 @@
         var locationMarker = null;
         var locationAccuracy = null;
 
-        if (!map || !leaflet || !navigation || !collection || !trailLayer) {
+        if (!map || !leaflet || !trailNavigation || !collection || !trailLayer) {
             throw new Error('O mapa ou os dados das trilhas não foram inicializados.');
+        }
+        if (typeof trailNavigation.closestEndpoint !== 'function'
+            || typeof trailNavigation.geometryEndpoints !== 'function'
+            || typeof trailNavigation.googleMapsUrl !== 'function'
+            || typeof trailNavigation.wazeUrl !== 'function') {
+            throw new Error('O módulo de navegação das trilhas está incompleto.');
         }
 
         var renderedLayers = new Map();
@@ -88,11 +94,11 @@
         }
 
         function positionLocateButton() {
-            var navigation = document.querySelector('.nav-bar');
-            if (!navigation) {
+            var navigationBar = document.querySelector('.nav-bar');
+            if (!navigationBar) {
                 return;
             }
-            var navigationTop = navigation.getBoundingClientRect().top;
+            var navigationTop = navigationBar.getBoundingClientRect().top;
             var viewportHeight = global.visualViewport
                 ? global.visualViewport.height
                 : global.innerHeight;
@@ -108,9 +114,9 @@
             global.visualViewport.addEventListener('resize', positionLocateButton);
         }
         if (global.ResizeObserver) {
-            var navigation = document.querySelector('.nav-bar');
-            if (navigation) {
-                new global.ResizeObserver(positionLocateButton).observe(navigation);
+            var navigationBar = document.querySelector('.nav-bar');
+            if (navigationBar) {
+                new global.ResizeObserver(positionLocateButton).observe(navigationBar);
             }
         }
 
@@ -162,10 +168,38 @@
             findAccessButton.disabled = true;
             routingStatus.textContent = 'Obtendo sua localização para selecionar o extremo mais próximo…';
             routingStatus.hidden = false;
+            function showDestination(userCoordinates) {
+                if (requestId !== navigationRequestId || !selectedTrail
+                    || selectedTrail.id !== trail.id) {
+                    return;
+                }
+                try {
+                    var destination = trailNavigation.closestEndpoint(
+                        trail.feature.geometry,
+                        userCoordinates
+                    );
+                    googleMapsLink.href = trailNavigation.googleMapsUrl(destination.coordinates);
+                    wazeLink.href = trailNavigation.wazeUrl(destination.coordinates);
+                    directionsLinks.hidden = false;
+                    routingStatus.textContent = userCoordinates
+                        ? 'Destino: extremo '
+                            + (destination.end === 'start' ? 'inicial' : 'final')
+                            + (trailNavigation.geometryEndpoints(trail.feature.geometry).length > 2
+                                ? ' do segmento ' + (destination.component + 1)
+                                : '')
+                            + ', a ' + Math.round(destination.distance) + ' m da sua localização.'
+                        : 'Não foi possível obter sua localização; usando o primeiro extremo válido como destino.';
+                    routingStatus.hidden = false;
+                } catch (error) {
+                    routingStatus.textContent = error.message;
+                    routingStatus.hidden = false;
+                } finally {
+                    findAccessButton.disabled = false;
+                }
+            }
             var geolocation = global.navigator && global.navigator.geolocation;
             if (!geolocation || typeof geolocation.getCurrentPosition !== 'function') {
-                routingStatus.textContent = 'Este navegador não disponibiliza geolocalização. Ela é necessária para determinar qual extremo da trilha está mais próximo.';
-                findAccessButton.disabled = false;
+                showDestination();
                 return;
             }
             geolocation.getCurrentPosition(function (position) {
@@ -175,21 +209,10 @@
                 }
                 try {
                     var origin = setUserLocation(position);
-                    var destination = navigation.closestEndpoint(trail.feature.geometry, origin);
-                    googleMapsLink.href = navigation.googleMapsUrl(destination.coordinates);
-                    wazeLink.href = navigation.wazeUrl(destination.coordinates);
-                    directionsLinks.hidden = false;
-                    routingStatus.textContent = 'Destino: extremo '
-                        + (destination.end === 'start' ? 'inicial' : 'final')
-                        + (navigation.geometryEndpoints(trail.feature.geometry).length > 2
-                            ? ' do segmento ' + (destination.component + 1)
-                            : '')
-                        + ', a ' + Math.round(destination.distance) + ' m da sua localização.';
-                    routingStatus.hidden = false;
+                    showDestination(origin);
                 } catch (error) {
                     routingStatus.textContent = error.message;
                     routingStatus.hidden = false;
-                } finally {
                     findAccessButton.disabled = false;
                 }
             }, function (error) {
@@ -197,13 +220,15 @@
                     || selectedTrail.id !== trail.id) {
                     return;
                 }
-                routingStatus.textContent = error && error.code === 1
-                    ? 'A permissão de localização é necessária para determinar qual extremo da trilha está mais próximo.'
-                    : error && error.code === 3
-                        ? 'A localização demorou para ser obtida. Tente novamente; ela é necessária para selecionar o extremo mais próximo.'
-                        : 'Não foi possível obter sua localização. Ela é necessária para determinar qual extremo da trilha está mais próximo.';
-                routingStatus.hidden = false;
-                findAccessButton.disabled = false;
+                showDestination();
+                if (directionsLinks.hidden) {
+                    return;
+                }
+                if (error && error.code === 1) {
+                    routingStatus.textContent = 'A permissão de localização foi negada; usando o primeiro extremo válido como destino.';
+                } else if (error && error.code === 3) {
+                    routingStatus.textContent = 'A localização demorou para ser obtida; usando o primeiro extremo válido como destino.';
+                }
             }, {
                 enableHighAccuracy: true,
                 maximumAge: 0,

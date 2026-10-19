@@ -8,6 +8,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="../map-components.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -659,70 +660,6 @@
             }
         }
 
-        /* Barra de navegação inferior */
-        .nav-bar {
-            position: fixed !important;
-            bottom: 20px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            display: flex !important;
-            gap: 20px;
-            z-index: 99999 !important;
-            background: rgba(255, 255, 255, 0.95) !important;
-            padding: 15px 25px !important;
-            border-radius: 50px !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        .nav-btn {
-            background: #146666 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 50% !important;
-            width: 60px !important;
-            height: 60px !important;
-            font-size: 24px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-decoration: none !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        .nav-btn i {
-            color: white !important;
-        }
-
-        .nav-btn:hover {
-            background: #0f5252;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-btn:active {
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 768px) {
-            .nav-bar {
-                bottom: 15px;
-                padding: 12px 20px;
-                gap: 15px;
-            }
-
-            .nav-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-        }
-
         /* Logos no canto inferior direito */
         .logos-container {
             position: fixed;
@@ -754,27 +691,15 @@
         }
 
         </style>
+        <link rel="stylesheet" href="../nav.css">
         <title></title>
     </head>
-    <body>
+    <body class="map-ui">
         <div id="map">
         </div>
 
         <!-- Barra de Navegação -->
-        <div class="nav-bar" id="testNavBar">
-            <a href="../index.html" class="nav-btn" title="Menu Principal">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="../Zoneamento APABF/index.html" class="nav-btn" title="Mapa de Zoneamento">
-                <i class="fas fa-map"></i>
-            </a>
-            <a href="index.html" class="nav-btn" title="Monitoramento de Praias">
-                <i class="fas fa-camera"></i>
-            </a>
-            <a href="../Legislação Pesqueira/index.html" class="nav-btn" title="Instrumentos Legais">
-                <i class="fas fa-gavel"></i>
-            </a>
-        </div>
+        <nav class="nav-bar" aria-label="Navegação principal"></nav>
 
         <!-- Logos -->
         <div class="logos-container">
@@ -1616,74 +1541,42 @@ map.addLayer(layer_area_terrestre_v2_3);
         
          <!-- POPUP -->
 
-<div id="popupInicial" style="
-    display:none;
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    background:rgba(0,0,0,0.6);
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-    box-sizing:border-box;
-">
-
-<div style="
-    background:white;
-    width:100%;
-    max-width:700px;
-    max-height:90vh;
-    overflow-y:auto;
-    padding:30px;
-    border-radius:14px;
-    font-family: Arial, sans-serif;
-    box-shadow:0 0 20px rgba(0,0,0,.3);
-    line-height:1.6;
-    box-sizing:border-box;
-">
-
-    <h2 style="
-        margin-top:0;
-        color:#0d4f4f;
-        text-align:center;
-    ">
-       <h2>🐋 Registro de Ocorrência de Fauna</h2>
-
-        <p>
+<div id="popupInicial" class="map-popup-overlay" style="display:none" role="dialog" aria-modal="true"
+    aria-labelledby="popupInicialTitle">
+    <div class="map-popup map-popup--modal map-popup--welcome">
+        <h2 id="popupInicialTitle" class="map-popup__title map-popup__title--modal">🐋 Registro de Ocorrência de Fauna</h2>
+        <p class="map-popup__description">
             Este mapa auxilia no registro de ocorrências de fauna na Área de Proteção Ambiental da Baleia Franca.
             Escolha uma das opções abaixo para iniciar.
         </p>
 
-         <hr>
-
-        <div class="opcao-popup">
-            <h3>🗺️ Localizar ocorrência no mapa</h3>
-            <p>
+        <section class="map-popup__section">
+            <h3 class="map-popup__subtitle">🗺️ Localizar ocorrência no mapa</h3>
+            <p class="map-popup__description">
                 Selecione no mapa o local onde o animal foi encontrado.
                 O sistema identificará automaticamente a área e exibirá os
                 contatos responsáveis pelo atendimento.
             </p>
+            <div class="map-popup__actions">
+                <button class="map-ui-button map-ui-button--primary" type="button" onclick="FecharPopup()">
+                    📍 Localizar no mapa
+                </button>
+            </div>
+        </section>
 
-           <button class="botao-principal" onclick="FecharPopup()">
-    📍 Localizar no mapa
-</button>
-        </div>
-
-        <hr>
-
-        <div class="opcao-popup">
-            <h3>📷 Registrar ocorrência</h3>
-            <p>
+        <section class="map-popup__section">
+            <h3 class="map-popup__subtitle">📷 Registrar ocorrência</h3>
+            <p class="map-popup__description">
                 Tire uma fotografia da ocorrência. A localização será obtida
                 automaticamente pelo GPS do dispositivo e as informações poderão
                 ser encaminhadas à equipe da APA da Baleia Franca.
             </p>
-
-            <button class="botao-principal" onclick="registrarOcorrencia()">
-    📷 Registrar ocorrência
-</button>
-        </div>
-
+            <div class="map-popup__actions">
+                <button class="map-ui-button map-ui-button--primary" type="button" onclick="registrarOcorrencia()">
+                    📷 Registrar ocorrência
+                </button>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -2537,6 +2430,6 @@ Cancelar
 
 </div>
 
+        <script src="../nav.js" data-base=".."></script>
     </body>
-
 </html>

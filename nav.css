@@ -12,6 +12,7 @@
     max-width: calc(100% - 32px) !important;
     margin: 0 auto !important;
     padding: 12px 18px !important;
+    box-sizing: border-box !important;
     background: linear-gradient(135deg, rgba(18, 95, 95, 0.94), rgba(18, 95, 95, 0.74)) !important;
     border-radius: 20px 20px 28px 28px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34) !important;
@@ -236,10 +237,14 @@
 
     .nav-bar .nav-btn-label {
         font-size: 0.61rem !important;
+        white-space: normal !important;
+        text-align: center !important;
+        overflow-wrap: anywhere;
     }
 
     .nav-bar .nav-btn:last-child .nav-btn-label {
         font-size: 0.55rem !important;
+        max-width: 72px;
     }
 
     .page-footer {

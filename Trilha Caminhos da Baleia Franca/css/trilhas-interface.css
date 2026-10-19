@@ -455,14 +455,6 @@ body.map-ui {
     margin-bottom: 0;
 }
 
-.trail-welcome {
-    z-index: 10001;
-}
-
-.trail-welcome-card {
-    width: min(520px, 100%);
-}
-
 @media (max-width: 700px) {
     .sidebar-toggle {
         width: 38px;
@@ -481,10 +473,6 @@ body.map-ui {
         min-height: 40px;
         padding: 8px 11px;
         font-size: 12px;
-    }
-
-    .trail-welcome-card {
-        padding: 22px !important;
     }
 
     .leaflet-control-layers-expanded {
