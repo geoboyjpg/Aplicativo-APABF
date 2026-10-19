@@ -30,13 +30,24 @@
         var resultsList = document.getElementById('trail-results');
         var sidebar = document.getElementById('sidebar');
         var sidebarOverlay = document.getElementById('sidebarOverlay');
+        var locateButton = document.getElementById('btnCentralizar');
+        var selectionDetails = document.getElementById('trail-selection-details');
+        var selectionName = document.getElementById('trail-selection-name');
+        var selectionSummary = document.getElementById('trail-selection-summary');
+        var directionsLinks = document.getElementById('trail-directions-links');
+        var googleMapsLink = document.getElementById('trail-google-maps-link');
+        var wazeLink = document.getElementById('trail-waze-link');
+        var findAccessButton = document.getElementById('trail-find-access');
+        var routingStatus = document.getElementById('trail-routing-status');
+        var navigation = global.TrilhaNavegacao;
+        var navigationRequestId = 0;
         var selectedHalo = null;
         var selectedHighlight = null;
         var selectedTrail = null;
         var locationMarker = null;
         var locationAccuracy = null;
 
-        if (!map || !leaflet || !collection || !trailLayer) {
+        if (!map || !leaflet || !navigation || !collection || !trailLayer) {
             throw new Error('O mapa ou os dados das trilhas não foram inicializados.');
         }
 
@@ -76,11 +87,32 @@
             throw new Error('A quantidade de trilhas carregadas diverge dos dados geográficos.');
         }
 
-        var countsByName = new Map();
-        trails.forEach(function (trail) {
-            var key = normalizeSearch(trail.name);
-            countsByName.set(key, (countsByName.get(key) || 0) + 1);
-        });
+        function positionLocateButton() {
+            var navigation = document.querySelector('.nav-bar');
+            if (!navigation) {
+                return;
+            }
+            var navigationTop = navigation.getBoundingClientRect().top;
+            var viewportHeight = global.visualViewport
+                ? global.visualViewport.height
+                : global.innerHeight;
+            locateButton.style.setProperty(
+                '--trail-locate-bottom',
+                Math.max(0, viewportHeight - navigationTop + 10) + 'px'
+            );
+        }
+
+        global.requestAnimationFrame(positionLocateButton);
+        global.addEventListener('resize', positionLocateButton);
+        if (global.visualViewport) {
+            global.visualViewport.addEventListener('resize', positionLocateButton);
+        }
+        if (global.ResizeObserver) {
+            var navigation = document.querySelector('.nav-bar');
+            if (navigation) {
+                new global.ResizeObserver(positionLocateButton).observe(navigation);
+            }
+        }
 
         map.createPane('pane_trilha_selecionada_contorno');
         map.getPane('pane_trilha_selecionada_contorno').style.zIndex = 450;
@@ -89,6 +121,117 @@
         map.getPane('pane_trilha_selecionada').style.zIndex = 451;
 
         var overviewBounds = leaflet.latLngBounds(trailLayer.getBounds());
+
+        function setUserLocation(position) {
+            var latlng = leaflet.latLng(position.coords.latitude, position.coords.longitude);
+            if (locationMarker) {
+                map.removeLayer(locationMarker);
+            }
+            if (locationAccuracy) {
+                map.removeLayer(locationAccuracy);
+                locationAccuracy = null;
+            }
+            locationMarker = leaflet.circleMarker(latlng, {
+                radius: 8,
+                fillColor: '#0876a5',
+                color: '#fff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map);
+            if (Number.isFinite(position.coords.accuracy) && position.coords.accuracy > 0) {
+                locationAccuracy = leaflet.circle(latlng, {
+                    radius: position.coords.accuracy,
+                    color: '#0876a5',
+                    fillColor: '#0876a5',
+                    fillOpacity: 0.12,
+                    weight: 1,
+                    interactive: false
+                }).addTo(map);
+            }
+            return [position.coords.longitude, position.coords.latitude];
+        }
+
+        function requestDirections() {
+            if (!selectedTrail) {
+                return;
+            }
+            var requestId = ++navigationRequestId;
+            var trail = selectedTrail;
+            directionsLinks.hidden = true;
+            findAccessButton.disabled = true;
+            routingStatus.textContent = 'Obtendo sua localização para selecionar o extremo mais próximo…';
+            routingStatus.hidden = false;
+            var geolocation = global.navigator && global.navigator.geolocation;
+            if (!geolocation || typeof geolocation.getCurrentPosition !== 'function') {
+                routingStatus.textContent = 'Este navegador não disponibiliza geolocalização. Ela é necessária para determinar qual extremo da trilha está mais próximo.';
+                findAccessButton.disabled = false;
+                return;
+            }
+            geolocation.getCurrentPosition(function (position) {
+                if (requestId !== navigationRequestId || !selectedTrail
+                    || selectedTrail.id !== trail.id) {
+                    return;
+                }
+                try {
+                    var origin = setUserLocation(position);
+                    var destination = navigation.closestEndpoint(trail.feature.geometry, origin);
+                    googleMapsLink.href = navigation.googleMapsUrl(destination.coordinates);
+                    wazeLink.href = navigation.wazeUrl(destination.coordinates);
+                    directionsLinks.hidden = false;
+                    routingStatus.textContent = 'Destino: extremo '
+                        + (destination.end === 'start' ? 'inicial' : 'final')
+                        + (navigation.geometryEndpoints(trail.feature.geometry).length > 2
+                            ? ' do segmento ' + (destination.component + 1)
+                            : '')
+                        + ', a ' + Math.round(destination.distance) + ' m da sua localização.';
+                    routingStatus.hidden = false;
+                } catch (error) {
+                    routingStatus.textContent = error.message;
+                    routingStatus.hidden = false;
+                } finally {
+                    findAccessButton.disabled = false;
+                }
+            }, function (error) {
+                if (requestId !== navigationRequestId || !selectedTrail
+                    || selectedTrail.id !== trail.id) {
+                    return;
+                }
+                routingStatus.textContent = error && error.code === 1
+                    ? 'A permissão de localização é necessária para determinar qual extremo da trilha está mais próximo.'
+                    : error && error.code === 3
+                        ? 'A localização demorou para ser obtida. Tente novamente; ela é necessária para selecionar o extremo mais próximo.'
+                        : 'Não foi possível obter sua localização. Ela é necessária para determinar qual extremo da trilha está mais próximo.';
+                routingStatus.hidden = false;
+                findAccessButton.disabled = false;
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 10000
+            });
+        }
+
+        function updateSelectedTrailDetails() {
+            if (!selectedTrail) {
+                selectionDetails.hidden = true;
+                directionsLinks.hidden = true;
+                findAccessButton.hidden = true;
+                routingStatus.hidden = true;
+                return;
+            }
+            selectionName.textContent = selectedTrail.name || 'Trilha sem nome cadastrado';
+            selectionSummary.textContent = [
+                selectedTrail.distance ? 'Distância: ' + selectedTrail.distance : '',
+                selectedTrail.municipalities.length
+                    ? 'Município: ' + selectedTrail.municipalities.join(', ')
+                    : ''
+            ].filter(Boolean).join(' · ');
+            selectionDetails.hidden = false;
+            findAccessButton.hidden = false;
+            findAccessButton.disabled = false;
+            directionsLinks.hidden = true;
+            routingStatus.hidden = true;
+        }
 
         function updateResultSelection() {
             resultsList.querySelectorAll('[data-trail-id]').forEach(function (item) {
@@ -99,6 +242,7 @@
                     button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
                 }
             });
+            updateSelectedTrailDetails();
         }
 
         function clearHighlight() {
@@ -115,6 +259,9 @@
         }
 
         function setHighlight(trail) {
+            if (!selectedTrail || selectedTrail.id !== trail.id) {
+                navigationRequestId += 1;
+            }
             if (selectedHalo && map.hasLayer(selectedHalo)) {
                 map.removeLayer(selectedHalo);
             }
@@ -182,66 +329,32 @@
             }
         }
 
-        function appendDetail(container, label, value, className) {
-            if (!value) {
-                return;
-            }
-            var detail = document.createElement('span');
-            detail.className = className;
-            detail.textContent = value;
-            container.appendChild(detail);
-        }
-
         function renderTrails(matches) {
             resultsList.replaceChildren();
             matches.forEach(function (trail) {
-                var item = document.createElement('li');
-                var heading = document.createElement('h5');
-                var route = document.createElement('p');
-                var routeSwatch = document.createElement('i');
-                var details = document.createElement('div');
+                var item = document.createElement('tr');
+                var nameCell = document.createElement('td');
+                var distanceCell = document.createElement('td');
+                var municipalityCell = document.createElement('td');
+                var actionCell = document.createElement('td');
                 var locateButton = document.createElement('button');
+                var searchIcon = document.createElement('i');
 
                 item.className = 'trail-result';
                 item.dataset.trailId = trail.id;
-                heading.className = 'trail-result-name';
-                heading.textContent = trail.name || 'Trilha sem nome cadastrado';
-                route.className = 'trail-result-route';
-                routeSwatch.className = 'trail-legend-line';
-                routeSwatch.setAttribute('aria-hidden', 'true');
-                route.append(routeSwatch, document.createTextNode('Traçado representado no mapa'));
-                details.className = 'trail-result-details';
-                appendDetail(details, 'distance', trail.distance
-                    ? 'Distância informada: ' + trail.distance
-                    : '', 'trail-result-distance');
-                appendDetail(details, 'municipalities', trail.municipalities.length
-                    ? 'Município' + (trail.municipalities.length > 1 ? 's' : '') + ': ' +
-                        trail.municipalities.join(', ')
-                    : '', 'trail-result-municipality');
-
-                if ((countsByName.get(normalizeSearch(trail.name)) || 0) > 1) {
-                    var disambiguation = trail.municipalities.length
-                        ? trail.municipalities.join(', ')
-                        : 'Percurso ' + (trail.feature.properties.ID || trail.id);
-                    if (trail.municipalities.length) {
-                        var sameMunicipality = trails.some(function (other) {
-                            return other.id !== trail.id &&
-                                normalizeSearch(other.name) === normalizeSearch(trail.name) &&
-                                normalizeSearch(other.municipalities.join(', ')) ===
-                                    normalizeSearch(trail.municipalities.join(', '));
-                        });
-                        if (sameMunicipality) {
-                            disambiguation += ' · Percurso ' +
-                                (trail.feature.properties.ID || trail.id);
-                        }
-                    }
-                    heading.appendChild(document.createTextNode(' — ' + disambiguation));
-                }
+                nameCell.className = 'trail-result-name';
+                nameCell.textContent = trail.name || 'Trilha sem nome cadastrado';
+                distanceCell.textContent = trail.distance || '—';
+                municipalityCell.textContent = trail.municipalities.join(', ') || '—';
 
                 locateButton.type = 'button';
-                locateButton.className = 'trail-locate-button map-ui-button map-ui-button--primary';
+                locateButton.className = 'trail-locate-button';
                 locateButton.setAttribute('aria-pressed', 'false');
-                locateButton.innerHTML = '<i class="fas fa-search-location" aria-hidden="true"></i> Localizar';
+                locateButton.title = 'Localizar esta trilha no mapa';
+                locateButton.setAttribute('aria-label', 'Localizar ' + (trail.name || 'trilha sem nome'));
+                searchIcon.className = 'fas fa-search';
+                searchIcon.setAttribute('aria-hidden', 'true');
+                locateButton.appendChild(searchIcon);
                 locateButton.addEventListener('click', function (event) {
                     event.stopPropagation();
                     locateTrail(trail, true);
@@ -250,7 +363,8 @@
                 item.addEventListener('click', function () {
                     locateTrail(trail, true);
                 });
-                item.append(heading, route, details, locateButton);
+                actionCell.appendChild(locateButton);
+                item.append(nameCell, distanceCell, municipalityCell, actionCell);
                 resultsList.appendChild(item);
             });
             updateResultSelection();
@@ -306,31 +420,7 @@
             geolocation.getCurrentPosition(function (position) {
                 var latlng = leaflet.latLng(position.coords.latitude, position.coords.longitude);
                 map.setView(latlng, Math.min(16, map.getMaxZoom()));
-                if (locationMarker) {
-                    map.removeLayer(locationMarker);
-                }
-                if (locationAccuracy) {
-                    map.removeLayer(locationAccuracy);
-                    locationAccuracy = null;
-                }
-                locationMarker = leaflet.circleMarker(latlng, {
-                    radius: 8,
-                    fillColor: '#0876a5',
-                    color: '#fff',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 1
-                }).addTo(map);
-                if (Number.isFinite(position.coords.accuracy) && position.coords.accuracy > 0) {
-                    locationAccuracy = leaflet.circle(latlng, {
-                        radius: position.coords.accuracy,
-                        color: '#0876a5',
-                        fillColor: '#0876a5',
-                        fillOpacity: 0.12,
-                        weight: 1,
-                        interactive: false
-                    }).addTo(map);
-                }
+                setUserLocation(position);
                 button.disabled = false;
                 button.removeAttribute('aria-busy');
             }, function (error) {
@@ -375,7 +465,8 @@
         });
         searchInput.addEventListener('input', filterTrails);
         document.getElementById('restore-overview').addEventListener('click', restoreOverview);
-        document.getElementById('btnCentralizar').addEventListener('click', function () {
+        findAccessButton.addEventListener('click', requestDirections);
+        locateButton.addEventListener('click', function () {
             locateUser(this);
         });
         document.getElementById('btnExplorarMapa').addEventListener('click', function () {
@@ -392,6 +483,7 @@
         filterTrails();
         map.fitBounds(overviewBounds, { padding: [32, 32], maxZoom: 13 });
         map.invalidateSize();
+
     }
 
     if (document.readyState === 'loading') {
