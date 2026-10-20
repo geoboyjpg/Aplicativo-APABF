@@ -33,8 +33,10 @@
         previewAuthor: document.getElementById('preview-author'),
         previewDate: document.getElementById('preview-date'),
         legend: document.getElementById('legend-list'),
+        legendLimit: document.getElementById('legend-limit'),
         mapStatus: document.getElementById('map-status'),
         coordinates: document.getElementById('map-coordinates'),
+        latitudes: document.getElementById('map-latitudes'),
         scale: document.getElementById('preview-scale'),
         toast: document.getElementById('export-status')
     };
@@ -484,8 +486,50 @@
         return values;
     }
 
+    function collectLegendItems(activeStates) {
+        var items = [];
+        activeStates.forEach(function (state) {
+            var entries = legendEntries(state);
+            if (!entries.length) {
+                return;
+            }
+            entries.forEach(function (entry, index) {
+                items.push({
+                    type: 'entry',
+                    state: state,
+                    entry: entry,
+                    essential: Boolean(state.zoneStyles),
+                    group: state.definition.legendField && !state.zoneStyles ? state.id : '',
+                    groupLabel: state.label,
+                    firstInGroup: index === 0
+                });
+            });
+        });
+
+        var limit = elements.legendLimit ? Number(elements.legendLimit.value) : 0;
+        var essentialCount = items.filter(function (item) { return item.essential; }).length;
+        var regularLimit = limit > 0 ? Math.max(0, limit - essentialCount) : Infinity;
+        var regularCount = 0;
+        var selected = items.filter(function (item) {
+            if (item.essential) {
+                return true;
+            }
+            if (regularCount >= regularLimit) {
+                return false;
+            }
+            regularCount += 1;
+            return true;
+        });
+        return {
+            items: selected,
+            omitted: items.length - selected.length,
+            entryCount: selected.length
+        };
+    }
+
     function renderLegend(container, activeStates) {
         container.replaceChildren();
+        var legend = collectLegendItems(activeStates);
         if (!activeStates.length) {
             var empty = document.createElement('p');
             empty.className = 'hint';
@@ -493,31 +537,55 @@
             container.appendChild(empty);
             return;
         }
-        activeStates.forEach(function (state) {
-            var entries = legendEntries(state);
-            if (state.definition.legendField && !state.zoneStyles) {
+
+        var entryItems = legend.items.filter(function (item) { return item.type === 'entry'; });
+        var columnsCount = entryItems.length > 8 ? 2 : 1;
+        container.classList.toggle('is-two-columns', columnsCount === 2);
+        var columns = [];
+        for (var columnIndex = 0; columnIndex < columnsCount; columnIndex += 1) {
+            var column = document.createElement('div');
+            column.className = 'legend-column';
+            columns.push(column);
+            container.appendChild(column);
+        }
+        var splitAt = Math.ceil(legend.items.length / columnsCount);
+        legend.items.forEach(function (item, index) {
+            var target = columnsCount === 2 && index >= splitAt ? columns[1] : columns[0];
+            if (item.group && item.firstInGroup && index < splitAt) {
                 var group = document.createElement('p');
                 group.className = 'legend-group-title';
-                group.textContent = state.label;
-                container.appendChild(group);
+                group.textContent = item.groupLabel;
+                target.appendChild(group);
+            } else if (item.group && item.firstInGroup && !target.querySelector('[data-legend-group="' + item.group + '"]')) {
+                var groupTitle = document.createElement('p');
+                groupTitle.className = 'legend-group-title';
+                groupTitle.dataset.legendGroup = item.group;
+                groupTitle.textContent = item.groupLabel;
+                target.appendChild(groupTitle);
             }
-            entries.forEach(function (entry) {
-                var row = document.createElement('div');
-                var swatch = document.createElement('span');
-                var label = document.createElement('span');
-                row.className = 'legend-row';
-                swatch.className = 'legend-symbol ' + symbolClass(entry.geometry);
-                swatch.style.backgroundColor = entry.geometry === 'line' ? 'transparent' : entry.color;
-                swatch.style.borderColor = entry.geometry === 'line' ? entry.color : (state.definition.stroke || '#333');
-                swatch.style.opacity = String(entry.opacity);
-                if (entry.geometry === 'line') {
-                    swatch.style.backgroundColor = entry.color;
-                }
-                label.textContent = entry.label;
-                row.append(swatch, label);
-                container.appendChild(row);
-            });
+            var state = item.state;
+            var entry = item.entry;
+            var row = document.createElement('div');
+            var swatch = document.createElement('span');
+            var label = document.createElement('span');
+            row.className = 'legend-row';
+            swatch.className = 'legend-symbol ' + symbolClass(entry.geometry);
+            swatch.style.backgroundColor = entry.geometry === 'line' ? 'transparent' : entry.color;
+            swatch.style.borderColor = entry.geometry === 'line' ? entry.color : (state.definition.stroke || '#333');
+            swatch.style.opacity = String(entry.opacity);
+            if (entry.geometry === 'line') {
+                swatch.style.backgroundColor = entry.color;
+            }
+            label.textContent = entry.label;
+            row.append(swatch, label);
+            target.appendChild(row);
         });
+        if (legend.omitted) {
+            var notice = document.createElement('p');
+            notice.className = 'legend-omitted';
+            notice.textContent = 'Mais ' + legend.omitted + ' itens não exibidos. Ajuste o limite para incluí-los.';
+            container.appendChild(notice);
+        }
     }
 
     function formatCoordinate(value, isLatitude) {
@@ -556,12 +624,12 @@
         var centerLat = bounds.getCenter().lat * Math.PI / 180;
         var metersAcross = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
         var metersPerPixel = metersAcross / Math.max(size.x, 1);
-        var scaleMeters = scaleDistance(metersPerPixel * 120);
+        var scaleMeters = scaleDistance(metersPerPixel * Math.min(100, size.x * 0.25));
         var barPixels = scaleMeters / metersPerPixel;
         var label = scaleMeters >= 1000
             ? (scaleMeters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
             : Math.round(scaleMeters) + ' m';
-        elements.scale.innerHTML = '<span>' + label + '</span><span class="scale-bar" style="width:' + Math.max(40, Math.min(120, barPixels)) + 'px"><span></span><span></span></span>';
+        elements.scale.innerHTML = '<span>' + label + '</span><span class="scale-bar" style="width:' + barPixels + 'px"><span></span><span></span></span>';
 
         var lat = bounds.getCenter().lat;
         elements.coordinates.replaceChildren();
@@ -570,6 +638,15 @@
             coordinate.textContent = formatCoordinate(longitude, false);
             elements.coordinates.appendChild(coordinate);
         });
+        elements.latitudes.replaceChildren();
+        for (var index = 0; index <= 4; index += 1) {
+            var y = size.y * index / 4;
+            var coordinatePoint = map.containerPointToLatLng([0, y]);
+            var latitude = document.createElement('span');
+            latitude.textContent = formatCoordinate(coordinatePoint.lat, true);
+            latitude.style.top = (index * 25) + '%';
+            elements.latitudes.appendChild(latitude);
+        }
         elements.coordinates.setAttribute('aria-label', 'Longitudes no enquadramento; latitude central ' + formatCoordinate(lat, true));
     }
 
@@ -596,6 +673,8 @@
         elements.previewTitle.textContent = elements.title.value.trim() || 'Mapa sem título';
         var credits = basemapCredit();
         elements.previewSources.textContent = 'Fontes: ' + (elements.sources.value.trim() || 'não informadas') + (credits ? ' · ' + credits : '');
+        document.getElementById('preview-imagery-credit').textContent =
+            'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS';
         elements.previewAuthor.textContent = elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '';
         elements.previewDate.textContent = elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '';
         updateScaleAndCoordinates();
@@ -647,7 +726,7 @@
         }).setView([-28.2, -48.8], 9);
         overviewMap = L.map('overview-map', {
             zoomControl: false,
-            attributionControl: true,
+            attributionControl: false,
             dragging: false,
             scrollWheelZoom: false,
             doubleClickZoom: false,
@@ -697,10 +776,10 @@
                             attribution: 'Imagery &copy; Esri, Vantor, Earthstar Geographics, and the GIS User Community'
                         }).addTo(overviewMap);
                         overviewBoundaryCasing = L.geoJSON(state.data, {
-                            style: { color: '#fff', weight: 4, opacity: 1, fillOpacity: 0 }
+                            style: { color: '#fff', weight: 2.2, opacity: 0.9, fillOpacity: 0 }
                         }).addTo(overviewMap);
                         overviewBoundary = L.geoJSON(state.data, {
-                            style: { color: '#d0a800', weight: 2, opacity: 1, fillOpacity: 0 }
+                            style: { color: '#d0a800', weight: 1.2, opacity: 1, fillOpacity: 0 }
                         }).addTo(overviewMap);
                         overviewMap.invalidateSize({ pan: false });
                         overviewMap.fitBounds(L.latLngBounds(
@@ -1192,20 +1271,23 @@
         for (var j = 0; j <= tickCount; j += 1) {
             var y = frame.y + frame.height * j / tickCount;
             var leftCoordinate = inverseProjection(frame.x, y);
-            var rightCoordinate = inverseProjection(frame.x + frame.width, y);
             context.beginPath();
             context.moveTo(frame.x, y);
             context.lineTo(frame.x + 3 * scaleFactor, y);
             context.moveTo(frame.x + frame.width - 3 * scaleFactor, y);
             context.lineTo(frame.x + frame.width, y);
             context.stroke();
-            context.textAlign = 'right';
+            context.save();
+            context.translate(frame.x - 4.5 * scaleFactor, y + 1 * scaleFactor);
+            context.rotate(-Math.PI / 2);
+            context.textAlign = 'center';
             context.lineJoin = 'round';
             context.lineWidth = Math.max(1.5, scaleFactor * 0.85);
             context.strokeStyle = '#fff';
-            context.strokeText(formatDegree(leftCoordinate.lat, true), frame.x - 3 * scaleFactor, y + 1 * scaleFactor);
+            context.strokeText(formatDegree(leftCoordinate.lat, true), 0, 0);
             context.fillStyle = '#222';
-            context.fillText(formatDegree(leftCoordinate.lat, true), frame.x - 3 * scaleFactor, y + 1 * scaleFactor);
+            context.fillText(formatDegree(leftCoordinate.lat, true), 0, 0);
+            context.restore();
         }
         context.restore();
     }
@@ -1294,9 +1376,9 @@
         return renderTileBackground(context, 'satellite', zoom, projected, fit, left, top)
             .then(function () {
                 context.strokeStyle = '#d0a800';
-                context.lineWidth = Math.max(1.2, 0.35 * scaleFactor);
+                context.lineWidth = Math.max(0.8, 0.2 * scaleFactor);
                 boundaryState.data.features.forEach(function (feature) {
-                    drawGeometry(context, feature.geometry, projection, '#d0a800', '#776600', 1, 0.1, Math.max(1.2, 0.35 * scaleFactor));
+                    drawGeometry(context, feature.geometry, projection, '#d0a800', '#776600', 1, 0.1, Math.max(0.8, 0.2 * scaleFactor));
                 });
                 var topLeft = projection(bounds.west, bounds.north);
                 var bottomRight = projection(bounds.east, bounds.south);
@@ -1323,62 +1405,199 @@
     }
 
     function renderLegendCanvas(context, x, y, width, maxHeight, scaleFactor, activeStates) {
-        var cursor = y;
+        var legend = collectLegendItems(activeStates);
+        var columnsCount = legend.entryCount > 8 ? 2 : 1;
+        var columnGap = 3 * scaleFactor;
+        var columnWidth = (width - columnGap * (columnsCount - 1)) / columnsCount;
+        var splitAt = Math.ceil(legend.items.length / columnsCount);
+        var cursors = [];
+        var omitted = legend.omitted;
+        var fontSize = 2.45 * scaleFactor;
+        var itemBottom = y + Math.max(0, maxHeight - 4.5 * scaleFactor);
+        context.save();
         context.textAlign = 'left';
-        activeStates.forEach(function (state) {
-            var entries = legendEntries(state);
-            if (state.definition.legendField && !state.zoneStyles) {
-                context.fillStyle = '#202526';
-                context.font = 'bold ' + (2.8 * scaleFactor) + 'px Arial';
-                context.fillText(state.label, x, cursor + 2.8 * scaleFactor);
-                cursor += 3.3 * scaleFactor;
-            }
-            entries.forEach(function (entry) {
-                if (cursor > y + maxHeight) {
-                    return;
+        for (var columnIndex = 0; columnIndex < columnsCount; columnIndex += 1) {
+            var columnX = x + columnIndex * (columnWidth + columnGap);
+            var cursor = y;
+            var start = columnIndex === 0 ? 0 : splitAt;
+            var end = columnIndex === 0 ? splitAt : legend.items.length;
+            for (var itemIndex = start; itemIndex < end; itemIndex += 1) {
+                var item = legend.items[itemIndex];
+                var state = item.state;
+                var entry = item.entry;
+                if (item.group && item.firstInGroup) {
+                    context.fillStyle = '#202526';
+                    context.font = 'bold ' + (2.6 * scaleFactor) + 'px Arial';
+                    context.fillText(item.groupLabel, columnX, cursor + 2.6 * scaleFactor);
+                    cursor += 3 * scaleFactor;
                 }
-                var symbolWidth = 5 * scaleFactor;
-                var symbolHeight = 3 * scaleFactor;
-                var symbolY = cursor + 0.5 * scaleFactor;
+                context.font = fontSize + 'px Arial';
+                var symbolWidth = 4.5 * scaleFactor;
+                var symbolHeight = 2.8 * scaleFactor;
+                var textX = columnX + symbolWidth + 1.8 * scaleFactor;
+                var lines = wrappedLines(context, entry.label, columnWidth - symbolWidth - 2 * scaleFactor);
+                var rowHeight = Math.max(3.2, lines.length * 2.7 + 0.4) * scaleFactor;
+                if (cursor + rowHeight > itemBottom) {
+                    omitted += 1;
+                    continue;
+                }
+                var symbolY = cursor + 0.4 * scaleFactor;
                 context.globalAlpha = entry.opacity;
                 if (entry.geometry === 'point') {
                     context.beginPath();
-                    context.arc(x + symbolWidth / 2, symbolY + symbolHeight / 2, 1.3 * scaleFactor, 0, Math.PI * 2);
+                    context.arc(columnX + symbolWidth / 2, symbolY + symbolHeight / 2, 1.1 * scaleFactor, 0, Math.PI * 2);
                     context.fillStyle = entry.color;
                     context.fill();
                     context.strokeStyle = state.definition.stroke || '#333';
-                    context.lineWidth = Math.max(1, scaleFactor);
+                    context.lineWidth = Math.max(1, scaleFactor * 0.65);
                     context.stroke();
                 } else if (entry.geometry === 'line') {
                     context.beginPath();
-                    context.moveTo(x, symbolY + symbolHeight / 2);
-                    context.lineTo(x + symbolWidth, symbolY + symbolHeight / 2);
+                    context.moveTo(columnX, symbolY + symbolHeight / 2);
+                    context.lineTo(columnX + symbolWidth, symbolY + symbolHeight / 2);
                     context.strokeStyle = entry.color;
-                    context.lineWidth = 0.6 * scaleFactor;
+                    context.lineWidth = Math.max(1.2, 0.55 * scaleFactor);
                     context.stroke();
                 } else {
                     context.fillStyle = entry.color;
-                    context.fillRect(x, symbolY, symbolWidth, symbolHeight);
+                    context.fillRect(columnX, symbolY, symbolWidth, symbolHeight);
                     context.strokeStyle = state.definition.stroke || '#333';
-                    context.lineWidth = Math.max(1, scaleFactor);
-                    context.strokeRect(x, symbolY, symbolWidth, symbolHeight);
+                    context.lineWidth = Math.max(1, scaleFactor * 0.65);
+                    context.strokeRect(columnX, symbolY, symbolWidth, symbolHeight);
                 }
                 context.globalAlpha = 1;
                 context.fillStyle = '#202526';
-                context.font = (2.5 * scaleFactor) + 'px Arial';
-                var lines = wrappedLines(context, entry.label, width - symbolWidth - 2.5 * scaleFactor);
-                lines.forEach(function (line, index) {
-                    context.fillText(line, x + symbolWidth + 2 * scaleFactor, cursor + (2.6 + index * 2.8) * scaleFactor);
+                context.font = fontSize + 'px Arial';
+                lines.forEach(function (line, lineIndex) {
+                    context.fillText(line, textX, cursor + (2.5 + lineIndex * 2.7) * scaleFactor);
                 });
-                cursor += Math.max(3.1, lines.length * 2.8 + 0.5) * scaleFactor;
-            });
-        });
-        if (!activeStates.length) {
+                cursor += rowHeight;
+            }
+            cursors.push(cursor);
+        }
+        if (!legend.entryCount) {
             context.fillStyle = '#4e5a5d';
-            context.font = (2.5 * scaleFactor) + 'px Arial';
+            context.font = fontSize + 'px Arial';
             context.fillText('Nenhuma camada ativa.', x, y + 4 * scaleFactor);
         }
-        return cursor;
+        var contentBottom = Math.max.apply(Math, cursors.concat([y]));
+        if (omitted) {
+            var notice = 'Mais ' + omitted + ' itens não exibidos; ajuste o limite da legenda.';
+            var noticeLines = wrappedLines(context, notice, width);
+            var noticeY = contentBottom + 2.2 * scaleFactor;
+            context.fillStyle = '#8a2f25';
+            context.font = (2.1 * scaleFactor) + 'px Arial';
+            noticeLines.forEach(function (line, index) {
+                context.fillText(line, x, noticeY + index * 2.7 * scaleFactor);
+            });
+            contentBottom = noticeY + noticeLines.length * 2.7 * scaleFactor;
+        }
+        context.restore();
+        return {
+            height: contentBottom - y,
+            omitted: omitted
+        };
+    }
+
+    function renderPortraitPanel(context, canvas, frame, mapBounds, scaleFactor, rightMargin) {
+        var panelX = frame.x;
+        var panelY = frame.y + frame.height + 6 * scaleFactor;
+        var panelWidth = canvas.width - panelX - rightMargin;
+        var panelHeight = canvas.height - panelY - 12 * scaleFactor;
+        var panelBottom = panelY + panelHeight;
+        var titleHeight = 15 * scaleFactor;
+        context.fillStyle = '#d0eee8';
+        context.fillRect(panelX, panelY, panelWidth, titleHeight);
+        context.fillStyle = '#111';
+        context.textAlign = 'center';
+        context.font = 'bold ' + (4.2 * scaleFactor) + 'px Arial';
+        var titleWidth = panelWidth - 8 * scaleFactor;
+        var titleLines = wrappedLines(context, elements.title.value.trim() || 'Mapa sem título', titleWidth);
+        if (titleLines.length > 2) {
+            titleLines = titleLines.slice(0, 2);
+            titleLines[1] = titleLines[1].slice(0, -1) + '…';
+        }
+        titleLines.forEach(function (line, index) {
+            context.fillText(
+                line,
+                panelX + panelWidth / 2,
+                panelY + titleHeight / 2 + (index - (titleLines.length - 1) / 2) * 4.8 * scaleFactor
+            );
+        });
+
+        var activeStates = states.filter(function (state) { return state.visible && state.layer; });
+        var legendX = panelX + 3 * scaleFactor;
+        var legendY = panelY + titleHeight + 6 * scaleFactor;
+        var legendWidth = panelWidth * 0.62;
+        context.fillStyle = '#111';
+        context.font = 'bold ' + (3.6 * scaleFactor) + 'px Arial';
+        context.fillText('Legenda', legendX + legendWidth / 2, legendY);
+        renderLegendCanvas(
+            context,
+            legendX,
+            legendY + 3 * scaleFactor,
+            legendWidth - 4 * scaleFactor,
+            panelBottom - legendY - 5 * scaleFactor,
+            scaleFactor,
+            activeStates
+        );
+
+        var sideX = panelX + panelWidth * 0.66;
+        var sideWidth = panelX + panelWidth - 3 * scaleFactor - sideX;
+        var metadata = [
+            'Coordenadas geográficas · SIRGAS 2000 / EPSG:4674',
+            'Dados: ' + (elements.sources.value.trim() || 'não informadas'),
+            'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS',
+            basemapCredit() ? 'Mapa-base: ' + basemapCredit() : '',
+            elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '',
+            elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '',
+            'Logotipos institucionais; não implicam aprovação.'
+        ].filter(Boolean);
+        context.font = (2 * scaleFactor) + 'px Arial';
+        var metadataLines = [];
+        metadata.forEach(function (line) {
+            metadataLines.push.apply(metadataLines, wrappedLines(context, line, sideWidth));
+        });
+        var metadataLineHeight = Math.min(2.5, (panelHeight - titleHeight - 12 * scaleFactor) /
+            Math.max(1, metadataLines.length) / scaleFactor) * scaleFactor;
+        var metadataY = panelY + titleHeight + 3 * scaleFactor;
+        context.fillStyle = '#252c2d';
+        context.textAlign = 'center';
+        metadataLines.forEach(function (line, index) {
+            context.fillText(line, sideX + sideWidth / 2, metadataY + (index + 0.9) * metadataLineHeight);
+        });
+
+        var overviewY = metadataY + metadataLines.length * metadataLineHeight + 3 * scaleFactor;
+        var overviewBottom = panelBottom - 2 * scaleFactor;
+        var rightColumnMaxHeight = Math.max(35 * scaleFactor, overviewBottom - overviewY);
+        var overviewHeight = Math.min(rightColumnMaxHeight, (sideWidth - 4 * scaleFactor - 30 * scaleFactor) / 0.56);
+        var overviewWidth = overviewHeight * 0.56;
+        var logoX = sideX + overviewWidth + 4 * scaleFactor;
+        var logoWidth = sideX + sideWidth - logoX;
+        return renderOverview(context, sideX, overviewY, overviewWidth, overviewHeight, scaleFactor, mapBounds)
+            .then(function () {
+                elements.mapStatus.textContent = 'Incluindo logotipos institucionais…';
+                return Promise.all([
+                    loadLogo('logos/APA%20da%20Baleia%20Franca.png'),
+                    loadLogo('logos/icmbio%20horizontal%401000x-8.png')
+                ]);
+            })
+            .then(function (logos) {
+                var logoGap = 2 * scaleFactor;
+                var logoHeight = (overviewHeight - logoGap) / 2;
+                fitImage(context, logos[0], logoX, overviewY, logoWidth, logoHeight);
+                fitImage(context, logos[1], logoX, overviewY + logoHeight + logoGap, logoWidth, logoHeight);
+                context.strokeStyle = '#202526';
+                context.lineWidth = Math.max(2, 0.65 * scaleFactor);
+                context.strokeRect(panelX, panelY, panelWidth, panelHeight);
+                try {
+                    canvas.toDataURL('image/png');
+                } catch (error) {
+                    throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não será substituído silenciosamente.');
+                }
+                elements.mapStatus.textContent = 'Codificando a imagem final…';
+                return canvas;
+            });
     }
 
     function createPrintCanvas() {
@@ -1388,7 +1607,13 @@
         var canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        return { canvas: canvas, width: width, height: height, scaleFactor: width / (orientation === 'portrait' ? 210 : 297) };
+        return {
+            canvas: canvas,
+            width: width,
+            height: height,
+            orientation: orientation,
+            scaleFactor: width / (orientation === 'portrait' ? 210 : 297)
+        };
     }
 
     function renderPrintComposition() {
@@ -1401,6 +1626,7 @@
         var scaleFactor = target.scaleFactor;
         var width = target.width;
         var height = target.height;
+        var portrait = target.orientation === 'portrait';
         var bounds = map.getBounds();
         if (!bounds.isValid()) {
             return Promise.reject(new Error('O mapa ainda não possui uma extensão geográfica válida.'));
@@ -1413,12 +1639,17 @@
         };
         var zoom = Math.max(3, Math.min(17, Math.floor(map.getZoom())));
         var projectedBounds = projectBounds(mapBounds, zoom);
-        var outer = 24 * scaleFactor;
+        var outer = 5 * scaleFactor;
+        var frameX = 16 * scaleFactor;
+        var frameY = 14 * scaleFactor;
+        var columnGap = 4 * scaleFactor;
+        var rightMargin = 12 * scaleFactor;
+        var availableWidth = width - frameX - columnGap - rightMargin;
         var frame = {
-            x: 25 * scaleFactor,
-            y: 30 * scaleFactor,
-            width: (width - 51 * scaleFactor) * 0.64,
-            height: height - 60 * scaleFactor
+            x: frameX,
+            y: frameY,
+            width: portrait ? width - frameX - rightMargin : availableWidth * 0.61,
+            height: portrait ? 150 * scaleFactor : height - frameY - 14 * scaleFactor
         };
         var fit = Math.min(frame.width / (projectedBounds.maxX - projectedBounds.minX), frame.height / (projectedBounds.maxY - projectedBounds.minY));
         var usedWidth = (projectedBounds.maxX - projectedBounds.minX) * fit;
@@ -1461,13 +1692,25 @@
                 var centerLat = bounds.getCenter().lat * Math.PI / 180;
                 var groundWidth = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
                 var metersPerPixel = groundWidth / Math.max(1, (projectedBounds.maxX - projectedBounds.minX) * fit);
-                renderScaleBar(context, frame.x + frame.width * 0.61, frame.y + frame.height - 29 * scaleFactor, frame.width, metersPerPixel, scaleFactor);
-                drawNorthArrow(context, frame.x + frame.width - 14 * scaleFactor, frame.y + 27 * scaleFactor, 12 * scaleFactor);
+                renderScaleBar(context, frame.x + frame.width * 0.68, frame.y + frame.height - 13 * scaleFactor, frame.width, metersPerPixel, scaleFactor);
+                var northX = frame.x + frame.width - 10 * scaleFactor;
+                var northY = frame.y + 14 * scaleFactor;
+                context.fillStyle = '#ffffff';
+                context.fillRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
+                context.strokeStyle = '#c5cccc';
+                context.lineWidth = Math.max(1, 0.25 * scaleFactor);
+                context.strokeRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
+                drawNorthArrow(context, northX, northY, 5.8 * scaleFactor);
+
+                if (portrait) {
+                    return renderPortraitPanel(context, canvas, frame, mapBounds, scaleFactor, rightMargin);
+                }
 
                 var panelX = frame.x + frame.width + 4 * scaleFactor;
-                var panelWidth = width - panelX - 27 * scaleFactor;
+                var panelWidth = width - panelX - rightMargin;
+                var panelBottom = frame.y + frame.height;
                 var cursor = frame.y;
-                var titleHeight = 26 * scaleFactor;
+                var titleHeight = 21 * scaleFactor;
                 context.fillStyle = '#d0eee8';
                 context.fillRect(panelX, cursor, panelWidth, titleHeight);
                 context.fillStyle = '#111';
@@ -1488,59 +1731,76 @@
                 titleLines.forEach(function (line, index) {
                     context.fillText(line, panelX + panelWidth / 2, cursor + titleHeight / 2 + (index - (titleLines.length - 1) / 2) * titleLineHeight);
                 });
-                cursor += titleHeight + 4 * scaleFactor;
+                cursor += titleHeight + 3 * scaleFactor;
 
                 context.fillStyle = '#111';
-                context.font = 'bold ' + (5 * scaleFactor) + 'px Arial';
-                context.fillText('Legenda', panelX + panelWidth / 2, cursor);
-                cursor += 3 * scaleFactor;
+                context.font = 'bold ' + (4.2 * scaleFactor) + 'px Arial';
+                context.fillText('Legenda', panelX + panelWidth / 2, cursor + 3.5 * scaleFactor);
+                cursor += 5.5 * scaleFactor;
                 var activeStates = states.filter(function (state) { return state.visible && state.layer; });
-                cursor = renderLegendCanvas(context, panelX + 2 * scaleFactor, cursor, panelWidth - 4 * scaleFactor, 47 * scaleFactor, scaleFactor, activeStates) + 3 * scaleFactor;
-                context.fillStyle = '#252c2d';
-                context.textAlign = 'center';
-                context.font = (2.5 * scaleFactor) + 'px Arial';
                 var metadata = [
                     'Coordenadas geográficas · SIRGAS 2000 / EPSG:4674',
-                    'Fontes: ' + (elements.sources.value.trim() || 'não informadas'),
-                    'Satélite do mapa de localização: Esri, Vantor, Earthstar Geographics e comunidade GIS',
-                    basemapCredit(),
+                    'Dados: ' + (elements.sources.value.trim() || 'não informadas'),
+                    'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS',
+                    basemapCredit() ? 'Mapa-base: ' + basemapCredit() : '',
                     elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '',
-                    elements.date.value ? 'Data: ' + formatDate(elements.date.value) : ''
+                    elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '',
+                    'Logotipos institucionais; não implicam aprovação.'
                 ].filter(Boolean);
+                var metadataLines = [];
+                context.font = (2.3 * scaleFactor) + 'px Arial';
                 metadata.forEach(function (line) {
-                    wrappedLines(context, line, panelWidth - 16 * scaleFactor).forEach(function (wrapped) {
-                        cursor += 3 * scaleFactor;
-                        context.fillText(wrapped, panelX + panelWidth / 2, cursor);
-                    });
+                    metadataLines.push.apply(metadataLines, wrappedLines(context, line, panelWidth - 8 * scaleFactor));
                 });
-                cursor += 2 * scaleFactor;
-                context.font = 'bold ' + (4 * scaleFactor) + 'px Arial';
-                context.fillText('Localização na APABF', panelX + panelWidth / 2, cursor + 4 * scaleFactor);
-                var overviewY = cursor + 5 * scaleFactor;
-                var logoHeight = 15 * scaleFactor;
-                var overviewHeight = Math.max(30 * scaleFactor, frame.y + frame.height - overviewY - logoHeight - 17 * scaleFactor);
-                var overviewWidth = Math.min(panelWidth - 6 * scaleFactor, overviewHeight * 0.54);
-                var overviewX = panelX + (panelWidth - overviewWidth) / 2;
+                var metadataHeight = Math.min(24, Math.max(14, metadataLines.length * 2.8 + 1)) * scaleFactor;
+                var minimumFooterHeight = 49 * scaleFactor;
+                var legendMaxHeight = Math.max(
+                    8 * scaleFactor,
+                    panelBottom - minimumFooterHeight - metadataHeight - cursor - 12 * scaleFactor
+                );
+                var legendLayout = renderLegendCanvas(
+                    context,
+                    panelX + 2 * scaleFactor,
+                    cursor,
+                    panelWidth - 4 * scaleFactor,
+                    legendMaxHeight,
+                    scaleFactor,
+                    activeStates
+                );
+                var metadataY = cursor + legendLayout.height + 3 * scaleFactor;
+                var maximumFooterHeight = Math.min(
+                    84 * scaleFactor,
+                    Math.max(minimumFooterHeight, (panelWidth - 41 * scaleFactor) / 0.56)
+                );
+                var desiredFooterHeight = panelBottom - metadataY - metadataHeight - 5 * scaleFactor;
+                var footerHeight = Math.min(maximumFooterHeight, desiredFooterHeight);
+                metadataY = panelBottom - footerHeight - metadataHeight - 5 * scaleFactor;
+                var footerY = metadataY + metadataHeight + 3 * scaleFactor;
+                var lineHeight = Math.min(2.8, metadataHeight / Math.max(1, metadataLines.length)) * scaleFactor;
+                context.fillStyle = '#252c2d';
+                context.textAlign = 'center';
+                metadataLines.forEach(function (line, index) {
+                    context.fillText(line, panelX + panelWidth / 2, metadataY + (index + 0.85) * lineHeight);
+                });
+
+                var overviewX = panelX + 3 * scaleFactor;
+                var overviewY = footerY + 1 * scaleFactor;
+                var overviewHeight = footerHeight - 2 * scaleFactor;
+                var overviewWidth = overviewHeight * 0.56;
+                var logoX = overviewX + overviewWidth + 4 * scaleFactor;
+                var logoWidth = panelX + panelWidth - 3 * scaleFactor - logoX;
                 return renderOverview(context, overviewX, overviewY, overviewWidth, overviewHeight, scaleFactor, mapBounds)
                     .then(function () {
-                        context.font = (2.1 * scaleFactor) + 'px Arial';
-                        context.fillStyle = '#4e5859';
-                        context.textAlign = 'center';
-                        context.fillText('Satélite: Esri, Vantor, Earthstar Geographics e comunidade GIS', panelX + panelWidth / 2, overviewY + overviewHeight + 2.4 * scaleFactor);
-                        context.fillText('Retângulo: extensão do mapa principal · Limite: ICMBio', panelX + panelWidth / 2, overviewY + overviewHeight + 4.8 * scaleFactor);
                         elements.mapStatus.textContent = 'Incluindo logotipos institucionais…';
                         return Promise.all([
                             loadLogo('logos/APA%20da%20Baleia%20Franca.png'),
                             loadLogo('logos/icmbio%20horizontal%401000x-8.png')
                         ]);
                     }).then(function (logos) {
-                    var logoY = frame.y + frame.height - logoHeight - 4.5 * scaleFactor;
-                    fitImage(context, logos[0], panelX + panelWidth * 0.04, logoY, panelWidth * 0.42, logoHeight);
-                    fitImage(context, logos[1], panelX + panelWidth * 0.54, logoY, panelWidth * 0.42, logoHeight);
-                    context.textAlign = 'center';
-                    context.fillStyle = '#4e5859';
-                    context.font = (2 * scaleFactor) + 'px Arial';
-                    context.fillText('Logotipos institucionais; não implica aprovação.', panelX + panelWidth / 2, frame.y + frame.height - 1.5 * scaleFactor);
+                    var logoGap = 2 * scaleFactor;
+                    var logoHeight = (footerHeight - logoGap) / 2;
+                    fitImage(context, logos[0], logoX, footerY + 1 * scaleFactor, logoWidth, logoHeight);
+                    fitImage(context, logos[1], logoX, footerY + logoHeight + logoGap, logoWidth, logoHeight);
                     context.strokeStyle = '#202526';
                     context.lineWidth = Math.max(2, 0.65 * scaleFactor);
                     context.strokeRect(panelX, frame.y, panelWidth, frame.height);
@@ -1670,17 +1930,17 @@
             input.addEventListener('change', updateMapComposition);
         });
         elements.orientation.addEventListener('change', function () {
-            var currentBounds = map.getBounds();
+            var currentCenter = map.getCenter();
+            var currentZoom = map.getZoom();
             elements.preview.classList.toggle('is-portrait', elements.orientation.value === 'portrait');
             window.setTimeout(function () {
                 map.invalidateSize();
-                if (currentBounds.isValid()) {
-                    map.fitBounds(currentBounds, { animate: false });
-                }
+                map.setView(currentCenter, currentZoom, { animate: false });
                 overviewMap.invalidateSize();
                 updateMapComposition();
             }, 60);
         });
+        elements.legendLimit.addEventListener('change', updateMapComposition);
         elements.fileImport.addEventListener('change', function () {
             importLocalFile(elements.fileImport.files && elements.fileImport.files[0]);
         });

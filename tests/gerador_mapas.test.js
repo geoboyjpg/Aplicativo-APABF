@@ -25,14 +25,22 @@ function loadLayerData(context, definition) {
     return context[definition.globalName];
 }
 
-test('homepage and services open the map generator', function () {
+test('services opens the map generator without a homepage or quick-nav shortcut', function () {
     const homepage = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
     const services = fs.readFileSync(path.join(ROOT, 'servicos.html'), 'utf8');
     const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
-    assert.match(homepage, /href="gerador-mapas\.html"[^>]*>[\s\S]*?<h2>Gerador de Mapas<\/h2>/);
+    const navigation = fs.readFileSync(path.join(ROOT, 'nav.js'), 'utf8');
+    assert.doesNotMatch(homepage, /href="gerador-mapas\.html"/);
     assert.match(services, /href="gerador-mapas\.html"/);
+    assert.doesNotMatch(navigation, /gerador-mapas\.html/);
     assert.match(page, /id="main-map"/);
     assert.match(page, /id="overview-map"/);
+});
+
+test('fixed quick navigation reserves safe bottom space on scrollable pages', function () {
+    const styles = fs.readFileSync(path.join(ROOT, 'nav.css'), 'utf8');
+    assert.match(styles, /body:has\(\.nav-bar\):not\(\.map-ui\)\s*\{[^}]*padding-bottom:[^}]*safe-area-inset-bottom/s);
+    assert.match(styles, /\.nav-bar\s*\{[^}]*position:\s*fixed/s);
 });
 
 test('generator catalog references available geographic sources and real feature collections', function () {
@@ -76,8 +84,9 @@ test('map inset exports satellite tiles and the configuration panel scrolls inde
     assert.match(page, /class="config-scroll"/);
     assert.match(page, /class="config-footer"/);
     assert.match(styles, /\.config-scroll\s*\{[^}]*overflow-y:\s*auto/s);
-    assert.match(styles, /\.overview-frame\s*\{[^}]*aspect-ratio:\s*0\.56/s);
+    assert.match(styles, /\.overview-frame\s*\{[^}]*width:\s*clamp\([^}]*height:\s*100%/s);
     assert.match(implementation, /function renderOverview[\s\S]*?renderTileBackground\(context, 'satellite'/);
+    assert.match(implementation, /overviewWidth = overviewHeight \* 0\.56/);
     assert.match(implementation, /server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery/);
 });
 
@@ -100,5 +109,40 @@ test('composition uses the requested existing institutional logos', function () 
         assert.ok(fs.existsSync(path.join(ROOT, relativePath)));
         const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
         assert.ok(page.includes(encodedPath));
+    });
+
+    test('location inset is paired with stacked logos and credits remain outside the map', function () {
+        const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+        const sidebar = page.slice(page.indexOf('<aside class="preview-sidebar">'), page.indexOf('</aside>', page.indexOf('<aside class="preview-sidebar">')));
+
+        assert.doesNotMatch(sidebar, /Localização na APABF/);
+        assert.doesNotMatch(sidebar, /overview-caption/);
+        assert.match(sidebar, /class="overview-frame"[\s\S]*?class="preview-logos"/);
+        assert.match(styles, /\.preview-logos\s*\{[^}]*flex-direction:\s*column/s);
+        assert.match(implementation, /attributionControl:\s*false/);
+        assert.match(implementation, /Satélite da localização: Esri, Vantor, Earthstar Geographics/);
+        assert.match(implementation, /weight:\s*1\.2,\s*opacity:\s*1,\s*fillOpacity:\s*0/);
+    });
+
+    test('legend can switch columns and explicitly report configured omissions', function () {
+        const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+        assert.match(page, /id="legend-limit"/);
+        assert.match(styles, /\.legend-list\.is-two-columns/);
+        assert.match(implementation, /entryItems\.length > 8 \? 2 : 1/);
+        assert.match(implementation, /Mais ' \+ legend\.omitted \+ ' itens não exibidos/);
+        assert.match(implementation, /essential:\s*Boolean\(state\.zoneStyles\)/);
+    });
+
+    test('print composition uses dynamic two-column legends and rotated left coordinates', function () {
+        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+        assert.match(implementation, /context\.rotate\(-Math\.PI \/ 2\)/);
+        assert.match(implementation, /renderLegendCanvas\(context,[\s\S]*?legendMaxHeight/);
+        assert.match(implementation, /metersPerPixel = groundWidth[\s\S]*?renderScaleBar/);
+        assert.match(styles, /\.map-latitudes span\s*\{[^}]*rotate\(-90deg\)/s);
     });
 });

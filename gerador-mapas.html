@@ -83,6 +83,14 @@
                             </select>
                         </div>
                     </div>
+                    <label class="field-label" for="legend-limit">Limite da legenda <span>(somente quando necessário)</span></label>
+                    <select id="legend-limit">
+                        <option value="0">Sem limite — recomendado</option>
+                        <option value="9">9 itens</option>
+                        <option value="18">18 itens</option>
+                        <option value="24">24 itens</option>
+                        <option value="36">36 itens</option>
+                    </select>
                     </section>
                     <p class="institutional-note">A inclusão dos logotipos identifica as fontes institucionais, mas não representa aprovação ou caráter oficial do mapa.</p>
                 </div>
@@ -109,6 +117,7 @@
                             <div id="main-map" aria-label="Mapa principal interativo"></div>
                             <div class="north-arrow" aria-label="Norte"><span>▲</span><small>N</small></div>
                             <div id="map-coordinates" class="map-coordinates" aria-hidden="true"></div>
+                            <div id="map-latitudes" class="map-latitudes" aria-hidden="true"></div>
                             <div id="preview-scale" class="preview-scale" aria-label="Escala gráfica"></div>
                         </div>
                     </div>
@@ -121,18 +130,17 @@
                         <section class="preview-metadata">
                             <p id="preview-crs">Coordenadas geográficas · SIRGAS 2000 / EPSG:4674</p>
                             <p id="preview-sources">Fontes: ICMBio — dados geográficos da APABF e Plano de Manejo</p>
+                            <p id="preview-imagery-credit">Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS</p>
                             <p id="preview-author"></p>
                             <p id="preview-date"></p>
                         </section>
                         <section class="overview-section">
-                            <h3>Localização na APABF</h3>
                             <div class="overview-frame"><div id="overview-map" aria-label="Localização da extensão principal no limite da APABF"></div></div>
-                            <p class="overview-caption">Imagem: Esri World Imagery. O retângulo indica a extensão do mapa principal; limite: ICMBio.</p>
+                            <div class="preview-logos">
+                                <img src="logos/APA%20da%20Baleia%20Franca.png" alt="APA da Baleia Franca">
+                                <img src="logos/icmbio%20horizontal%401000x-8.png" alt="ICMBio">
+                            </div>
                         </section>
-                        <div class="preview-logos">
-                            <img src="logos/APA%20da%20Baleia%20Franca.png" alt="APA da Baleia Franca">
-                            <img src="logos/icmbio%20horizontal%401000x-8.png" alt="ICMBio">
-                        </div>
                     </aside>
                 </article>
                 <p class="disclaimer">Composição cartográfica elaborada pelo usuário. Os logotipos identificam fontes institucionais e não significam aprovação oficial.</p>

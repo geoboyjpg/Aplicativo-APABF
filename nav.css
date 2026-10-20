@@ -19,6 +19,10 @@
     font-family: Arial, sans-serif !important;
 }
 
+body:has(.nav-bar):not(.map-ui) {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+
 .nav-bar .nav-btn {
     display: flex !important;
     min-width: 68px !important;
@@ -222,6 +226,10 @@
         max-width: calc(100% - 16px) !important;
         padding: 9px 6px !important;
         border-radius: 23px !important;
+    }
+
+    body:has(.nav-bar):not(.map-ui) {
+        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
     }
 
     .nav-bar .nav-btn {
