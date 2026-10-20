@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#125f5f">
+        <title>Gerador de Mapas | APABF</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="Zoneamento%20APABF/css/leaflet.css">
+        <link rel="stylesheet" href="nav.css">
+        <link rel="stylesheet" href="gerador-mapas.css">
+        <script defer src="Zoneamento%20APABF/js/leaflet.js"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script defer src="catalogo-gerador-mapas.js"></script>
+        <script defer src="gerador-mapas.js"></script>
+    </head>
+    <body>
+        <header class="generator-header">
+            <a class="back-link" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Início</a>
+            <div class="header-title">
+                <h1><i class="fas fa-map" aria-hidden="true"></i> Gerador de Mapas</h1>
+                <p>Monte sua composição cartográfica para relatórios e impressão.</p>
+            </div>
+            <div class="header-logos" aria-label="Logotipos institucionais">
+                <img src="logos/APA%20da%20Baleia%20Franca.png" alt="APA da Baleia Franca">
+                <img src="logos/icmbio%20horizontal%401000x-8.png" alt="ICMBio">
+            </div>
+        </header>
+
+        <main class="generator-layout">
+            <aside class="config-panel" aria-label="Configurações do mapa">
+                <div class="config-scroll">
+                    <section class="config-section">
+                    <h2><i class="fas fa-layer-group" aria-hidden="true"></i> Camadas</h2>
+                    <p id="catalog-status" class="status-message" role="status" aria-live="polite">Carregando dados geográficos…</p>
+                    <div id="layer-list" class="layer-list"></div>
+                    <label class="import-label" for="file-import">
+                        <i class="fas fa-file-upload" aria-hidden="true"></i> Importar KML ou KMZ
+                    </label>
+                    <input id="file-import" class="visually-hidden" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz">
+                    <p id="import-status" class="hint" role="status" aria-live="polite">Os arquivos são processados neste navegador.</p>
+                    </section>
+
+                    <section class="config-section">
+                    <h2><i class="fas fa-map-marked-alt" aria-hidden="true"></i> Mapa de fundo</h2>
+                    <label class="field-label" for="basemap">Base cartográfica</label>
+                    <select id="basemap">
+                        <option value="white">Fundo branco (sem mapa-base)</option>
+                        <option value="streets">Ruas — Esri World Street Map</option>
+                        <option value="satellite">Satélite — Esri World Imagery</option>
+                    </select>
+                    <p class="hint">Mapas-base externos exigem internet e podem não permitir inclusão na exportação.</p>
+                    </section>
+
+                    <section class="config-section">
+                    <h2><i class="fas fa-heading" aria-hidden="true"></i> Identificação</h2>
+                    <label class="field-label" for="map-title">Título do mapa</label>
+                    <input id="map-title" type="text" maxlength="110" value="Mapa da Área de Proteção Ambiental da Baleia Franca">
+                    <label class="field-label" for="author">Autoria / responsável técnico <span>(opcional)</span></label>
+                    <input id="author" type="text" maxlength="100" placeholder="Nome do responsável">
+                    <label class="field-label" for="sources">Fontes dos dados</label>
+                    <textarea id="sources" rows="3">ICMBio — dados geográficos da APABF e Plano de Manejo</textarea>
+                    <label class="field-label" for="map-date">Data de elaboração</label>
+                    <input id="map-date" type="date">
+                    </section>
+
+                    <section class="config-section">
+                    <h2><i class="fas fa-file-alt" aria-hidden="true"></i> Página e exportação</h2>
+                    <div class="field-row">
+                        <div>
+                            <label class="field-label" for="orientation">Orientação</label>
+                            <select id="orientation">
+                                <option value="landscape">Paisagem</option>
+                                <option value="portrait">Retrato</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label" for="export-format">Formato</label>
+                            <select id="export-format">
+                                <option value="pdf">PDF — A4</option>
+                                <option value="png">PNG — 300 dpi</option>
+                            </select>
+                        </div>
+                    </div>
+                    </section>
+                    <p class="institutional-note">A inclusão dos logotipos identifica as fontes institucionais, mas não representa aprovação ou caráter oficial do mapa.</p>
+                </div>
+                <div class="config-footer">
+                    <button id="export-map" class="export-button" type="button">
+                        <i class="fas fa-download" aria-hidden="true"></i> Exportar mapa
+                    </button>
+                    <p class="hint">A exportação é produzida em uma composição própria, sem capturar os controles da tela.</p>
+                </div>
+            </aside>
+
+            <section class="preview-area" aria-labelledby="preview-heading">
+                <div class="preview-toolbar">
+                    <div>
+                        <h2 id="preview-heading">Pré-visualização A4</h2>
+                        <p>Arraste o mapa ou use o zoom para ajustar o enquadramento.</p>
+                    </div>
+                    <span id="map-status" role="status" aria-live="polite">Preparando mapa…</span>
+                </div>
+
+                <article id="print-preview" class="print-preview" aria-label="Pré-visualização da folha cartográfica">
+                    <div class="preview-map-column">
+                        <div class="map-frame">
+                            <div id="main-map" aria-label="Mapa principal interativo"></div>
+                            <div class="north-arrow" aria-label="Norte"><span>▲</span><small>N</small></div>
+                            <div id="map-coordinates" class="map-coordinates" aria-hidden="true"></div>
+                            <div id="preview-scale" class="preview-scale" aria-label="Escala gráfica"></div>
+                        </div>
+                    </div>
+                    <aside class="preview-sidebar">
+                        <div class="preview-title-block"><h2 id="preview-title">Mapa da Área de Proteção Ambiental da Baleia Franca</h2></div>
+                        <section class="preview-legend">
+                            <h3>Legenda</h3>
+                            <div id="legend-list" class="legend-list"><p class="hint">Ative camadas para montar a legenda.</p></div>
+                        </section>
+                        <section class="preview-metadata">
+                            <p id="preview-crs">Coordenadas geográficas · SIRGAS 2000 / EPSG:4674</p>
+                            <p id="preview-sources">Fontes: ICMBio — dados geográficos da APABF e Plano de Manejo</p>
+                            <p id="preview-author"></p>
+                            <p id="preview-date"></p>
+                        </section>
+                        <section class="overview-section">
+                            <h3>Localização na APABF</h3>
+                            <div class="overview-frame"><div id="overview-map" aria-label="Localização da extensão principal no limite da APABF"></div></div>
+                            <p class="overview-caption">Imagem: Esri World Imagery. O retângulo indica a extensão do mapa principal; limite: ICMBio.</p>
+                        </section>
+                        <div class="preview-logos">
+                            <img src="logos/APA%20da%20Baleia%20Franca.png" alt="APA da Baleia Franca">
+                            <img src="logos/icmbio%20horizontal%401000x-8.png" alt="ICMBio">
+                        </div>
+                    </aside>
+                </article>
+                <p class="disclaimer">Composição cartográfica elaborada pelo usuário. Os logotipos identificam fontes institucionais e não significam aprovação oficial.</p>
+            </section>
+        </main>
+
+        <div id="export-status" class="toast" role="status" aria-live="polite"></div>
+        <nav class="nav-bar" aria-label="Navegação principal"></nav>
+        <script src="nav.js" data-base=""></script>
+    </body>
+</html>
