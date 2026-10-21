@@ -11,6 +11,7 @@
     var dateTo = document.getElementById('date-to');
     var sortSelect = document.getElementById('sort-order');
     var items = [];
+    var filtersWired = false;
     var categoryLabels = {
         noticia: 'Notícias',
         academico: 'Acadêmico',
@@ -160,13 +161,22 @@
     }
 
     function wireFilters() {
+        if (filtersWired) {
+            return;
+        }
         [searchInput, categoryFilter, dateFrom, dateTo, sortSelect].forEach(function (input) {
             input.addEventListener('input', render);
             input.addEventListener('change', render);
         });
+        filtersWired = true;
     }
 
-    fetch('dados/noticias-publicacoes.json', { cache: 'no-cache' })
+    function loadNews() {
+        statusElement.textContent = 'Carregando resultados…';
+        statusElement.hidden = false;
+        countElement.textContent = 'Carregando conteúdos…';
+
+        fetch('dados/noticias-publicacoes.json', { cache: 'no-cache' })
         .then(function (response) {
             if (!response.ok) {
                 throw new Error('HTTP ' + response.status);
@@ -190,8 +200,19 @@
         .catch(function (error) {
             updatedElement.textContent = 'Não foi possível carregar a data da atualização.';
             countElement.textContent = 'Resultados indisponíveis';
-            statusElement.textContent = 'Não foi possível carregar os conteúdos. Tente novamente mais tarde.';
+            statusElement.replaceChildren(document.createTextNode(
+                'Não foi possível carregar os conteúdos. Verifique sua conexão e tente novamente. '
+            ));
+            var retryButton = document.createElement('button');
+            retryButton.type = 'button';
+            retryButton.className = 'news-retry';
+            retryButton.textContent = 'Tentar novamente';
+            retryButton.addEventListener('click', loadNews);
+            statusElement.appendChild(retryButton);
             statusElement.hidden = false;
             console.error('Falha ao carregar notícias e publicações:', error);
         });
+    }
+
+    loadNews();
 }());
