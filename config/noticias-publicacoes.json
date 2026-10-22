@@ -21,14 +21,60 @@
     {
       "name": "Notícias do Governo de Santa Catarina",
       "url": "https://noticias.sc.gov.br/feed/",
-      "type": "noticia",
-      "category": "noticia"
+      "type": "institucional",
+      "category": "institucional"
+    },
+    {
+      "name": "Epagri - notícias institucionais",
+      "url": "https://www.epagri.sc.gov.br/feed/",
+      "type": "institucional",
+      "category": "institucional"
+    },
+    {
+      "name": "IMA Santa Catarina - notícias",
+      "url": "https://www.ima.sc.gov.br/noticias/feed/",
+      "type": "institucional",
+      "category": "institucional"
+    },
+    {
+      "name": "Projeto Baleia Franca - notícias",
+      "url": "https://baleiafranca.org.br/feed/",
+      "type": "institucional",
+      "category": "institucional"
+    },
+    {
+      "name": "ICMBio - notícias",
+      "url": "https://www.gov.br/icmbio/rss.xml",
+      "type": "institucional",
+      "category": "institucional"
     },
     {
       "name": "Ministério do Meio Ambiente",
       "url": "https://www.gov.br/mma/rss.xml",
       "type": "institucional",
       "category": "institucional"
+    },
+    {
+      "name": "Google News - baleia-franca e APABF",
+      "url": "https://news.google.com/rss/search?q=%28%22baleia-franca%22+OR+%22Eubalaena+australis%22+OR+APABF%29&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "type": "noticia",
+      "category": "noticia",
+      "publisher_categories": {
+        "gov.br": "institucional",
+        "udesc.br": "institucional",
+        "laguna.sc.gov.br": "institucional"
+      }
+    },
+    {
+      "name": "Google News - monitoramento e encalhes em Santa Catarina",
+      "url": "https://news.google.com/rss/search?q=%28monitoramento+de+praias+OR+encalhe+de+fauna+OR+toninha%29+Santa+Catarina&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "type": "noticia",
+      "category": "noticia",
+      "publisher_categories": {
+        "gov.br": "institucional",
+        "udesc.br": "institucional",
+        "laguna.sc.gov.br": "institucional"
+      }
     }
   ],
   "openalex_queries": [
@@ -165,6 +211,8 @@
   ],
   "regional_terms": [
     "Santa Catarina",
+    "entre Santa Catarina e Rio Grande do Sul",
+    "entre SC e RS",
     "litoral sul catarinense",
     "sul de Santa Catarina",
     "litoral catarinense"
@@ -175,6 +223,11 @@
     "fauna",
     "flora",
     "baleia-franca",
+    "toninha",
+    "Pontoporia blainvillei",
+    "monitoramento de praias",
+    "encalhe de fauna",
+    "resgate de fauna marinha",
     "baleias-francas",
     "baleias francas",
     "Eubalaena australis",
@@ -256,6 +309,12 @@
     "pesquisa"
   ],
   "classification_validation": {
+    "excluded_content_terms": [
+      "vaga de emprego",
+      "vaga de estágio",
+      "estágio de comunicação",
+      "inscrições para estágio"
+    ],
     "ambiguous_activity_terms": [
       "monitoramento",
       "pesquisa",
@@ -274,7 +333,14 @@
       "monitoramento de trânsito",
       "monitoramento do tráfego",
       "câmera de trânsito",
-      "câmeras de trânsito"
+      "câmeras de trânsito",
+      "acidente de trânsito",
+      "acidente rodoviário",
+      "motociclista",
+      "aeroporto",
+      "embarcação de pesca sofre avaria",
+      "avaria em embarcação",
+      "barco atingido por pedra"
     ],
     "unit_aliases": [
       "Right Whale Environmental Protection Area",
@@ -296,6 +362,10 @@
           "aves costeiras",
           "espécies ameaçadas",
           "encalhe de fauna",
+          "toninha",
+          "Pontoporia blainvillei",
+          "monitoramento de praias",
+          "resgate de fauna marinha",
           "monitoramento de fauna",
           "conservação de fauna",
           "conservação da biodiversidade",
@@ -312,7 +382,9 @@
           "conservação",
           "tartaruga",
           "encalhe",
-          "monitoramento"
+          "monitoramento",
+          "toninha",
+          "resgate de fauna"
         ]
       },
       "ecossistemas_costeiros": {
@@ -540,7 +612,11 @@
   },
   "ecosystems_and_species": [
     "baleia-franca",
+    "baleias-francas",
+    "baleias francas",
     "Eubalaena australis",
+    "toninha",
+    "Pontoporia blainvillei",
     "lagoa",
     "lagoas costeiras",
     "restinga",

@@ -1,0 +1,1643 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-10-22T20:44:21+00:00",
+  "mode": "news",
+  "status": "partial",
+  "data_written": true,
+  "classification_mode": "multi-evidence contextual relevance; complete-query results publish independently",
+  "summary": {
+    "source_requests": 11,
+    "successful_requests": 11,
+    "failed_or_partial_requests": 0,
+    "requests_attempted": 11,
+    "requests_succeeded": 11,
+    "pages_consulted": 11,
+    "raw_results": 419,
+    "valid_records": 418,
+    "results_retrieved": 419,
+    "unique_query_records": 418,
+    "transient_failures": 0,
+    "permanent_failures": 0,
+    "retries": 0,
+    "queries_limit_reached": 0,
+    "announced_result_totals": 0,
+    "queries_with_announced_totals": 0,
+    "completed_queries": 11,
+    "interrupted_queries": 0,
+    "resumable_queries": 0,
+    "duration_seconds": 8.021,
+    "accepted": 31,
+    "review": 153,
+    "discarded": 234,
+    "accepted_by_relevance_filter": 68,
+    "rejected_by_relevance_filter": 350,
+    "duplicates": 7,
+    "new_records": 62,
+    "candidate_records_not_published": 0,
+    "preserved_previous_records": 714,
+    "published_records": 776,
+    "frontend_eligible_records": 772,
+    "not_displayed_by_relevance": 4,
+    "relevance_distribution": {
+      "alta": 84,
+      "media": 393,
+      "complementar": 295,
+      "baixa": 4
+    },
+    "complementary_relevance": 295,
+    "discard_reasons": {
+      "abaixo do limiar atual de relevância": 248,
+      "município da área da APABF: Florianópolis": 20,
+      "município da área da APABF: Florianópolis, Palhoça": 2,
+      "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+      "município da área da APABF: Içara": 1,
+      "contexto não ambiental desconsiderado: câmera de monitoramento": 1,
+      "contexto explicitamente de outra região: Amazonas": 3,
+      "contexto não ambiental desconsiderado: motociclista": 3,
+      "município da área da APABF: Imbituba": 4,
+      "contexto explicitamente de outra região: São Paulo": 2,
+      "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 38,
+      "contexto explicitamente de outra região: Ceará": 1,
+      "município da área da APABF: Laguna": 3,
+      "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria": 2,
+      "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1,
+      "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+      "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+      "espécie ou ecossistema local: baleias-francas, baleias francas": 2,
+      "missing_title_or_valid_url": 1,
+      "contexto explicitamente de outra região: Argentina": 2,
+      "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada": 1,
+      "espécie ou ecossistema local: toninha": 5,
+      "município da área da APABF: Jaguaruna": 2,
+      "tema relacionado à região: fauna": 2
+    },
+    "category_summaries": {
+      "academico": {
+        "raw_records_collected": 0,
+        "valid_candidates": 0,
+        "unique_after_deduplication": 0,
+        "approved_by_relevance": 0,
+        "discarded_by_relevance": 0,
+        "published_records": 693,
+        "sources": {}
+      },
+      "institucional": {
+        "raw_records_collected": 62,
+        "valid_candidates": 61,
+        "unique_after_deduplication": 61,
+        "approved_by_relevance": 7,
+        "discarded_by_relevance": 54,
+        "published_records": 8,
+        "sources": {
+          "Notícias do Governo de Santa Catarina": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 8,
+              "município da área da APABF: Laguna": 1,
+              "município da área da APABF: Florianópolis": 1
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 8,
+              "há termos ambíguos sem evidência contextual suficiente": 2
+            }
+          },
+          "Epagri - notícias institucionais": {
+            "raw_records_collected": 2,
+            "valid_candidates": 2,
+            "unique_after_deduplication": 2,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 2,
+            "published_records": 0,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 2
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 2
+            }
+          },
+          "IMA Santa Catarina - notícias": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0,
+            "discard_reasons": {
+              "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+              "município da área da APABF: Florianópolis": 4,
+              "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+              "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+              "abaixo do limiar atual de relevância": 2,
+              "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1
+            },
+            "decision_reasons": {
+              "há termos ambíguos sem evidência contextual suficiente": 5,
+              "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 5
+            }
+          },
+          "Projeto Baleia Franca - notícias": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "new_records": 1,
+            "duplicates": 0,
+            "approved_by_relevance": 7,
+            "discarded_by_relevance": 3,
+            "published_records": 7,
+            "discard_reasons": {
+              "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+              "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+              "espécie ou ecossistema local: baleias-francas, baleias francas": 1
+            },
+            "decision_reasons": {
+              "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 10
+            }
+          },
+          "ICMBio - notícias": {
+            "raw_records_collected": 15,
+            "valid_candidates": 14,
+            "unique_after_deduplication": 14,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 14,
+            "published_records": 0,
+            "discard_reasons": {
+              "missing_title_or_valid_url": 1,
+              "abaixo do limiar atual de relevância": 14
+            },
+            "decision_reasons": {
+              "há termos ambíguos sem evidência contextual suficiente": 14
+            }
+          },
+          "Ministério do Meio Ambiente": {
+            "raw_records_collected": 15,
+            "valid_candidates": 15,
+            "unique_after_deduplication": 15,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 15,
+            "published_records": 0,
+            "discard_reasons": {
+              "contexto explicitamente de outra região: Amazonas": 2,
+              "abaixo do limiar atual de relevância": 13
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 15
+            }
+          }
+        }
+      },
+      "noticia": {
+        "raw_records_collected": 357,
+        "valid_candidates": 357,
+        "unique_after_deduplication": 357,
+        "approved_by_relevance": 61,
+        "discarded_by_relevance": 296,
+        "published_records": 68,
+        "sources": {
+          "G1 Santa Catarina": {
+            "raw_records_collected": 100,
+            "valid_candidates": 100,
+            "unique_after_deduplication": 100,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 100,
+            "published_records": 0,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 79,
+              "município da área da APABF: Florianópolis": 15,
+              "município da área da APABF: Florianópolis, Palhoça": 2,
+              "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+              "município da área da APABF: Içara": 1,
+              "contexto não ambiental desconsiderado: câmera de monitoramento": 1
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 90,
+              "há termos ambíguos sem evidência contextual suficiente": 7,
+              "contexto identificado não demonstra pauta ambiental ou socioambiental": 3,
+              "evidência contextual: câmera de monitoramento": 3
+            }
+          },
+          "Diário do Sul": {
+            "raw_records_collected": 100,
+            "valid_candidates": 100,
+            "unique_after_deduplication": 100,
+            "new_records": 1,
+            "duplicates": 0,
+            "approved_by_relevance": 1,
+            "discarded_by_relevance": 99,
+            "published_records": 1,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 87,
+              "contexto explicitamente de outra região: Amazonas": 1,
+              "contexto não ambiental desconsiderado: motociclista": 3,
+              "município da área da APABF: Imbituba": 2,
+              "contexto explicitamente de outra região: São Paulo": 1,
+              "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+              "contexto explicitamente de outra região: Ceará": 1,
+              "município da área da APABF: Laguna": 1,
+              "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria": 2
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 84,
+              "há termos ambíguos sem evidência contextual suficiente": 9,
+              "contexto identificado não demonstra pauta ambiental ou socioambiental": 5,
+              "evidência contextual: motociclista": 3,
+              "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 2,
+              "evidência contextual: embarcação de pesca sofre avaria": 2
+            }
+          },
+          "Sulinfoco": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "new_records": 0,
+            "duplicates": 0,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 8,
+              "município da área da APABF: Imbituba": 2
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 9,
+              "há termos ambíguos sem evidência contextual suficiente": 1
+            }
+          },
+          "Google News - baleia-franca e APABF": {
+            "raw_records_collected": 100,
+            "valid_candidates": 100,
+            "unique_after_deduplication": 100,
+            "new_records": 49,
+            "duplicates": 0,
+            "approved_by_relevance": 49,
+            "discarded_by_relevance": 51,
+            "published_records": 49,
+            "discard_reasons": {
+              "contexto explicitamente de outra região: Argentina": 2,
+              "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 37,
+              "espécie ou ecossistema local: baleias-francas, baleias francas": 1,
+              "abaixo do limiar atual de relevância": 10,
+              "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada": 1
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 7,
+              "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 58,
+              "tema contextual corroborado: Conservação e biodiversidade": 30,
+              "relação territorial sustentada como direta": 30,
+              "há termos ambíguos sem evidência contextual suficiente": 4,
+              "tema contextual corroborado: Conservação e biodiversidade, Gestão ambiental e políticas públicas": 1,
+              "relação territorial sustentada como regional": 1
+            }
+          },
+          "Google News - monitoramento e encalhes em Santa Catarina": {
+            "raw_records_collected": 47,
+            "valid_candidates": 47,
+            "unique_after_deduplication": 47,
+            "new_records": 11,
+            "duplicates": 6,
+            "approved_by_relevance": 11,
+            "discarded_by_relevance": 36,
+            "published_records": 11,
+            "discard_reasons": {
+              "abaixo do limiar atual de relevância": 25,
+              "espécie ou ecossistema local: toninha": 5,
+              "município da área da APABF: Jaguaruna": 2,
+              "tema relacionado à região: fauna": 2,
+              "contexto explicitamente de outra região: São Paulo": 1,
+              "município da área da APABF: Laguna": 1
+            },
+            "decision_reasons": {
+              "não foram identificadas evidências temáticas socioambientais suficientes": 11,
+              "há termos ambíguos sem evidência contextual suficiente": 18,
+              "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 18
+            }
+          }
+        }
+      },
+      "pesquisa": {
+        "raw_records_collected": 0,
+        "valid_candidates": 0,
+        "unique_after_deduplication": 0,
+        "approved_by_relevance": 0,
+        "discarded_by_relevance": 0,
+        "published_records": 7,
+        "sources": {}
+      }
+    }
+  },
+  "source_summaries": {
+    "G1 Santa Catarina": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 100,
+      "results_retrieved": 100,
+      "valid_records": 100,
+      "unique_query_records": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.426,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://g1.globo.com/rss/g1/sc/santa-catarina/"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 100,
+          "published_records": 0,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 79,
+            "município da área da APABF: Florianópolis": 15,
+            "município da área da APABF: Florianópolis, Palhoça": 2,
+            "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+            "município da área da APABF: Içara": 1,
+            "contexto não ambiental desconsiderado: câmera de monitoramento": 1
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 90,
+            "há termos ambíguos sem evidência contextual suficiente": 7,
+            "contexto identificado não demonstra pauta ambiental ou socioambiental": 3,
+            "evidência contextual: câmera de monitoramento": 3
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 79,
+        "município da área da APABF: Florianópolis": 15,
+        "município da área da APABF: Florianópolis, Palhoça": 2,
+        "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+        "município da área da APABF: Içara": 1,
+        "contexto não ambiental desconsiderado: câmera de monitoramento": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 90,
+        "há termos ambíguos sem evidência contextual suficiente": 7,
+        "contexto identificado não demonstra pauta ambiental ou socioambiental": 3,
+        "evidência contextual: câmera de monitoramento": 3
+      }
+    },
+    "Diário do Sul": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 100,
+      "results_retrieved": 100,
+      "valid_records": 100,
+      "unique_query_records": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.426,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://diariodosul.com.br/rss"
+      ],
+      "new_records": 1,
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "new_records": 1,
+          "duplicates": 0,
+          "approved_by_relevance": 1,
+          "discarded_by_relevance": 99,
+          "published_records": 1,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 87,
+            "contexto explicitamente de outra região: Amazonas": 1,
+            "contexto não ambiental desconsiderado: motociclista": 3,
+            "município da área da APABF: Imbituba": 2,
+            "contexto explicitamente de outra região: São Paulo": 1,
+            "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+            "contexto explicitamente de outra região: Ceará": 1,
+            "município da área da APABF: Laguna": 1,
+            "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria": 2
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 84,
+            "há termos ambíguos sem evidência contextual suficiente": 9,
+            "contexto identificado não demonstra pauta ambiental ou socioambiental": 5,
+            "evidência contextual: motociclista": 3,
+            "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 2,
+            "evidência contextual: embarcação de pesca sofre avaria": 2
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 87,
+        "contexto explicitamente de outra região: Amazonas": 1,
+        "contexto não ambiental desconsiderado: motociclista": 3,
+        "município da área da APABF: Imbituba": 2,
+        "contexto explicitamente de outra região: São Paulo": 1,
+        "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+        "contexto explicitamente de outra região: Ceará": 1,
+        "município da área da APABF: Laguna": 1,
+        "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 84,
+        "há termos ambíguos sem evidência contextual suficiente": 9,
+        "contexto identificado não demonstra pauta ambiental ou socioambiental": 5,
+        "evidência contextual: motociclista": 3,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 2,
+        "evidência contextual: embarcação de pesca sofre avaria": 2
+      }
+    },
+    "Sulinfoco": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.218,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://www.sulinfoco.com.br/feed/"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 8,
+            "município da área da APABF: Imbituba": 2
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 9,
+            "há termos ambíguos sem evidência contextual suficiente": 1
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 8,
+        "município da área da APABF: Imbituba": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 9,
+        "há termos ambíguos sem evidência contextual suficiente": 1
+      }
+    },
+    "Notícias do Governo de Santa Catarina": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.098,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://noticias.sc.gov.br/feed/"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 8,
+            "município da área da APABF: Laguna": 1,
+            "município da área da APABF: Florianópolis": 1
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 8,
+            "há termos ambíguos sem evidência contextual suficiente": 2
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 8,
+        "município da área da APABF: Laguna": 1,
+        "município da área da APABF: Florianópolis": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 8,
+        "há termos ambíguos sem evidência contextual suficiente": 2
+      }
+    },
+    "Epagri - notícias institucionais": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 2,
+      "results_retrieved": 2,
+      "valid_records": 2,
+      "unique_query_records": 2,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.211,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://www.epagri.sc.gov.br/feed/"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 2,
+          "valid_candidates": 2,
+          "unique_after_deduplication": 2,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 2,
+          "published_records": 0,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 2
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 2
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 2
+      }
+    },
+    "IMA Santa Catarina - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 1.642,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://www.ima.sc.gov.br/noticias/feed/"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0,
+          "discard_reasons": {
+            "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+            "município da área da APABF: Florianópolis": 4,
+            "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+            "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+            "abaixo do limiar atual de relevância": 2,
+            "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1
+          },
+          "decision_reasons": {
+            "há termos ambíguos sem evidência contextual suficiente": 5,
+            "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 5
+          }
+        }
+      },
+      "discard_reasons": {
+        "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+        "município da área da APABF: Florianópolis": 4,
+        "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+        "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+        "abaixo do limiar atual de relevância": 2,
+        "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 5,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 5
+      }
+    },
+    "Projeto Baleia Franca - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 3.086,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://baleiafranca.org.br/feed/"
+      ],
+      "new_records": 1,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records": 1,
+          "duplicates": 0,
+          "approved_by_relevance": 7,
+          "discarded_by_relevance": 3,
+          "published_records": 7,
+          "discard_reasons": {
+            "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+            "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+            "espécie ou ecossistema local: baleias-francas, baleias francas": 1
+          },
+          "decision_reasons": {
+            "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 10
+          }
+        }
+      },
+      "discard_reasons": {
+        "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+        "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+        "espécie ou ecossistema local: baleias-francas, baleias francas": 1
+      },
+      "decision_reasons": {
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 10
+      }
+    },
+    "ICMBio - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 15,
+      "results_retrieved": 15,
+      "valid_records": 14,
+      "unique_query_records": 14,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.143,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://www.gov.br/icmbio/rss.xml"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 15,
+          "valid_candidates": 14,
+          "unique_after_deduplication": 14,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 14,
+          "published_records": 0,
+          "discard_reasons": {
+            "missing_title_or_valid_url": 1,
+            "abaixo do limiar atual de relevância": 14
+          },
+          "decision_reasons": {
+            "há termos ambíguos sem evidência contextual suficiente": 14
+          }
+        }
+      },
+      "discard_reasons": {
+        "missing_title_or_valid_url": 1,
+        "abaixo do limiar atual de relevância": 14
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 14
+      }
+    },
+    "Ministério do Meio Ambiente": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 15,
+      "results_retrieved": 15,
+      "valid_records": 15,
+      "unique_query_records": 15,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.147,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://www.gov.br/mma/rss.xml"
+      ],
+      "new_records": 0,
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 15,
+          "valid_candidates": 15,
+          "unique_after_deduplication": 15,
+          "new_records": 0,
+          "duplicates": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 15,
+          "published_records": 0,
+          "discard_reasons": {
+            "contexto explicitamente de outra região: Amazonas": 2,
+            "abaixo do limiar atual de relevância": 13
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 15
+          }
+        }
+      },
+      "discard_reasons": {
+        "contexto explicitamente de outra região: Amazonas": 2,
+        "abaixo do limiar atual de relevância": 13
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 15
+      }
+    },
+    "Google News - baleia-franca e APABF": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 100,
+      "results_retrieved": 100,
+      "valid_records": 100,
+      "unique_query_records": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.622,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://news.google.com/rss/search?q=%28%22baleia-franca%22+OR+%22Eubalaena+australis%22+OR+APABF%29&hl=pt-BR&gl=BR&ceid=BR%3Apt-419"
+      ],
+      "new_records": 49,
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "new_records": 49,
+          "duplicates": 0,
+          "approved_by_relevance": 49,
+          "discarded_by_relevance": 51,
+          "published_records": 49,
+          "discard_reasons": {
+            "contexto explicitamente de outra região: Argentina": 2,
+            "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 37,
+            "espécie ou ecossistema local: baleias-francas, baleias francas": 1,
+            "abaixo do limiar atual de relevância": 10,
+            "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada": 1
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 7,
+            "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 58,
+            "tema contextual corroborado: Conservação e biodiversidade": 30,
+            "relação territorial sustentada como direta": 30,
+            "há termos ambíguos sem evidência contextual suficiente": 4,
+            "tema contextual corroborado: Conservação e biodiversidade, Gestão ambiental e políticas públicas": 1,
+            "relação territorial sustentada como regional": 1
+          }
+        }
+      },
+      "discard_reasons": {
+        "contexto explicitamente de outra região: Argentina": 2,
+        "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 37,
+        "espécie ou ecossistema local: baleias-francas, baleias francas": 1,
+        "abaixo do limiar atual de relevância": 10,
+        "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 7,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 58,
+        "tema contextual corroborado: Conservação e biodiversidade": 30,
+        "relação territorial sustentada como direta": 30,
+        "há termos ambíguos sem evidência contextual suficiente": 4,
+        "tema contextual corroborado: Conservação e biodiversidade, Gestão ambiental e políticas públicas": 1,
+        "relação territorial sustentada como regional": 1
+      }
+    },
+    "Google News - monitoramento e encalhes em Santa Catarina": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 47,
+      "results_retrieved": 47,
+      "valid_records": 47,
+      "unique_query_records": 47,
+      "duplicates": 6,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 1.002,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:44:21+00:00",
+      "urls": [
+        "https://news.google.com/rss/search?q=%28monitoramento+de+praias+OR+encalhe+de+fauna+OR+toninha%29+Santa+Catarina&hl=pt-BR&gl=BR&ceid=BR%3Apt-419"
+      ],
+      "new_records": 11,
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 47,
+          "valid_candidates": 47,
+          "unique_after_deduplication": 47,
+          "new_records": 11,
+          "duplicates": 6,
+          "approved_by_relevance": 11,
+          "discarded_by_relevance": 36,
+          "published_records": 11,
+          "discard_reasons": {
+            "abaixo do limiar atual de relevância": 25,
+            "espécie ou ecossistema local: toninha": 5,
+            "município da área da APABF: Jaguaruna": 2,
+            "tema relacionado à região: fauna": 2,
+            "contexto explicitamente de outra região: São Paulo": 1,
+            "município da área da APABF: Laguna": 1
+          },
+          "decision_reasons": {
+            "não foram identificadas evidências temáticas socioambientais suficientes": 11,
+            "há termos ambíguos sem evidência contextual suficiente": 18,
+            "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 18
+          }
+        }
+      },
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 25,
+        "espécie ou ecossistema local: toninha": 5,
+        "município da área da APABF: Jaguaruna": 2,
+        "tema relacionado à região: fauna": 2,
+        "contexto explicitamente de outra região: São Paulo": 1,
+        "município da área da APABF: Laguna": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 11,
+        "há termos ambíguos sem evidência contextual suficiente": 18,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 18
+      }
+    }
+  },
+  "sources": [
+    {
+      "source": "G1 Santa Catarina",
+      "query_id": "rss:feed",
+      "query": "https://g1.globo.com/rss/g1/sc/santa-catarina/",
+      "attempted_at": "2026-10-22T20:44:06+00:00",
+      "request_status": "success",
+      "raw_results": 100,
+      "valid_records": 100,
+      "accepted": 0,
+      "review": 7,
+      "discarded": 93,
+      "relevance_accepted": 0,
+      "relevance_discarded": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 79,
+        "município da área da APABF: Florianópolis": 15,
+        "município da área da APABF: Florianópolis, Palhoça": 2,
+        "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+        "município da área da APABF: Içara": 1,
+        "contexto não ambiental desconsiderado: câmera de monitoramento": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 90,
+        "há termos ambíguos sem evidência contextual suficiente": 7,
+        "contexto identificado não demonstra pauta ambiental ou socioambiental": 3,
+        "evidência contextual: câmera de monitoramento": 3
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 100,
+          "approved_candidates": 0,
+          "discarded_candidates": 100,
+          "unique_records": 100,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "noticia": 100
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 100,
+      "unique_records": 100,
+      "duration_seconds": 0.426,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Diário do Sul",
+      "query_id": "rss:feed",
+      "query": "https://diariodosul.com.br/rss",
+      "attempted_at": "2026-10-22T20:44:08+00:00",
+      "request_status": "success",
+      "raw_results": 100,
+      "valid_records": 100,
+      "accepted": 0,
+      "review": 11,
+      "discarded": 89,
+      "relevance_accepted": 1,
+      "relevance_discarded": 99,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 87,
+        "contexto explicitamente de outra região: Amazonas": 1,
+        "contexto não ambiental desconsiderado: motociclista": 3,
+        "município da área da APABF: Imbituba": 2,
+        "contexto explicitamente de outra região: São Paulo": 1,
+        "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+        "contexto explicitamente de outra região: Ceará": 1,
+        "município da área da APABF: Laguna": 1,
+        "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 84,
+        "há termos ambíguos sem evidência contextual suficiente": 9,
+        "contexto identificado não demonstra pauta ambiental ou socioambiental": 5,
+        "evidência contextual: motociclista": 3,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 2,
+        "evidência contextual: embarcação de pesca sofre avaria": 2
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 100,
+          "approved_candidates": 1,
+          "discarded_candidates": 99,
+          "unique_records": 100,
+          "published_records": 1
+        }
+      },
+      "category_raw_results": {
+        "noticia": 100
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 100,
+      "unique_records": 100,
+      "duration_seconds": 0.426,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Sulinfoco",
+      "query_id": "rss:feed",
+      "query": "https://www.sulinfoco.com.br/feed/",
+      "attempted_at": "2026-10-22T20:44:10+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 1,
+      "discarded": 9,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 8,
+        "município da área da APABF: Imbituba": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 9,
+        "há termos ambíguos sem evidência contextual suficiente": 1
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "noticia": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 0.218,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Notícias do Governo de Santa Catarina",
+      "query_id": "rss:feed",
+      "query": "https://noticias.sc.gov.br/feed/",
+      "attempted_at": "2026-10-22T20:44:10+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 2,
+      "discarded": 8,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 8,
+        "município da área da APABF: Laguna": 1,
+        "município da área da APABF: Florianópolis": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 8,
+        "há termos ambíguos sem evidência contextual suficiente": 2
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 0.098,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Epagri - notícias institucionais",
+      "query_id": "rss:feed",
+      "query": "https://www.epagri.sc.gov.br/feed/",
+      "attempted_at": "2026-10-22T20:44:11+00:00",
+      "request_status": "success",
+      "raw_results": 2,
+      "valid_records": 2,
+      "accepted": 0,
+      "review": 0,
+      "discarded": 2,
+      "relevance_accepted": 0,
+      "relevance_discarded": 2,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 2
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 2,
+          "approved_candidates": 0,
+          "discarded_candidates": 2,
+          "unique_records": 2,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 2
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 2,
+      "unique_records": 2,
+      "duration_seconds": 0.211,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "IMA Santa Catarina - notícias",
+      "query_id": "rss:feed",
+      "query": "https://www.ima.sc.gov.br/noticias/feed/",
+      "attempted_at": "2026-10-22T20:44:11+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 10,
+      "discarded": 0,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+        "município da área da APABF: Florianópolis": 4,
+        "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+        "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+        "abaixo do limiar atual de relevância": 2,
+        "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 5,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 5
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 1.642,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Projeto Baleia Franca - notícias",
+      "query_id": "rss:feed",
+      "query": "https://baleiafranca.org.br/feed/",
+      "attempted_at": "2026-10-22T20:44:13+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 10,
+      "discarded": 0,
+      "relevance_accepted": 7,
+      "relevance_discarded": 3,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+        "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+        "espécie ou ecossistema local: baleias-francas, baleias francas": 1
+      },
+      "decision_reasons": {
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 10
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 7,
+          "discarded_candidates": 3,
+          "unique_records": 10,
+          "published_records": 7
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 3.086,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "ICMBio - notícias",
+      "query_id": "rss:feed",
+      "query": "https://www.gov.br/icmbio/rss.xml",
+      "attempted_at": "2026-10-22T20:44:17+00:00",
+      "request_status": "success",
+      "raw_results": 15,
+      "valid_records": 14,
+      "accepted": 0,
+      "review": 14,
+      "discarded": 0,
+      "relevance_accepted": 0,
+      "relevance_discarded": 14,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "missing_title_or_valid_url": 1,
+        "abaixo do limiar atual de relevância": 14
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 14
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 14,
+          "approved_candidates": 0,
+          "discarded_candidates": 14,
+          "unique_records": 14,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 15
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 15,
+      "unique_records": 14,
+      "duration_seconds": 0.143,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Ministério do Meio Ambiente",
+      "query_id": "rss:feed",
+      "query": "https://www.gov.br/mma/rss.xml",
+      "attempted_at": "2026-10-22T20:44:17+00:00",
+      "request_status": "success",
+      "raw_results": 15,
+      "valid_records": 15,
+      "accepted": 0,
+      "review": 0,
+      "discarded": 15,
+      "relevance_accepted": 0,
+      "relevance_discarded": 15,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "contexto explicitamente de outra região: Amazonas": 2,
+        "abaixo do limiar atual de relevância": 13
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 15
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 15,
+          "approved_candidates": 0,
+          "discarded_candidates": 15,
+          "unique_records": 15,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 15
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 15,
+      "unique_records": 15,
+      "duration_seconds": 0.147,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Google News - baleia-franca e APABF",
+      "query_id": "rss:feed",
+      "query": "https://news.google.com/rss/search?q=%28%22baleia-franca%22+OR+%22Eubalaena+australis%22+OR+APABF%29&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "attempted_at": "2026-10-22T20:44:18+00:00",
+      "request_status": "success",
+      "raw_results": 100,
+      "valid_records": 100,
+      "accepted": 31,
+      "review": 62,
+      "discarded": 7,
+      "relevance_accepted": 49,
+      "relevance_discarded": 51,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "contexto explicitamente de outra região: Argentina": 2,
+        "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 37,
+        "espécie ou ecossistema local: baleias-francas, baleias francas": 1,
+        "abaixo do limiar atual de relevância": 10,
+        "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 7,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 58,
+        "tema contextual corroborado: Conservação e biodiversidade": 30,
+        "relação territorial sustentada como direta": 30,
+        "há termos ambíguos sem evidência contextual suficiente": 4,
+        "tema contextual corroborado: Conservação e biodiversidade, Gestão ambiental e políticas públicas": 1,
+        "relação territorial sustentada como regional": 1
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 100,
+          "approved_candidates": 49,
+          "discarded_candidates": 51,
+          "unique_records": 100,
+          "published_records": 49
+        }
+      },
+      "category_raw_results": {
+        "noticia": 100
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 100,
+      "unique_records": 100,
+      "duration_seconds": 0.622,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Google News - monitoramento e encalhes em Santa Catarina",
+      "query_id": "rss:feed",
+      "query": "https://news.google.com/rss/search?q=%28monitoramento+de+praias+OR+encalhe+de+fauna+OR+toninha%29+Santa+Catarina&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "attempted_at": "2026-10-22T20:44:19+00:00",
+      "request_status": "success",
+      "raw_results": 47,
+      "valid_records": 47,
+      "accepted": 0,
+      "review": 36,
+      "discarded": 11,
+      "relevance_accepted": 11,
+      "relevance_discarded": 36,
+      "duplicates": 6,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 25,
+        "espécie ou ecossistema local: toninha": 5,
+        "município da área da APABF: Jaguaruna": 2,
+        "tema relacionado à região: fauna": 2,
+        "contexto explicitamente de outra região: São Paulo": 1,
+        "município da área da APABF: Laguna": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 11,
+        "há termos ambíguos sem evidência contextual suficiente": 18,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 18
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 47,
+          "approved_candidates": 11,
+          "discarded_candidates": 36,
+          "unique_records": 47,
+          "published_records": 11
+        }
+      },
+      "category_raw_results": {
+        "noticia": 47
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 47,
+      "unique_records": 47,
+      "duration_seconds": 1.002,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    }
+  ]
+}

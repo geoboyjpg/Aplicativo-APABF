@@ -1,0 +1,636 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-10-22T21:00:45+00:00",
+  "title": "APABF news and institutional source audit",
+  "published_snapshot_url": "https://raw.githubusercontent.com/geoboyjpg/Aplicativo-APABF/main/dados/noticias-publicacoes.json",
+  "baseline": {
+    "item_count": 708,
+    "categories": {
+      "academico": 693,
+      "pesquisa": 7,
+      "noticia": 8
+    },
+    "generated_at": "2026-10-22T19:48:10+00:00"
+  },
+  "safe_merge": {
+    "preserved_published_records": 708,
+    "evidence_based_reclassifications": 1,
+    "new_records_added": 6,
+    "local_duplicates_or_already_present": 96,
+    "records_removed": 0,
+    "final_item_count": 714,
+    "final_categories": {
+      "academico": 693,
+      "pesquisa": 7,
+      "institucional": 7,
+      "noticia": 7
+    }
+  },
+  "integrity": {
+    "baseline_ids_preserved": true,
+    "missing_baseline_ids": 0,
+    "baseline_records_with_evidence_based_metadata_changes": 6,
+    "changed_fields": {
+      "source": 1,
+      "relevance": 6,
+      "category": 1
+    },
+    "original_historical_duplicate_collisions_preserved": true
+  },
+  "first_controlled_collection": {
+    "run_id": "2026-10-22T20:44:21+00:00",
+    "scope": "news",
+    "raw_records": 419,
+    "valid_records": 418,
+    "new_records": 62,
+    "duplicate_matches": 7,
+    "sources_with_errors": 0,
+    "new_records_by_source": {
+      "G1 Santa Catarina": 0,
+      "Diário do Sul": 1,
+      "Sulinfoco": 0,
+      "Notícias do Governo de Santa Catarina": 0,
+      "Epagri - notícias institucionais": 0,
+      "IMA Santa Catarina - notícias": 0,
+      "Projeto Baleia Franca - notícias": 1,
+      "ICMBio - notícias": 0,
+      "Ministério do Meio Ambiente": 0,
+      "Google News - baleia-franca e APABF": 49,
+      "Google News - monitoramento e encalhes em Santa Catarina": 11
+    }
+  },
+  "final_recheck": {
+    "run_id": "2026-10-22T21:00:45+00:00",
+    "status": "partial",
+    "scope": "news",
+    "raw_records": 419,
+    "valid_records": 404,
+    "new_records": 0,
+    "duplicate_matches": 69,
+    "sources_with_errors": 0,
+    "source_count": 11
+  },
+  "final_snapshot": {
+    "item_count": 776,
+    "categories": {
+      "academico": 693,
+      "noticia": 62,
+      "institucional": 14,
+      "pesquisa": 7
+    },
+    "frontend_eligible": 772,
+    "frontend_eligible_by_category": {
+      "academico": 693,
+      "noticia": 58,
+      "institucional": 14,
+      "pesquisa": 7
+    },
+    "status": "partial",
+    "scope": "news"
+  },
+  "new_real_records_from_first_collection": {
+    "count": 62,
+    "categories": {
+      "noticia": 55,
+      "institucional": 7
+    },
+    "by_source_and_category": {
+      "Google News - baleia-franca e APABF | noticia": 47,
+      "Google News - baleia-franca e APABF | institucional": 2,
+      "Google News - monitoramento e encalhes em Santa Catarina | noticia": 7,
+      "Diário do Sul | noticia": 1,
+      "Google News - monitoramento e encalhes em Santa Catarina | institucional": 4,
+      "Projeto Baleia Franca - notícias | institucional": 1
+    },
+    "examples": [
+      {
+        "title": "ICMBio alerta que mudança na APA da Baleia Franca não resolve impasse de imóveis - Folha Regional",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Folha Regional",
+        "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPTTZEVUxDWkEwQ3JHTnlHRU9rc2o4U2ppZU52RDhFUy1naG43bDNrdXdaV1Nxb1BPbFRSbVNoTEhyVXdoWTRGVWlMLWMzMHhURTV6NC0tYXE0THhsdUc3anFIeHJkS1A5dGhtejZZWWs5dm54TkUwRG9FUDR6d0lSQlRXcm9KTVNveVd2eExScGc4MXpqWTR4eVp4MHNnMjNnSlV0dm9NM2J0QmNyZUJBaW9XVTI0czNwNWdNUzF4Wmk1eE9ydmhBc1VB?oc=5"
+      },
+      {
+        "title": "ICMBio reconhece necessidade de ajustes na APA da Baleia Franca após cobrança de Geovania de Sá - Portal Litoral Sul",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Portal Litoral Sul",
+        "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQa0RHOGVlNzl5TmJ4T2JfLUs4M3ZFcS1ScTV1NldVMU85eW92eC13c2ZyRWloRlp3SDhnMVdPdDBMdTlCdnJqdlVESmlucWU2TnJpVGNUdHdhQ21iaUxiSFBLQ0E4d1lsV3RNTUhGTmNzS3BHa3BnSWdrOEd5YVZSRnNMdGxVRFNxX0dDX19fbElERWFJeGRSenZwREpGNGF4TEExNDBtLVJacm04cENrY2wzSkd5amVLR05HWTdiYmRxdklLWG56Zl9xZEg?oc=5"
+      },
+      {
+        "title": "Após cobrança de Geovania de Sá, ICMBio reconhece necessidade de ajustes na APA da Baleia Franca - Blog do Prisco",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Blog do Prisco",
+        "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOZC1VdmNCeklTLTV3N0lxcXI5TmJVRmo3dmRpS1g2cWlkU1V2WjktTTkzVDg5SnFma0E0Wk1lblZKa3hHazRvcjBpR3g5dUFGTWlvM0NnSXhqakJEcDJCR0JhaUtCWS1OSW11MlYtakt3dkQ5VlV3VmxxUXlzUkp5WUs0M1RQM0t4NDB2ZkJHNjBXbTE2blIzc3gwdHJGTnFRZXNadENoN0tucUtRWGZhVnFySjRjTTNxdVo5QjdDakt1ZmtMUVZV0gHMAUFVX3lxTFAteGY1djJHY1EtVlZHTXNORXBBSTNqaEVjZTlUdWNFMTBON1kyLUdzN1hMbWp5aVlabTZiLUlRSmlIalZFRW1rOGFsd0poTmxIWXNpM1lzdUtZNWwxWVJwcWZqQWJJTHotMkFLQ3FLaHk4eHF5cUFNdHF5SUthbW1DWHpDSDlNa0FCMG…"
+      },
+      {
+        "title": "Sexto encalhe da temporada é registrado na APA da Baleia Franca - Sul. Agora",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Sul. Agora",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOZkRwOW9Ma0NLUWdocENlU055TDUxYVpRbllwbW9LaGVGRGJVYVFhWU4yT0VxZWs5eDJZRE1jMG5JZXFKaHI1cWRIWGQ2LWR3Z1paUzVxTGdGNHV6MmVDLU9qcnMyQWhrUkNvX1JqSF9BbkJNY0tublQ4NjNBVkRhemR3X3BYM2VPNXAyMDZMRVVWeGRHWFNjWl9mRlhpN0Rs?oc=5"
+      },
+      {
+        "title": "Apoiadores da APA da Baleia Franca fazem protesto neste domingo - Agora Laguna",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Agora Laguna",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNaENvdzdWWkNTWGljdUV1cjhCTllScWlubW9HVnRxNXZhN1ZPWmg5MHNwa2F6QXBtTXZPODR4QnlkQzlnSXRENHd1QVpNdHVacWI1XzZBVFBoY29xOUQ5dU5LZGlTZVVPaVJvX3JVYUxpOG93TmxiVjhQTGJsRHVvdUg0VjNoaU11NGdBZmxEbWp4cEdTOEdnc3ZlRHU3OXZM?oc=5"
+      },
+      {
+        "title": "Manifestantes protestam em defesa da APA da Baleia Franca em Imbituba - 4oito",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "4oito",
+        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOZDhmUzRxdE1rNEMzRWJBUkhvVU9yajhVcXY1cmhrSFlzYzVMNElhNGlLc0xlU0ZoUWRWdC1VRS1NVnZpSGdHQmtNTi0tNjIwSnFsOW96c3dGRFBlcWFRd1BRMUF2UnUwOU8zS2hnQlpxWVcyYjdGMER2aDRDRTdKUHBjLWJsUnQ0OGQ1TUdfWGtETzRtc1M4ZTkzdnVQdnVaNXNvc0JWcEhHUGxa?oc=5"
+      },
+      {
+        "title": "MPF manifesta preocupação com proposta de redução da área terrestre da Apa da Baleia Franca - Agora Laguna",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Agora Laguna",
+        "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNalJWVzREVWhtLXBIWGFYSzYycDVYXzQybTJuTXpJMkFFX0x5X08zNGdMRzQ2cDc1OENfeEdMU253c3V6dV9Zdm1uNC1YSTJtWk5naU03anN6WlF4Q2pMazhmaXJlMnFmOXhHOHd4eEtpYWhKbzBDRHNMM0R3TVFLWWNDVjBPeTYwdFZvU0QtVWJXTkJmanBEM3BxR09LX1dHc3RlbE15Q29mVFZ4Y2JUMFhnV0REXzNkT1BtdlJDRkxibmtXMVE?oc=5"
+      },
+      {
+        "title": "PL 849 ameaça APA da Baleia Franca em Santa Catarina - Mar Sem Fim",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "Mar Sem Fim",
+        "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9YbjZLWVRrTzM5T1hhcmVWTXl1czM1eUhXMW90NGM4N0otTE4yY3BHMGhMWUNVRFI1WEVwOXpOZGZsbkJmY2hETl9YaktlalVuSnRSTkRMVUh0YWpxMUJvTFVVeF9uUW50dnBWZtIBckFVX3lxTFBvVTdsQThrb0VwVUcxVUQ3U0ZBcGhuWDNlalAtMV9TajVDY1JpcEhWTV9yZGJBbGNVemg2Q1NHanpNcThrYXk2M1ozT0U5NHo5aWR3SmFtYnQ0NUY1M25VVGlrcXE2RllraFpFTWt4VHhtUQ?oc=5"
+      },
+      {
+        "title": "Nota à imprensa e à sociedade sobre o Projeto de Lei nº 849/2025 e a APA da Baleia Franca (SC) - www.gov.br",
+        "category": "institucional",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "www.gov.br",
+        "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxOS0RleTJIUUoydGlzczh1Nm9QaVdoSU11M3E5Wi1PNnVYUExvS1VZTTl2bUxmdVI0bHM1bXdObkQwLTdHSGVwdWVNaW0xLUdyZzhFWUQwZ2dBQTQ1R1hOSnFkRjNfajNvcEFCd2lKUFE4aVNSY1JIV3JVam1LR3ZFUGZmRTVIZWxiLTFVZDlIajdIZWdXWXBwc3U4RGpBcl9OMVZmak4zTmd0cWcxYzBPOUNkM1k0UExLMFlwbm9BV1Q4bHJSa2JQbGUtSmwtUnBQZFlYNEw3YXpRSnliRFZrZXNPUF9MbVhRY2ZieE8tQ2c?oc=5"
+      },
+      {
+        "title": "Órgão federal critica projeto que retira mais de 30 mil hectares da APA da Baleia Franca - NSC Total",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "NSC Total",
+        "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNZ2hFQkRpY3p1Y09iMDVoYTEwM3h4SVduV09DUXkxVVoyd0F6MnNlQUwtMk12OVJCczRrSXlrY3o3WHZLOFhtMmFiY2F6Z2RwXzVOOWlFbGt0X3dBdUVfVXlsQURpVGt3YWNTeFlLSF9oMnlHQUJxWFpnTGhZbmFqcThsNjZscFo1dVVpNGlxZUluNlhjeEdqS09RRkdZcFhISWNTMS1vS19aeUhPeXpyOFB3TEZlTUtOZ3NIelE0ZkZHSDFmSTRESUNn?oc=5"
+      },
+      {
+        "title": "APA da baleia-franca em SC: Câmara aprova urgência de projeto que reduz mais de 30 mil hectares de proteção - NSC Total",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "NSC Total",
+        "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNU2YtdjM1UVhPY2ZuaDVaaHVJUDUxRjFOLXozdFdoN1RkdjlSR3Z4M3R0cWdkbkVkYWRLanNYNHUzWXdWdXBXSl9nVDZjS0tIekFJT0tMX0lfR1o1STRPS0NSbUZqdjR5QzVSWGxXb3pOS01HSktiWEJ4dnZQNVNJUkFsWlUyYjZNXzRXdkp6b3BpR055aF90d1NsZktfWno1SjlKdTc0NS02MUlGVXVvenVERWZZSG1HdlI2MjJ6QlFpeXVBYnlUdTBaTDExVGlfTkdFUW13NHhGcDQ?oc=5"
+      },
+      {
+        "title": "Projeto que reduz área terrestre da APA da Baleia Franca avança em Brasília - ND Mais",
+        "category": "noticia",
+        "source": "Google News - baleia-franca e APABF",
+        "publisher": "ND Mais",
+        "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQT2Q4Y0VnbHM5MWFQaHh3aHVVRFNyRm80QWxJem5iTzZIa3FsR1lhNkd1Mi0zY1poanNPbGhaVGFDVEZjS2Z5bWJYb01xX2NFTUFvTEt6NWoyTU5leUsyZ2NkeU5IcUZWUkpQNXVuSy1RY1AtNEtJT0wtLWlTSUl5Q0JVS09xRUVXblQ0MG5ZUGlULWhOcm5KeTlOSTItUWZCZlhNM3VBRQ?oc=5"
+      }
+    ]
+  },
+  "source_diagnostics": {
+    "G1 Santa Catarina": {
+      "url": "https://g1.globo.com/rss/g1/sc/santa-catarina/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 100,
+      "valid_records": 100,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "noticia": {
+          "raw_records": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 100,
+          "currently_published": 4
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          79
+        ],
+        [
+          "município da área da APABF: Florianópolis",
+          15
+        ],
+        [
+          "município da área da APABF: Florianópolis, Palhoça",
+          2
+        ],
+        [
+          "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento",
+          2
+        ],
+        [
+          "contexto não ambiental desconsiderado: câmera de monitoramento",
+          1
+        ]
+      ]
+    },
+    "Diário do Sul": {
+      "url": "https://diariodosul.com.br/rss",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 100,
+      "valid_records": 100,
+      "new_records_in_first_controlled_run": 1,
+      "duplicate_candidates_in_final_recheck": 1,
+      "errors": 0,
+      "categories": {
+        "noticia": {
+          "raw_records": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "new_records_in_first_controlled_run": 1,
+          "duplicate_candidates_in_final_recheck": 1,
+          "approved_by_relevance": 1,
+          "discarded_by_relevance": 99,
+          "currently_published": 4
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          87
+        ],
+        [
+          "contexto não ambiental desconsiderado: motociclista",
+          3
+        ],
+        [
+          "município da área da APABF: Imbituba",
+          2
+        ],
+        [
+          "município da área da APABF: Laguna; tema relacionado à região: pesca; contexto não ambiental desconsiderado: embarcação de pesca sofre avaria",
+          2
+        ],
+        [
+          "contexto explicitamente de outra região: Amazonas",
+          1
+        ]
+      ]
+    },
+    "Sulinfoco": {
+      "url": "https://www.sulinfoco.com.br/feed/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 10,
+      "valid_records": 10,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "noticia": {
+          "raw_records": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "currently_published": 0
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          8
+        ],
+        [
+          "município da área da APABF: Imbituba",
+          2
+        ]
+      ]
+    },
+    "Notícias do Governo de Santa Catarina": {
+      "url": "https://noticias.sc.gov.br/feed/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 10,
+      "valid_records": 10,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "currently_published": 1
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          8
+        ],
+        [
+          "município da área da APABF: Florianópolis",
+          1
+        ],
+        [
+          "município da área da APABF: Laguna",
+          1
+        ]
+      ]
+    },
+    "Epagri - notícias institucionais": {
+      "url": "https://www.epagri.sc.gov.br/feed/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 2,
+      "valid_records": 2,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 2,
+          "valid_candidates": 2,
+          "unique_after_deduplication": 2,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 2,
+          "currently_published": 0
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          2
+        ]
+      ]
+    },
+    "IMA Santa Catarina - notícias": {
+      "url": "https://www.ima.sc.gov.br/noticias/feed/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 10,
+      "valid_records": 10,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "currently_published": 0
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "município da área da APABF: Florianópolis",
+          4
+        ],
+        [
+          "abaixo do limiar atual de relevância",
+          2
+        ],
+        [
+          "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante",
+          1
+        ],
+        [
+          "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante",
+          1
+        ],
+        [
+          "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante",
+          1
+        ]
+      ]
+    },
+    "Projeto Baleia Franca - notícias": {
+      "url": "https://baleiafranca.org.br/feed/",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 10,
+      "valid_records": 10,
+      "new_records_in_first_controlled_run": 1,
+      "duplicate_candidates_in_final_recheck": 7,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "new_records_in_first_controlled_run": 1,
+          "duplicate_candidates_in_final_recheck": 7,
+          "approved_by_relevance": 7,
+          "discarded_by_relevance": 3,
+          "currently_published": 7
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "espécie ou ecossistema local: baleias-francas, baleias francas",
+          1
+        ],
+        [
+          "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio",
+          1
+        ],
+        [
+          "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação",
+          1
+        ]
+      ]
+    },
+    "ICMBio - notícias": {
+      "url": "https://www.gov.br/icmbio/rss.xml",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 15,
+      "valid_records": 0,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 15,
+          "valid_candidates": 0,
+          "unique_after_deduplication": 0,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 0,
+          "currently_published": 0
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "non_article_media_entry",
+          14
+        ],
+        [
+          "missing_title_or_valid_url",
+          1
+        ]
+      ]
+    },
+    "Ministério do Meio Ambiente": {
+      "url": "https://www.gov.br/mma/rss.xml",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 15,
+      "valid_records": 15,
+      "new_records_in_first_controlled_run": 0,
+      "duplicate_candidates_in_final_recheck": 0,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 15,
+          "valid_candidates": 15,
+          "unique_after_deduplication": 15,
+          "new_records_in_first_controlled_run": 0,
+          "duplicate_candidates_in_final_recheck": 0,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 15,
+          "currently_published": 0
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          13
+        ],
+        [
+          "contexto explicitamente de outra região: Amazonas",
+          2
+        ]
+      ]
+    },
+    "Google News - baleia-franca e APABF": {
+      "url": "https://news.google.com/rss/search?q=%28%22baleia-franca%22+OR+%22Eubalaena+australis%22+OR+APABF%29&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 100,
+      "valid_records": 100,
+      "new_records_in_first_controlled_run": 49,
+      "duplicate_candidates_in_final_recheck": 49,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 2,
+          "valid_candidates": 2,
+          "unique_after_deduplication": 2,
+          "new_records_in_first_controlled_run": 2,
+          "duplicate_candidates_in_final_recheck": 2,
+          "approved_by_relevance": 2,
+          "discarded_by_relevance": 0,
+          "currently_published": 2
+        },
+        "noticia": {
+          "raw_records": 98,
+          "valid_candidates": 98,
+          "unique_after_deduplication": 98,
+          "new_records_in_first_controlled_run": 47,
+          "duplicate_candidates_in_final_recheck": 47,
+          "approved_by_relevance": 47,
+          "discarded_by_relevance": 51,
+          "currently_published": 47
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada",
+          37
+        ],
+        [
+          "abaixo do limiar atual de relevância",
+          10
+        ],
+        [
+          "contexto explicitamente de outra região: Argentina",
+          2
+        ],
+        [
+          "espécie ou ecossistema local: baleia-franca, baleia-franca-austral; menção isolada a baleia-franca sem relação regional identificada",
+          1
+        ],
+        [
+          "espécie ou ecossistema local: baleias-francas, baleias francas",
+          1
+        ]
+      ]
+    },
+    "Google News - monitoramento e encalhes em Santa Catarina": {
+      "url": "https://news.google.com/rss/search?q=%28monitoramento+de+praias+OR+encalhe+de+fauna+OR+toninha%29+Santa+Catarina&hl=pt-BR&gl=BR&ceid=BR%3Apt-419",
+      "status": "complete",
+      "last_successful_at": "2026-10-22T21:00:45+00:00",
+      "raw_records": 47,
+      "valid_records": 47,
+      "new_records_in_first_controlled_run": 11,
+      "duplicate_candidates_in_final_recheck": 11,
+      "errors": 0,
+      "categories": {
+        "institucional": {
+          "raw_records": 6,
+          "valid_candidates": 6,
+          "unique_after_deduplication": 6,
+          "new_records_in_first_controlled_run": 4,
+          "duplicate_candidates_in_final_recheck": 4,
+          "approved_by_relevance": 4,
+          "discarded_by_relevance": 2,
+          "currently_published": 4
+        },
+        "noticia": {
+          "raw_records": 41,
+          "valid_candidates": 41,
+          "unique_after_deduplication": 41,
+          "new_records_in_first_controlled_run": 7,
+          "duplicate_candidates_in_final_recheck": 7,
+          "approved_by_relevance": 7,
+          "discarded_by_relevance": 34,
+          "currently_published": 7
+        }
+      },
+      "top_discard_reasons": [
+        [
+          "abaixo do limiar atual de relevância",
+          25
+        ],
+        [
+          "espécie ou ecossistema local: toninha",
+          5
+        ],
+        [
+          "município da área da APABF: Jaguaruna",
+          2
+        ],
+        [
+          "tema relacionado à região: fauna",
+          2
+        ],
+        [
+          "contexto explicitamente de outra região: São Paulo",
+          1
+        ]
+      ]
+    }
+  },
+  "interpretation": {
+    "partial_status_reason": "A news-only collection was run; academic data from the published snapshot were preserved and no academic sources were queried.",
+    "published_snapshot_updated_remotely": false,
+    "source_errors_in_final_recheck": 0,
+    "icmbio_feed_diagnosis": "A resposta oficial continha 15 itens brutos: 14 títulos eram nomes de arquivos de imagem e foram descartados como non_article_media_entry; um item não tinha título/URL válida. A coleta atual, portanto, aproveitou zero publicações desse feed. A página oficial de notícias não apresentou feed alternativo verificável durante a auditoria."
+  }
+}

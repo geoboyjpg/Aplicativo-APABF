@@ -13,6 +13,7 @@
     var items = [];
     var filtersWired = false;
     var collectionStatus = 'unknown';
+    var collectionScope = 'all';
     var collectionFreshness = 'unknown';
     var categoryLabels = {
         noticia: 'Notícias',
@@ -84,7 +85,13 @@
         var source = document.createElement('span');
         source.appendChild(textElement('i', 'fas fa-building', ''));
         source.lastChild.setAttribute('aria-hidden', 'true');
-        source.appendChild(document.createTextNode(item.source && item.source.name ? item.source.name : 'Fonte não informada'));
+        var sourceName = item.source && item.source.name
+            ? item.source.name
+            : 'Fonte não informada';
+        var publisherName = item.publisher
+            ? item.publisher + (sourceName.indexOf('Google News') === 0 ? ' (via Google News)' : ' · ' + sourceName)
+            : sourceName;
+        source.appendChild(document.createTextNode(publisherName));
         metadata.appendChild(source);
         var date = document.createElement('span');
         date.appendChild(textElement('i', 'far fa-calendar', ''));
@@ -105,7 +112,11 @@
         link.href = item.url;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.appendChild(document.createTextNode('Ver conteúdo original'));
+        link.appendChild(document.createTextNode(
+            sourceName.indexOf('Google News') === 0
+                ? 'Abrir notícia no Google News'
+                : 'Ver conteúdo original'
+        ));
         var externalIcon = document.createElement('i');
         externalIcon.className = 'fas fa-arrow-up-right-from-square';
         externalIcon.setAttribute('aria-hidden', 'true');
@@ -142,6 +153,7 @@
                 item.journal,
                 item.doi,
                 item.source && item.source.name,
+                item.publisher,
                 (item.locations || []).join(' '),
                 (item.keywords || []).join(' ')
             ].join(' '));
@@ -175,7 +187,9 @@
             statusElement.textContent = 'Nenhum conteúdo corresponde aos filtros selecionados.';
             statusElement.hidden = false;
         } else if (collectionStatus === 'partial') {
-            statusElement.textContent = 'Coleta parcial: os resultados de consultas concluídas estão disponíveis; os dados anteriores foram preservados.';
+            statusElement.textContent = collectionScope === 'news'
+                ? 'Atualização parcial de notícias e fontes institucionais; os registros acadêmicos e de pesquisa foram preservados da coleta anterior.'
+                : 'Coleta parcial: os resultados de consultas concluídas estão disponíveis; os dados anteriores foram preservados.';
             statusElement.hidden = false;
         } else if (collectionStatus === 'failed') {
             statusElement.textContent = 'A última coleta falhou. Os resultados exibidos pertencem à base anterior preservada.';
@@ -220,6 +234,7 @@
                     && ['alta', 'media', 'complementar'].includes(item.relevance.level);
             });
             collectionStatus = data.collection_status || 'unknown';
+            collectionScope = data.collection_scope || 'all';
             var lastChecked = data.last_checked_at
                 ? 'Última checagem: ' + formatDate(data.last_checked_at)
                 : '';

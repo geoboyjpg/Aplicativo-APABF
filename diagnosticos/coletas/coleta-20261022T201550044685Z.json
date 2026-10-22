@@ -1,0 +1,986 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-10-22T20:15:50+00:00",
+  "mode": "news",
+  "status": "partial",
+  "data_written": true,
+  "classification_mode": "multi-evidence contextual relevance; complete-query results publish independently",
+  "summary": {
+    "source_requests": 9,
+    "successful_requests": 9,
+    "failed_or_partial_requests": 0,
+    "requests_attempted": 9,
+    "requests_succeeded": 9,
+    "pages_consulted": 9,
+    "raw_results": 272,
+    "valid_records": 271,
+    "results_retrieved": 272,
+    "unique_query_records": 271,
+    "transient_failures": 0,
+    "permanent_failures": 0,
+    "retries": 0,
+    "queries_limit_reached": 0,
+    "announced_result_totals": 0,
+    "queries_with_announced_totals": 0,
+    "completed_queries": 9,
+    "interrupted_queries": 0,
+    "resumable_queries": 0,
+    "duration_seconds": 5.584,
+    "accepted": 0,
+    "review": 57,
+    "discarded": 214,
+    "accepted_by_relevance_filter": 8,
+    "rejected_by_relevance_filter": 263,
+    "duplicates": 0,
+    "new_records": 8,
+    "candidate_records_not_published": 0,
+    "preserved_previous_records": 95,
+    "published_records": 103,
+    "frontend_eligible_records": 103,
+    "not_displayed_by_relevance": 0,
+    "relevance_distribution": {
+      "alta": 39,
+      "media": 63,
+      "complementar": 1,
+      "baixa": 0
+    },
+    "complementary_relevance": 1,
+    "discard_reasons": {
+      "abaixo do limiar atual de relevância": 215,
+      "município da área da APABF: Florianópolis": 21,
+      "município da área da APABF: Florianópolis, Palhoça": 2,
+      "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+      "município da área da APABF: Içara": 1,
+      "contexto não ambiental desconsiderado: câmera de monitoramento": 1,
+      "contexto explicitamente de outra região: Amazonas": 3,
+      "município da área da APABF: Imbituba": 4,
+      "contexto explicitamente de outra região: São Paulo": 1,
+      "município da área da APABF: Laguna": 3,
+      "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+      "contexto explicitamente de outra região: Ceará": 1,
+      "município da área da APABF: Garopaba": 1,
+      "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1,
+      "tema relacionado à região: conservação, baleias-francas, baleias francas; fonte institucional ou acadêmica relevante": 1,
+      "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+      "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+      "missing_title_or_valid_url": 1
+    },
+    "category_summaries": {
+      "academico": {
+        "raw_records_collected": 0,
+        "valid_candidates": 0,
+        "unique_after_deduplication": 0,
+        "approved_by_relevance": 0,
+        "discarded_by_relevance": 0,
+        "published_records": 82,
+        "sources": {}
+      },
+      "institucional": {
+        "raw_records_collected": 62,
+        "valid_candidates": 61,
+        "unique_after_deduplication": 61,
+        "approved_by_relevance": 6,
+        "discarded_by_relevance": 55,
+        "published_records": 7,
+        "sources": {
+          "Notícias do Governo de Santa Catarina": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0
+          },
+          "Epagri - notícias institucionais": {
+            "raw_records_collected": 2,
+            "valid_candidates": 2,
+            "unique_after_deduplication": 2,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 2,
+            "published_records": 0
+          },
+          "IMA Santa Catarina - notícias": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0
+          },
+          "Projeto Baleia Franca - notícias": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "approved_by_relevance": 6,
+            "discarded_by_relevance": 4,
+            "published_records": 6
+          },
+          "ICMBio - notícias": {
+            "raw_records_collected": 15,
+            "valid_candidates": 14,
+            "unique_after_deduplication": 14,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 14,
+            "published_records": 0
+          },
+          "Ministério do Meio Ambiente": {
+            "raw_records_collected": 15,
+            "valid_candidates": 15,
+            "unique_after_deduplication": 15,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 15,
+            "published_records": 0
+          }
+        }
+      },
+      "noticia": {
+        "raw_records_collected": 210,
+        "valid_candidates": 210,
+        "unique_after_deduplication": 210,
+        "approved_by_relevance": 2,
+        "discarded_by_relevance": 208,
+        "published_records": 7,
+        "sources": {
+          "G1 Santa Catarina": {
+            "raw_records_collected": 100,
+            "valid_candidates": 100,
+            "unique_after_deduplication": 100,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 100,
+            "published_records": 0
+          },
+          "Diário do Sul": {
+            "raw_records_collected": 100,
+            "valid_candidates": 100,
+            "unique_after_deduplication": 100,
+            "approved_by_relevance": 2,
+            "discarded_by_relevance": 98,
+            "published_records": 2
+          },
+          "Sulinfoco": {
+            "raw_records_collected": 10,
+            "valid_candidates": 10,
+            "unique_after_deduplication": 10,
+            "approved_by_relevance": 0,
+            "discarded_by_relevance": 10,
+            "published_records": 0
+          }
+        }
+      },
+      "pesquisa": {
+        "raw_records_collected": 0,
+        "valid_candidates": 0,
+        "unique_after_deduplication": 0,
+        "approved_by_relevance": 0,
+        "discarded_by_relevance": 0,
+        "published_records": 7,
+        "sources": {}
+      }
+    }
+  },
+  "source_summaries": {
+    "G1 Santa Catarina": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 100,
+      "results_retrieved": 100,
+      "valid_records": 100,
+      "unique_query_records": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.324,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 100,
+          "published_records": 0
+        }
+      }
+    },
+    "Diário do Sul": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 100,
+      "results_retrieved": 100,
+      "valid_records": 100,
+      "unique_query_records": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.572,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 100,
+          "valid_candidates": 100,
+          "unique_after_deduplication": 100,
+          "approved_by_relevance": 2,
+          "discarded_by_relevance": 98,
+          "published_records": 2
+        }
+      }
+    },
+    "Sulinfoco": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.232,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "noticia": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0
+        }
+      }
+    },
+    "Notícias do Governo de Santa Catarina": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.158,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0
+        }
+      }
+    },
+    "Epagri - notícias institucionais": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 2,
+      "results_retrieved": 2,
+      "valid_records": 2,
+      "unique_query_records": 2,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.172,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 2,
+          "valid_candidates": 2,
+          "unique_after_deduplication": 2,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 2,
+          "published_records": 0
+        }
+      }
+    },
+    "IMA Santa Catarina - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.108,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 10,
+          "published_records": 0
+        }
+      }
+    },
+    "Projeto Baleia Franca - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 10,
+      "results_retrieved": 10,
+      "valid_records": 10,
+      "unique_query_records": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 3.643,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 10,
+          "valid_candidates": 10,
+          "unique_after_deduplication": 10,
+          "approved_by_relevance": 6,
+          "discarded_by_relevance": 4,
+          "published_records": 6
+        }
+      }
+    },
+    "ICMBio - notícias": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 15,
+      "results_retrieved": 15,
+      "valid_records": 14,
+      "unique_query_records": 14,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.252,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 15,
+          "valid_candidates": 14,
+          "unique_after_deduplication": 14,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 14,
+          "published_records": 0
+        }
+      }
+    },
+    "Ministério do Meio Ambiente": {
+      "queries": 1,
+      "status": "complete",
+      "requests_attempted": 1,
+      "requests_succeeded": 1,
+      "pages_consulted": 1,
+      "raw_results": 15,
+      "results_retrieved": 15,
+      "valid_records": 15,
+      "unique_query_records": 15,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "retries": 0,
+      "queries_limit_reached": 0,
+      "queries_with_continuation": 0,
+      "duration_seconds": 0.123,
+      "results_announced": 0,
+      "queries_with_announced_totals": 0,
+      "interruption_reasons": {},
+      "last_successful_at": "2026-10-22T20:15:50+00:00",
+      "category_metrics": {
+        "institucional": {
+          "raw_records_collected": 15,
+          "valid_candidates": 15,
+          "unique_after_deduplication": 15,
+          "approved_by_relevance": 0,
+          "discarded_by_relevance": 15,
+          "published_records": 0
+        }
+      }
+    }
+  },
+  "sources": [
+    {
+      "source": "G1 Santa Catarina",
+      "query_id": "rss:feed",
+      "query": "https://g1.globo.com/rss/g1/sc/santa-catarina/",
+      "attempted_at": "2026-10-22T20:15:39+00:00",
+      "request_status": "success",
+      "raw_results": 100,
+      "valid_records": 100,
+      "accepted": 0,
+      "review": 7,
+      "discarded": 93,
+      "relevance_accepted": 0,
+      "relevance_discarded": 100,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 78,
+        "município da área da APABF: Florianópolis": 16,
+        "município da área da APABF: Florianópolis, Palhoça": 2,
+        "tema relacionado à região: monitoramento; contexto não ambiental desconsiderado: câmera de monitoramento": 2,
+        "município da área da APABF: Içara": 1,
+        "contexto não ambiental desconsiderado: câmera de monitoramento": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 90,
+        "há termos ambíguos sem evidência contextual suficiente": 7,
+        "contexto identificado não demonstra pauta ambiental ou socioambiental": 3,
+        "evidência contextual: câmera de monitoramento": 3
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 100,
+          "approved_candidates": 0,
+          "discarded_candidates": 100,
+          "unique_records": 100,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "noticia": 100
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 100,
+      "unique_records": 100,
+      "duration_seconds": 0.324,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Diário do Sul",
+      "query_id": "rss:feed",
+      "query": "https://diariodosul.com.br/rss",
+      "attempted_at": "2026-10-22T20:15:41+00:00",
+      "request_status": "success",
+      "raw_results": 100,
+      "valid_records": 100,
+      "accepted": 0,
+      "review": 13,
+      "discarded": 87,
+      "relevance_accepted": 2,
+      "relevance_discarded": 98,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 90,
+        "contexto explicitamente de outra região: Amazonas": 1,
+        "município da área da APABF: Imbituba": 2,
+        "contexto explicitamente de outra região: São Paulo": 1,
+        "município da área da APABF: Laguna": 2,
+        "espécie ou ecossistema local: baleia-franca; menção isolada a baleia-franca sem relação regional identificada": 1,
+        "contexto explicitamente de outra região: Ceará": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 87,
+        "há termos ambíguos sem evidência contextual suficiente": 12,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 1
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 100,
+          "approved_candidates": 2,
+          "discarded_candidates": 98,
+          "unique_records": 100,
+          "published_records": 2
+        }
+      },
+      "category_raw_results": {
+        "noticia": 100
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 100,
+      "unique_records": 100,
+      "duration_seconds": 0.572,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Sulinfoco",
+      "query_id": "rss:feed",
+      "query": "https://www.sulinfoco.com.br/feed/",
+      "attempted_at": "2026-10-22T20:15:42+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 1,
+      "discarded": 9,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "município da área da APABF: Imbituba": 2,
+        "abaixo do limiar atual de relevância": 7,
+        "município da área da APABF: Garopaba": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 9,
+        "há termos ambíguos sem evidência contextual suficiente": 1
+      },
+      "category_metrics": {
+        "noticia": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "noticia": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 0.232,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Notícias do Governo de Santa Catarina",
+      "query_id": "rss:feed",
+      "query": "https://noticias.sc.gov.br/feed/",
+      "attempted_at": "2026-10-22T20:15:43+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 2,
+      "discarded": 8,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 8,
+        "município da área da APABF: Laguna": 1,
+        "município da área da APABF: Florianópolis": 1
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 8,
+        "há termos ambíguos sem evidência contextual suficiente": 2
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 0.158,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Epagri - notícias institucionais",
+      "query_id": "rss:feed",
+      "query": "https://www.epagri.sc.gov.br/feed/",
+      "attempted_at": "2026-10-22T20:15:44+00:00",
+      "request_status": "success",
+      "raw_results": 2,
+      "valid_records": 2,
+      "accepted": 0,
+      "review": 0,
+      "discarded": 2,
+      "relevance_accepted": 0,
+      "relevance_discarded": 2,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "abaixo do limiar atual de relevância": 2
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 2
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 2,
+          "approved_candidates": 0,
+          "discarded_candidates": 2,
+          "unique_records": 2,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 2
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 2,
+      "unique_records": 2,
+      "duration_seconds": 0.172,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "IMA Santa Catarina - notícias",
+      "query_id": "rss:feed",
+      "query": "https://www.ima.sc.gov.br/noticias/feed/",
+      "attempted_at": "2026-10-22T20:15:44+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 10,
+      "discarded": 0,
+      "relevance_accepted": 0,
+      "relevance_discarded": 10,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "tema relacionado à região: impacto ambiental; fonte institucional ou acadêmica relevante": 1,
+        "município da área da APABF: Florianópolis": 4,
+        "tema relacionado à região: resíduos, impactos ambientais; fonte institucional ou acadêmica relevante": 1,
+        "tema relacionado à região: resíduos; fonte institucional ou acadêmica relevante": 1,
+        "abaixo do limiar atual de relevância": 2,
+        "tema relacionado à região: licenciamento; fonte institucional ou acadêmica relevante": 1
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 5,
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 5
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 0,
+          "discarded_candidates": 10,
+          "unique_records": 10,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 0.108,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Projeto Baleia Franca - notícias",
+      "query_id": "rss:feed",
+      "query": "https://baleiafranca.org.br/feed/",
+      "attempted_at": "2026-10-22T20:15:44+00:00",
+      "request_status": "success",
+      "raw_results": 10,
+      "valid_records": 10,
+      "accepted": 0,
+      "review": 10,
+      "discarded": 0,
+      "relevance_accepted": 6,
+      "relevance_discarded": 4,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "tema relacionado à região: conservação, baleias-francas, baleias francas; fonte institucional ou acadêmica relevante": 1,
+        "tipo de comunicado fora do escopo de notícias e publicações: vaga de estágio, estágio de comunicação": 1,
+        "tipo de comunicado fora do escopo de notícias e publicações: inscrições para estágio": 1,
+        "abaixo do limiar atual de relevância": 1
+      },
+      "decision_reasons": {
+        "tema pertinente, mas a relação territorial com a APABF não foi comprovada": 10
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 10,
+          "approved_candidates": 6,
+          "discarded_candidates": 4,
+          "unique_records": 10,
+          "published_records": 6
+        }
+      },
+      "category_raw_results": {
+        "institucional": 10
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 10,
+      "unique_records": 10,
+      "duration_seconds": 3.643,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "ICMBio - notícias",
+      "query_id": "rss:feed",
+      "query": "https://www.gov.br/icmbio/rss.xml",
+      "attempted_at": "2026-10-22T20:15:48+00:00",
+      "request_status": "success",
+      "raw_results": 15,
+      "valid_records": 14,
+      "accepted": 0,
+      "review": 14,
+      "discarded": 0,
+      "relevance_accepted": 0,
+      "relevance_discarded": 14,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "missing_title_or_valid_url": 1,
+        "abaixo do limiar atual de relevância": 14
+      },
+      "decision_reasons": {
+        "há termos ambíguos sem evidência contextual suficiente": 14
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 14,
+          "approved_candidates": 0,
+          "discarded_candidates": 14,
+          "unique_records": 14,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 15
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 15,
+      "unique_records": 14,
+      "duration_seconds": 0.252,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    },
+    {
+      "source": "Ministério do Meio Ambiente",
+      "query_id": "rss:feed",
+      "query": "https://www.gov.br/mma/rss.xml",
+      "attempted_at": "2026-10-22T20:15:49+00:00",
+      "request_status": "success",
+      "raw_results": 15,
+      "valid_records": 15,
+      "accepted": 0,
+      "review": 0,
+      "discarded": 15,
+      "relevance_accepted": 0,
+      "relevance_discarded": 15,
+      "duplicates": 0,
+      "transient_failures": 0,
+      "permanent_failures": 0,
+      "rate_limit_events": 0,
+      "discard_reasons": {
+        "contexto explicitamente de outra região: Amazonas": 2,
+        "abaixo do limiar atual de relevância": 13
+      },
+      "decision_reasons": {
+        "não foram identificadas evidências temáticas socioambientais suficientes": 15
+      },
+      "category_metrics": {
+        "institucional": {
+          "collected_candidates": 15,
+          "approved_candidates": 0,
+          "discarded_candidates": 15,
+          "unique_records": 15,
+          "published_records": 0
+        }
+      },
+      "category_raw_results": {
+        "institucional": 15
+      },
+      "pages_consulted": 1,
+      "requests_succeeded": 1,
+      "results_announced": null,
+      "results_retrieved": 15,
+      "unique_records": 15,
+      "duration_seconds": 0.123,
+      "collection_status": "complete",
+      "limit": null,
+      "limit_reached": false,
+      "attempts": 1,
+      "retries": 0,
+      "interruption_reason": null,
+      "continuation_available": false,
+      "resume_possible": false,
+      "resume_attempted": false,
+      "resume_status": "not_applicable",
+      "errors": []
+    }
+  ]
+}
