@@ -13,9 +13,15 @@
     var baseLayer;
     var toastTimer;
     var boundaryState;
+    var manualSequence = 0;
+    var geometryType = 'Point';
+    var previewGeometryLayer;
+    var editingState;
 
     var elements = {
         layerList: document.getElementById('layer-list'),
+        layerSearch: document.getElementById('layer-search'),
+        clearLayerSearch: document.getElementById('clear-layer-search'),
         catalogStatus: document.getElementById('catalog-status'),
         importStatus: document.getElementById('import-status'),
         fileImport: document.getElementById('file-import'),
@@ -38,7 +44,27 @@
         coordinates: document.getElementById('map-coordinates'),
         latitudes: document.getElementById('map-latitudes'),
         scale: document.getElementById('preview-scale'),
-        toast: document.getElementById('export-status')
+        toast: document.getElementById('export-status'),
+        pointButton: document.getElementById('add-point'),
+        polygonButton: document.getElementById('add-polygon'),
+        geometryDialog: document.getElementById('geometry-dialog'),
+        geometryForm: document.getElementById('geometry-form'),
+        geometryTitle: document.getElementById('geometry-dialog-title'),
+        geometryCrs: document.getElementById('geometry-crs'),
+        coordinateFormat: document.getElementById('coordinate-format'),
+        coordinateFormatLabel: document.getElementById('coordinate-format-label'),
+        utmOptions: document.getElementById('utm-options'),
+        utmZone: document.getElementById('utm-zone'),
+        utmHemisphere: document.getElementById('utm-hemisphere'),
+        pointFields: document.getElementById('point-coordinate-fields'),
+        polygonEditor: document.getElementById('polygon-editor'),
+        polygonVertices: document.getElementById('polygon-vertices'),
+        addVertex: document.getElementById('add-vertex'),
+        geometryName: document.getElementById('geometry-name'),
+        geometryError: document.getElementById('geometry-error'),
+        geometryCrsNote: document.getElementById('geometry-crs-note'),
+        cancelGeometry: document.getElementById('cancel-geometry'),
+        closeGeometryDialog: document.getElementById('close-geometry-dialog')
     };
 
     function todayISO() {
@@ -87,6 +113,8 @@
                 visit(feature.geometry.coordinates);
             }
         });
+        state.displayInput = name;
+        state.originalTitle = title;
         return Number.isFinite(bounds.west) ? bounds : null;
     }
 
@@ -99,16 +127,6 @@
             east: bounds.east + longitudePadding,
             north: bounds.north + latitudePadding
         };
-    }
-
-    function renderLayerList() {
-        if (!elements.layerList) {
-            return;
-        }
-        elements.layerList.replaceChildren();
-        states.forEach(function (state) {
-            addLayerControls(state);
-        });
     }
 
     function loadScriptData(definition) {
@@ -129,6 +147,7 @@
             };
             document.head.appendChild(script);
         });
+        state.legendInput = legendName;
     }
 
     function loadDefinition(definition) {
@@ -149,7 +168,9 @@
                 id: definition.id,
                 definition: definition,
                 data: data,
+                originalName: definition.name,
                 label: definition.name,
+                legendLabel: definition.name,
                 color: definition.color,
                 opacity: definition.opacity,
                 visible: Boolean(definition.visible),
@@ -203,6 +224,7 @@
             }
             state.zoneStyles.push({
                 name: zoneName,
+                displayLabel: zoneName,
                 color: paletteColor(state, feature, index),
                 opacity: state.opacity,
                 visible: true
@@ -258,97 +280,216 @@
         }
     }
 
+    function updateLayerSearch() {
+        if (!elements.layerSearch) {
+            return;
+        }
+        var query = elements.layerSearch.value.trim().toLocaleLowerCase();
+        Array.prototype.forEach.call(elements.layerList.children, function (item) {
+            item.hidden = query && item.dataset.searchText.indexOf(query) === -1;
+        });
+    }
+
+    function updateLayerSearchText(state) {
+        if (!state.item) {
+            return;
+        }
+        var names = [state.originalName, state.label, state.legendLabel];
+        (state.zoneStyles || []).forEach(function (zone) {
+            names.push(zone.name, zone.displayLabel);
+        });
+        state.item.dataset.searchText = names.filter(Boolean).join(' ').toLocaleLowerCase();
+        updateLayerSearch();
+    }
+
+    function updateLayerOrderControls() {
+        states.forEach(function (state) {
+            if (state.actions) {
+                state.actions.up.disabled = states.indexOf(state) === 0;
+                state.actions.down.disabled = states.indexOf(state) === states.length - 1;
+            }
+        });
+    }
+
+    function moveLayer(state, offset) {
+        var index = states.indexOf(state);
+        var target = index + offset;
+        if (index < 0 || target < 0 || target >= states.length) {
+            return;
+        }
+        states.splice(index, 1);
+        states.splice(target, 0, state);
+        states.forEach(function (item) {
+            if (item.layer && map.hasLayer(item.layer)) {
+                map.removeLayer(item.layer);
+            }
+        });
+        states.forEach(function (item) {
+            if (item.layer && item.visible) {
+                item.layer.addTo(map);
+            }
+        });
+        states.forEach(function (itemState) {
+            if (itemState.item) {
+                elements.layerList.appendChild(itemState.item);
+            }
+        });
+        updateLayerOrderControls();
+        updateMapComposition();
+    }
+
     function addLayerControls(state) {
         var item = document.createElement('div');
         var header = document.createElement('div');
         var visibilityLabel = document.createElement('label');
         var checkbox = document.createElement('input');
         var name = document.createElement('input');
-        var color = document.createElement('input');
-        var opacityRow = document.createElement('label');
-        var opacityLabel = document.createElement('span');
-        var opacity = document.createElement('input');
-        var opacityValue = document.createElement('span');
-        item.className = 'layer-item';
+        var title = document.createElement('span');
+        var actions = document.createElement('span');
+        var up = document.createElement('button');
+        var down = document.createElement('button');
+        item.className = state.zoneStyles ? 'layer-item zone-managed' : 'layer-item';
         header.className = 'layer-item-header';
         visibilityLabel.className = 'layer-visibility';
+        actions.className = 'layer-actions';
         checkbox.type = 'checkbox';
         checkbox.checked = state.visible;
         checkbox.disabled = !state.layer;
-        checkbox.setAttribute('aria-label', 'Exibir ' + state.label);
+        checkbox.setAttribute('aria-label', 'Exibir ' + state.originalName);
         checkbox.addEventListener('change', function () {
             state.visible = checkbox.checked;
             if (state.visible) {
                 state.layer.addTo(map);
-                state.layer.bringToFront();
             } else {
                 map.removeLayer(state.layer);
             }
             updateMapComposition();
         });
-        var title = document.createElement('span');
-        title.textContent = state.label;
+        title.textContent = state.originalName;
+        title.title = 'Nome original: ' + state.originalName;
         visibilityLabel.append(checkbox, title);
 
-        color.type = 'color';
-        color.className = 'layer-color';
-        color.value = state.color;
-        color.disabled = !state.layer;
-        color.title = 'Cor da camada';
-        color.setAttribute('aria-label', 'Cor da camada ' + state.label);
-        color.addEventListener('input', function () {
-            state.color = color.value;
-            if (state.zoneStyles) {
-                state.zoneStyles.forEach(function (zone) {
-                    zone.color = color.value;
-                    if (zone.colorInput) {
-                        zone.colorInput.value = color.value;
-                    }
-                });
-            }
-            refreshLayer(state);
+        [up, down].forEach(function (button) {
+            button.type = 'button';
+            actions.appendChild(button);
         });
+        up.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i>';
+        down.innerHTML = '<i class="fas fa-arrow-down" aria-hidden="true"></i>';
+        up.setAttribute('aria-label', 'Mover ' + state.label + ' para cima');
+        down.setAttribute('aria-label', 'Mover ' + state.label + ' para baixo');
+        up.addEventListener('click', function () { moveLayer(state, -1); });
+        down.addEventListener('click', function () { moveLayer(state, 1); });
+        state.actions = { up: up, down: down };
+        up.disabled = states.indexOf(state) <= 0;
+        down.disabled = states.indexOf(state) === states.length - 1;
+        if (state.manual) {
+            var edit = document.createElement('button');
+            edit.type = 'button';
+            edit.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i>';
+            edit.setAttribute('aria-label', 'Editar ' + state.label);
+            edit.addEventListener('click', function () { openGeometryDialog(state.definition.geometry, state); });
+            actions.appendChild(edit);
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>';
+            remove.setAttribute('aria-label', 'Excluir ' + state.label);
+            remove.addEventListener('click', function () {
+                if (state.layer) {
+                    map.removeLayer(state.layer);
+                }
+                states = states.filter(function (candidate) { return candidate !== state; });
+                item.remove();
+                updateLayerOrderControls();
+                updateMapComposition();
+            });
+            actions.appendChild(remove);
+        }
 
         name.type = 'text';
         name.className = 'layer-name';
         name.maxLength = 70;
         name.value = state.label;
         name.disabled = !state.layer;
-        name.setAttribute('aria-label', 'Nome apresentado para ' + state.label);
+        name.setAttribute('aria-label', 'Nome de exibição para ' + state.originalName);
         name.addEventListener('input', function () {
-            state.label = name.value.trim() || state.definition.name || 'Camada importada';
-            title.textContent = state.label;
+            state.label = name.value.trim() || state.originalName || 'Camada';
+            name.title = 'Nome de exibição: ' + state.label;
+            updateLayerSearchText(state);
             updateMapComposition();
         });
 
-        opacityRow.className = 'layer-opacity-row';
-        opacityLabel.textContent = 'Opacidade';
-        opacity.type = 'range';
-        opacity.min = '10';
-        opacity.max = '100';
-        opacity.value = String(Math.round(state.opacity * 100));
-        opacity.disabled = !state.layer;
-        opacityValue.className = 'layer-opacity-value';
-        opacityValue.textContent = opacity.value + '%';
-        opacity.addEventListener('input', function () {
-            state.opacity = Number(opacity.value) / 100;
-            if (state.zoneStyles) {
-                state.zoneStyles.forEach(function (zone) {
-                    zone.opacity = state.opacity;
-                    if (zone.opacityInput) {
-                        zone.opacityInput.value = opacity.value;
-                    }
-                    if (zone.opacityValue) {
-                        zone.opacityValue.textContent = opacity.value + '%';
-                    }
-                });
-            }
+        header.append(visibilityLabel, actions);
+        item.append(header, name);
+        if (!state.zoneStyles) {
+            var color = document.createElement('input');
+            var opacityRow = document.createElement('label');
+            var opacityLabel = document.createElement('span');
+            var opacity = document.createElement('input');
+            var opacityValue = document.createElement('span');
+            color.type = 'color';
+            color.className = 'layer-color';
+            color.value = state.color;
+            color.disabled = !state.layer;
+            color.title = 'Cor da camada';
+            color.setAttribute('aria-label', 'Cor da camada ' + state.originalName);
+            color.addEventListener('input', function () {
+                state.color = color.value;
+                refreshLayer(state);
+            });
+            header.insertBefore(color, actions);
+            opacityRow.className = 'layer-opacity-row';
+            opacityLabel.textContent = 'Opacidade';
+            opacity.type = 'range';
+            opacity.min = '10';
+            opacity.max = '100';
+            opacity.value = String(Math.round(state.opacity * 100));
+            opacity.disabled = !state.layer;
+            opacityValue.className = 'layer-opacity-value';
             opacityValue.textContent = opacity.value + '%';
-            refreshLayer(state);
+            opacity.addEventListener('input', function () {
+                state.opacity = Number(opacity.value) / 100;
+                opacityValue.textContent = opacity.value + '%';
+                refreshLayer(state);
+            });
+            opacityRow.append(opacityLabel, opacity, opacityValue);
+            item.appendChild(opacityRow);
+        }
+
+        var legendNameRow = document.createElement('div');
+        var legendName = document.createElement('input');
+        var resetLegendName = document.createElement('button');
+        legendNameRow.className = 'legend-name-row';
+        legendName.type = 'text';
+        legendName.className = 'layer-legend-name';
+        legendName.maxLength = 70;
+        legendName.value = state.legendLabel;
+        legendName.setAttribute('aria-label', 'Nome na legenda para ' + state.originalName);
+        legendName.placeholder = 'Nome na legenda';
+        legendName.addEventListener('input', function () {
+            state.legendLabel = legendName.value.trim() || state.originalName;
+            updateLayerSearchText(state);
+            updateMapComposition();
         });
-        opacityRow.append(opacityLabel, opacity, opacityValue);
-        header.append(visibilityLabel, color);
-        item.append(header, name, opacityRow);
+        resetLegendName.type = 'button';
+        resetLegendName.className = 'legend-name-reset';
+        resetLegendName.textContent = 'Original';
+        resetLegendName.title = 'Restaurar o nome original na legenda';
+        resetLegendName.addEventListener('click', function () {
+            state.legendLabel = state.originalName;
+            legendName.value = state.originalName;
+            updateLayerSearchText(state);
+            updateMapComposition();
+        });
+        legendNameRow.append(legendName, resetLegendName);
+        item.appendChild(legendNameRow);
+        if (state.sourceCrs) {
+            var crsLabel = document.createElement('p');
+            crsLabel.className = 'layer-crs';
+            crsLabel.textContent = 'Entrada: ' + state.sourceCrs + ' · geometria: SIRGAS 2000 / EPSG:4674';
+            item.appendChild(crsLabel);
+            state.crsLabel = crsLabel;
+        }
+        state.item = item;
 
         if (state.error) {
             var error = document.createElement('p');
@@ -357,9 +498,11 @@
             item.appendChild(error);
         }
         elements.layerList.appendChild(item);
+        updateLayerSearchText(state);
         if (state.zoneStyles) {
             addZoneControls(state, item);
         }
+        updateLayerSearchText(state);
     }
 
     function addZoneControls(state, layerItem) {
@@ -371,6 +514,7 @@
             var visibility = document.createElement('label');
             var checkbox = document.createElement('input');
             var zoneName = document.createElement('span');
+            var zoneNameInput = document.createElement('input');
             var color = document.createElement('input');
             var opacityRow = document.createElement('label');
             var opacityLabel = document.createElement('span');
@@ -390,6 +534,16 @@
             });
             zoneName.textContent = zone.name;
             visibility.append(checkbox, zoneName);
+            zoneNameInput.type = 'text';
+            zoneNameInput.className = 'zone-name-input';
+            zoneNameInput.maxLength = 70;
+            zoneNameInput.value = zone.displayLabel;
+            zoneNameInput.setAttribute('aria-label', 'Nome de exibição e legenda para a feição ' + zone.name);
+            zoneNameInput.addEventListener('input', function () {
+                zone.displayLabel = zoneNameInput.value.trim() || zone.name;
+                updateLayerSearchText(state);
+                updateMapComposition();
+            });
 
             color.type = 'color';
             color.className = 'layer-color';
@@ -409,7 +563,6 @@
             opacity.max = '100';
             opacity.value = String(Math.round(zone.opacity * 100));
             zone.opacityInput = opacity;
-            zone.opacityValue = opacityValue;
             opacity.disabled = !state.layer;
             opacityValue.className = 'layer-opacity-value';
             opacityValue.textContent = opacity.value + '%';
@@ -420,7 +573,7 @@
             });
             opacityRow.append(opacityLabel, opacity, opacityValue);
             zoneHeader.append(visibility, color);
-            zoneItem.append(zoneHeader, opacityRow);
+            zoneItem.append(zoneHeader, zoneNameInput, opacityRow);
             zoneList.appendChild(zoneItem);
         });
         layerItem.appendChild(zoneList);
@@ -454,7 +607,7 @@
         if (state.zoneStyles) {
             return state.zoneStyles.filter(function (zone) { return zone.visible; }).map(function (zone) {
                 return {
-                    label: zone.name,
+                    label: zone.displayLabel || zone.name,
                     color: zone.color,
                     geometry: state.definition.geometry,
                     opacity: zone.opacity
@@ -474,11 +627,16 @@
             if (geometryTypes.length > 1) {
                 return geometryTypes.map(function (type) {
                     var label = /point/i.test(type) ? 'Pontos' : (/line/i.test(type) ? 'Linhas' : 'Polígonos');
-                    return { label: state.label + ' — ' + label, color: state.color, geometry: type, opacity: /polygon/i.test(type) ? polygonOpacity : state.opacity };
+                    return {
+                        label: state.legendLabel + ' — ' + label,
+                        color: state.color,
+                        geometry: type,
+                        opacity: /polygon/i.test(type) ? polygonOpacity : state.opacity
+                    };
                 });
             }
             return [{
-                label: state.label,
+                label: state.legendLabel,
                 color: state.color,
                 geometry: state.definition.geometry,
                 opacity: /polygon/i.test(state.definition.geometry) ? polygonOpacity : state.opacity
@@ -517,7 +675,7 @@
                     entry: entry,
                     essential: Boolean(state.zoneStyles),
                     group: state.definition.legendField && !state.zoneStyles ? state.id : '',
-                    groupLabel: state.label,
+                    groupLabel: state.legendLabel,
                     firstInGroup: index === 0
                 });
             });
@@ -691,7 +849,7 @@
         var credits = basemapCredit();
         elements.previewSources.textContent = 'Fontes: ' + (elements.sources.value.trim() || 'não informadas') + (credits ? ' · ' + credits : '');
         document.getElementById('preview-imagery-credit').textContent =
-            'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS';
+            'Imagem de satélite: Esri, Vantor, Earthstar Geographics e comunidade GIS';
         elements.previewAuthor.textContent = elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '';
         elements.previewDate.textContent = elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '';
         updateScaleAndCoordinates();
@@ -700,12 +858,24 @@
 
     function basemapCredit() {
         if (elements.basemap.value === 'streets') {
-            return 'Mapa-base: Fontes Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, NGCC, OpenStreetMap e comunidade GIS';
+            return 'Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, © OpenStreetMap contributors e comunidade GIS';
         }
         if (elements.basemap.value === 'satellite') {
-            return 'Imagem: Esri, Vantor, Earthstar Geographics e comunidade GIS';
+            return '';
         }
         return '';
+    }
+
+    function manualCrsCredit() {
+        var sources = [];
+        states.forEach(function (state) {
+            if (state.manual && state.sourceCrs && sources.indexOf(state.sourceCrs) === -1) {
+                sources.push(state.sourceCrs);
+            }
+        });
+        return sources.length
+            ? 'Geometrias manuais em SIRGAS 2000 / EPSG:4674; entrada: ' + sources.join(', ')
+            : '';
     }
 
     function setBasemap(value) {
@@ -771,7 +941,9 @@
                         id: definition.id,
                         definition: definition,
                         data: { features: [] },
+                        originalName: definition.name,
                         label: definition.name,
+                        legendLabel: definition.name,
                         color: definition.color,
                         opacity: definition.opacity,
                         visible: false,
@@ -780,7 +952,7 @@
                     };
                 });
         })).then(function (loadedStates) {
-            states = loadedStates;
+            states = window.GeradorGeometrias.mergeLayerStates(loadedStates, states);
             states.forEach(function (state) {
                 if (!state.error) {
                     addStateToMap(state);
@@ -805,8 +977,14 @@
                         ), { animate: false });
                     }
                 }
+                addLayerControls(state);
             });
-            renderLayerList();
+            states.forEach(function (state) {
+                if (state.item) {
+                    elements.layerList.appendChild(state.item);
+                }
+            });
+            updateLayerOrderControls();
             if (boundaryState && boundaryState.layer && boundaryState.layer.getBounds().isValid()) {
                 if (boundaryState.visible) {
                     boundaryState.layer.bringToFront();
@@ -941,7 +1119,7 @@
         elements.importStatus.textContent = 'Lendo ' + file.name + ' localmente…';
         readKmlFile(file).then(function (data) {
             var definition = {
-                id: 'importado-' + Date.now(),
+                id: 'importado-' + Date.now() + '-' + (++manualSequence),
                 name: file.name.replace(/\.(kml|kmz)$/i, ''),
                 source: 'Arquivo local do usuário: ' + file.name,
                 geometry: data.features[0].geometry.type,
@@ -953,7 +1131,9 @@
                 id: definition.id,
                 definition: definition,
                 data: data,
+                originalName: definition.name,
                 label: definition.name,
+                legendLabel: definition.name,
                 color: definition.color,
                 opacity: definition.opacity,
                 visible: true,
@@ -966,7 +1146,7 @@
             }
             states.push(state);
             addStateToMap(state);
-            renderLayerList();
+            addLayerControls(state);
             map.fitBounds(state.layer.getBounds(), { padding: [24, 24], maxZoom: 15 });
             elements.importStatus.textContent = file.name + ' importado localmente (' + data.features.length + ' feição(ões)).';
             updateMapComposition();
@@ -1154,12 +1334,6 @@
 
     function drawLayerFeatures(context, projection, outputRatio) {
         states.filter(function (state) { return state.visible && state.data && state.layer; })
-            .sort(function (a, b) {
-                function rank(state) {
-                    return state.id.indexOf('importado-') === 0 ? 2 : (state.id === 'limite-apabf' ? 1 : 0);
-                }
-                return rank(a) - rank(b);
-            })
             .forEach(function (state) {
                 state.data.features.forEach(function (feature, index) {
                     var zoneStyle = getZoneStyle(state, feature);
@@ -1263,27 +1437,24 @@
         context.save();
         context.font = 'bold ' + (2.5 * scaleFactor) + 'px Arial';
         context.fillStyle = '#222';
-        context.strokeStyle = '#222';
-        context.lineWidth = Math.max(1, scaleFactor);
+        context.strokeStyle = '#000';
+        context.lineWidth = Math.max(1.1, scaleFactor * 1.1);
         for (var i = 0; i <= tickCount; i += 1) {
             var x = frame.x + frame.width * i / tickCount;
             var topCoordinate = inverseProjection(x, frame.y);
-            var bottomCoordinate = inverseProjection(x, frame.y + frame.height);
             context.beginPath();
             context.moveTo(x, frame.y);
             context.lineTo(x, frame.y + 3 * scaleFactor);
-            context.moveTo(x, frame.y + frame.height - 3 * scaleFactor);
-            context.lineTo(x, frame.y + frame.height);
+            context.strokeStyle = '#000';
+            context.lineWidth = Math.max(1.1, scaleFactor * 1.1);
             context.stroke();
             context.textAlign = 'center';
             context.lineJoin = 'round';
             context.lineWidth = Math.max(1.5, scaleFactor * 0.85);
             context.strokeStyle = '#fff';
             context.strokeText(formatDegree(topCoordinate.lon, false), x, frame.y - 2.5 * scaleFactor);
-            context.strokeText(formatDegree(bottomCoordinate.lon, false), x, frame.y + frame.height + 4 * scaleFactor);
             context.fillStyle = '#222';
             context.fillText(formatDegree(topCoordinate.lon, false), x, frame.y - 2.5 * scaleFactor);
-            context.fillText(formatDegree(bottomCoordinate.lon, false), x, frame.y + frame.height + 4 * scaleFactor);
         }
         for (var j = 0; j <= tickCount; j += 1) {
             var y = frame.y + frame.height * j / tickCount;
@@ -1291,8 +1462,8 @@
             context.beginPath();
             context.moveTo(frame.x, y);
             context.lineTo(frame.x + 3 * scaleFactor, y);
-            context.moveTo(frame.x + frame.width - 3 * scaleFactor, y);
-            context.lineTo(frame.x + frame.width, y);
+            context.strokeStyle = '#000';
+            context.lineWidth = Math.max(1.1, scaleFactor * 1.1);
             context.stroke();
             context.save();
             context.translate(frame.x - 4.5 * scaleFactor, y + 1 * scaleFactor);
@@ -1564,8 +1735,9 @@
         var metadata = [
             'Coordenadas geográficas · SIRGAS 2000 / EPSG:4674',
             'Dados: ' + (elements.sources.value.trim() || 'não informadas'),
-            'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS',
+            'Imagem de satélite: Esri, Vantor, Earthstar Geographics e comunidade GIS',
             basemapCredit() ? 'Mapa-base: ' + basemapCredit() : '',
+            manualCrsCredit(),
             elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '',
             elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '',
             'Logotipos institucionais; não implicam aprovação.'
@@ -1610,7 +1782,7 @@
                 try {
                     canvas.toDataURL('image/png');
                 } catch (error) {
-                    throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não pôde ser carregado.');
+                    throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não será substituído silenciosamente.');
                 }
                 elements.mapStatus.textContent = 'Codificando a imagem final…';
                 return canvas;
@@ -1709,9 +1881,9 @@
                 var centerLat = bounds.getCenter().lat * Math.PI / 180;
                 var groundWidth = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
                 var metersPerPixel = groundWidth / Math.max(1, (projectedBounds.maxX - projectedBounds.minX) * fit);
-                renderScaleBar(context, frame.x + frame.width * 0.68, frame.y + frame.height - 13 * scaleFactor, frame.width, metersPerPixel, scaleFactor);
-                var northX = frame.x + frame.width - 10 * scaleFactor;
-                var northY = frame.y + 14 * scaleFactor;
+                renderScaleBar(context, frame.x + frame.width * 0.72, frame.y + frame.height - 9 * scaleFactor, frame.width, metersPerPixel, scaleFactor);
+                var northX = frame.x + frame.width - 12 * scaleFactor;
+                var northY = frame.y + 13 * scaleFactor;
                 context.fillStyle = '#ffffff';
                 context.fillRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
                 context.strokeStyle = '#c5cccc';
@@ -1758,8 +1930,9 @@
                 var metadata = [
                     'Coordenadas geográficas · SIRGAS 2000 / EPSG:4674',
                     'Dados: ' + (elements.sources.value.trim() || 'não informadas'),
-                    'Satélite da localização: Esri, Vantor, Earthstar Geographics e comunidade GIS',
+                    'Imagem de satélite: Esri, Vantor, Earthstar Geographics e comunidade GIS',
                     basemapCredit() ? 'Mapa-base: ' + basemapCredit() : '',
+                    manualCrsCredit(),
                     elements.author.value.trim() ? 'Responsável: ' + elements.author.value.trim() : '',
                     elements.date.value ? 'Data: ' + formatDate(elements.date.value) : '',
                     'Logotipos institucionais; não implicam aprovação.'
@@ -1824,7 +1997,7 @@
                     try {
                         canvas.toDataURL('image/png');
                     } catch (error) {
-                        throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não pôde ser carregado.');
+                        throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não será substituído silenciosamente.');
                     }
                     elements.mapStatus.textContent = 'Codificando a imagem final…';
                     return canvas;
@@ -1938,6 +2111,338 @@
         }, 50);
     }
 
+    var pointCoordinateValues = {};
+
+    function geometryInputSettings() {
+        return {
+            crs: elements.geometryCrs.value,
+            format: elements.coordinateFormat.value,
+            zone: elements.utmZone.value,
+            hemisphere: elements.utmHemisphere.value
+        };
+    }
+
+    function createCoordinateInput(container, axis, values, geometryRow) {
+        var wrapper = document.createElement('label');
+        var input = document.createElement('input');
+        var isUtm = elements.geometryCrs.value === 'UTM';
+        var labels = isUtm
+            ? { easting: 'E (metros)', northing: 'N (metros)' }
+            : { latitude: 'Latitude', longitude: 'Longitude' };
+        wrapper.textContent = labels[axis];
+        input.type = 'text';
+        input.inputMode = 'decimal';
+        input.autocomplete = 'off';
+        input.value = values[axis] || '';
+        input.dataset.axis = axis;
+        input.placeholder = isUtm
+            ? (axis === 'easting' ? 'Ex.: 650000' : 'Ex.: 6900000')
+            : (elements.coordinateFormat.value === 'dms'
+                ? (axis === 'latitude' ? 'Ex.: 28 30 0 S' : 'Ex.: 48 45 0 W')
+                : (axis === 'latitude' ? 'Ex.: -28.5' : 'Ex.: -48.75'));
+        input.addEventListener('input', function () {
+            values[axis] = input.value;
+            if (geometryRow) {
+                updatePolygonPreview();
+            }
+        });
+        wrapper.appendChild(input);
+        container.appendChild(wrapper);
+    }
+
+    function renderPointInputs() {
+        elements.pointFields.replaceChildren();
+        var row = document.createElement('div');
+        row.className = 'vertex-coordinate-row';
+        if (elements.geometryCrs.value === 'UTM') {
+            createCoordinateInput(row, 'easting', pointCoordinateValues, false);
+            createCoordinateInput(row, 'northing', pointCoordinateValues, false);
+        } else {
+            createCoordinateInput(row, 'latitude', pointCoordinateValues, false);
+            createCoordinateInput(row, 'longitude', pointCoordinateValues, false);
+        }
+        elements.pointFields.appendChild(row);
+    }
+
+    function captureVertexValues() {
+        Array.prototype.forEach.call(elements.polygonVertices.children, function (row, index) {
+            var values = polygonVertexValues[index];
+            Array.prototype.forEach.call(row.querySelectorAll('input[data-axis]'), function (input) {
+                values[input.dataset.axis] = input.value;
+            });
+        });
+    }
+
+    var polygonVertexValues = [];
+
+    function renderVertexRows() {
+        elements.polygonVertices.replaceChildren();
+        polygonVertexValues.forEach(function (values, index) {
+            var row = document.createElement('div');
+            var heading = document.createElement('div');
+            var title = document.createElement('span');
+            var actions = document.createElement('div');
+            var coordinates = document.createElement('div');
+            row.className = 'vertex-item';
+            heading.className = 'vertex-heading';
+            actions.className = 'vertex-actions';
+            coordinates.className = 'vertex-coordinate-row';
+            title.textContent = 'Ponto ' + (index + 1);
+            heading.appendChild(title);
+            [
+                { label: 'Mover para cima', icon: 'fa-arrow-up', offset: -1 },
+                { label: 'Mover para baixo', icon: 'fa-arrow-down', offset: 1 },
+                { label: 'Excluir vértice', icon: 'fa-trash', remove: true }
+            ].forEach(function (action) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.innerHTML = '<i class="fas ' + action.icon + '" aria-hidden="true"></i>';
+                button.setAttribute('aria-label', action.label + ' ' + (index + 1));
+                button.disabled = !action.remove && (index + action.offset < 0 ||
+                    index + action.offset >= polygonVertexValues.length);
+                button.addEventListener('click', function () {
+                    captureVertexValues();
+                    if (action.remove) {
+                        if (polygonVertexValues.length <= 3) {
+                            elements.geometryError.textContent = 'Mantenha pelo menos três vértices para formar o polígono.';
+                            return;
+                        }
+                        polygonVertexValues.splice(index, 1);
+                    } else {
+                        var target = index + action.offset;
+                        var moved = polygonVertexValues.splice(index, 1)[0];
+                        polygonVertexValues.splice(target, 0, moved);
+                    }
+                    renderVertexRows();
+                    updatePolygonPreview();
+                });
+                actions.appendChild(button);
+            });
+            if (elements.geometryCrs.value === 'UTM') {
+                createCoordinateInput(coordinates, 'easting', values, true);
+                createCoordinateInput(coordinates, 'northing', values, true);
+            } else {
+                createCoordinateInput(coordinates, 'latitude', values, true);
+                createCoordinateInput(coordinates, 'longitude', values, true);
+            }
+            heading.appendChild(actions);
+            row.append(heading, coordinates);
+            elements.polygonVertices.appendChild(row);
+        });
+    }
+
+    function readInputCoordinates(values) {
+        return window.GeradorGeometrias.toSIRGAS2000(values, geometryInputSettings(), window.proj4);
+    }
+
+    function getPolygonCoordinates() {
+        captureVertexValues();
+        var settings = geometryInputSettings();
+        return polygonVertexValues.map(function (values) {
+            return readInputCoordinates(values);
+        });
+    }
+
+    function updatePolygonPreview() {
+        if (geometryType !== 'Polygon') {
+            return;
+        }
+        if (previewGeometryLayer) {
+            map.removeLayer(previewGeometryLayer);
+            previewGeometryLayer = null;
+        }
+        try {
+            var ring = window.GeradorGeometrias.closeAndValidatePolygon(getPolygonCoordinates());
+            var preview = {
+                type: 'FeatureCollection',
+                features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }]
+            };
+            previewGeometryLayer = L.geoJSON(preview, {
+                style: { color: '#d84daf', weight: 3, opacity: 1, fillColor: '#d84daf', fillOpacity: 0.18, dashArray: '6 4' }
+            }).addTo(map);
+            map.fitBounds(previewGeometryLayer.getBounds(), { padding: [30, 30], maxZoom: 16 });
+            elements.geometryError.textContent = '';
+        } catch (error) {
+            elements.geometryError.textContent = error.message;
+        }
+    }
+
+    function refreshGeometryFields() {
+        var isUtm = elements.geometryCrs.value === 'UTM';
+        elements.coordinateFormat.hidden = isUtm;
+        elements.coordinateFormatLabel.hidden = isUtm;
+        elements.utmOptions.hidden = !isUtm;
+        elements.geometryCrsNote.textContent = 'A geometria será convertida para SIRGAS 2000 / EPSG:4674; o CRS de entrada será registrado na camada.';
+        renderPointInputs();
+        renderVertexRows();
+        updatePolygonPreview();
+    }
+
+    function openGeometryDialog(type, stateToEdit) {
+        if (!window.GeradorGeometrias || !window.proj4) {
+            showToast('A biblioteca para conversão de coordenadas não carregou. Recarregue a página com conexão à internet.', true);
+            return;
+        }
+        geometryType = type;
+        editingState = stateToEdit || null;
+        elements.geometryCrs.value = stateToEdit ? stateToEdit.sourceSettings.crs : 'EPSG:4674';
+        elements.coordinateFormat.value = stateToEdit ? stateToEdit.sourceSettings.format : 'decimal';
+        elements.utmZone.value = stateToEdit ? stateToEdit.sourceSettings.zone : '22';
+        elements.utmHemisphere.value = stateToEdit ? stateToEdit.sourceSettings.hemisphere : 'south';
+        pointCoordinateValues = stateToEdit ? Object.assign({}, stateToEdit.sourceValues) : {};
+        polygonVertexValues = stateToEdit
+            ? (stateToEdit.sourceVertices || []).map(function (values) { return Object.assign({}, values); })
+            : (type === 'Polygon' ? [{}, {}, {}] : []);
+        elements.geometryTitle.textContent = (type === 'Point' ? 'Adicionar ponto' : 'Adicionar polígono') +
+            (stateToEdit ? ' — editar' : '');
+        elements.geometryName.value = stateToEdit ? stateToEdit.originalName : '';
+        document.getElementById('confirm-geometry').textContent = stateToEdit ? 'Salvar alterações' : 'Criar geometria';
+        elements.geometryError.textContent = '';
+        elements.pointFields.hidden = type !== 'Point';
+        elements.polygonEditor.hidden = type !== 'Polygon';
+        elements.addVertex.hidden = type !== 'Polygon';
+        if (previewGeometryLayer) {
+            map.removeLayer(previewGeometryLayer);
+            previewGeometryLayer = null;
+        }
+        refreshGeometryFields();
+        if (typeof elements.geometryDialog.showModal === 'function') {
+            elements.geometryDialog.showModal();
+        } else {
+            elements.geometryError.textContent = 'Este navegador não oferece suporte ao formulário de geometria.';
+        }
+    }
+
+    function createManualState(type, coordinates, sourceCrs, sourceValues, sourceSettings, sourceVertices) {
+        var name = elements.geometryName.value.trim() ||
+            (type === 'Point' ? 'Ponto manual' : 'Polígono manual');
+        var geometry = type === 'Point'
+            ? { type: 'Point', coordinates: coordinates }
+            : { type: 'Polygon', coordinates: [coordinates] };
+        var definition = {
+            id: 'manual-' + Date.now() + '-' + (++manualSequence),
+            name: name,
+            source: 'Geometria criada manualmente nesta sessão',
+            geometry: type,
+            color: '#d84daf',
+            stroke: '#85236c',
+            opacity: 0.55
+        };
+        var feature = {
+            type: 'Feature',
+            properties: { name: name, sourceCrs: sourceCrs, targetCrs: 'EPSG:4674' },
+            geometry: geometry
+        };
+        return {
+            id: definition.id,
+            definition: definition,
+            data: { type: 'FeatureCollection', features: [feature] },
+            originalName: name,
+            label: name,
+            legendLabel: name,
+            sourceCrs: sourceCrs,
+            sourceValues: Object.assign({}, sourceValues),
+            sourceSettings: Object.assign({}, sourceSettings),
+            sourceVertices: (sourceVertices || []).map(function (values) { return Object.assign({}, values); }),
+            manual: true,
+            color: definition.color,
+            opacity: definition.opacity,
+            visible: true,
+            layer: null,
+            bounds: getGeometryBounds({ features: [feature] }),
+            error: ''
+        };
+    }
+
+    function closeGeometryDialog() {
+        if (previewGeometryLayer) {
+            map.removeLayer(previewGeometryLayer);
+            previewGeometryLayer = null;
+        }
+        elements.geometryError.textContent = '';
+    }
+
+    function initializeUtmZoneOptions() {
+        for (var zone = 1; zone <= 60; zone += 1) {
+            var option = document.createElement('option');
+            option.value = String(zone);
+            option.textContent = 'Zona ' + zone;
+            option.selected = zone === 22;
+            elements.utmZone.appendChild(option);
+        }
+    }
+
+    function confirmGeometry(event) {
+        event.preventDefault();
+        try {
+            var settings = geometryInputSettings();
+            var sourceCrs = settings.crs === 'UTM'
+                ? 'SIRGAS 2000 / UTM ' + settings.zone + (settings.hemisphere === 'south' ? 'S' : 'N')
+                : settings.crs;
+            var coordinates;
+            var sourceValues;
+            if (geometryType === 'Point') {
+                sourceValues = {};
+                Array.prototype.forEach.call(elements.pointFields.querySelectorAll('input[data-axis]'), function (input) {
+                    sourceValues[input.dataset.axis] = input.value;
+                });
+                coordinates = readInputCoordinates(sourceValues);
+            } else {
+                coordinates = window.GeradorGeometrias.closeAndValidatePolygon(getPolygonCoordinates());
+            }
+            closeGeometryDialog();
+            var state = editingState;
+            if (state) {
+                var previousName = state.originalName;
+                state.data.features[0].geometry = geometryType === 'Point'
+                    ? { type: 'Point', coordinates: coordinates }
+                    : { type: 'Polygon', coordinates: [coordinates] };
+                state.data.features[0].properties.name = elements.geometryName.value.trim() || previousName;
+                state.data.features[0].properties.sourceCrs = sourceCrs;
+                state.bounds = getGeometryBounds(state.data);
+                state.sourceCrs = sourceCrs;
+                state.sourceSettings = Object.assign({}, settings);
+                state.sourceValues = Object.assign({}, sourceValues);
+                state.sourceVertices = geometryType === 'Polygon'
+                    ? polygonVertexValues.map(function (values) { return Object.assign({}, values); })
+                    : [];
+                state.originalName = state.data.features[0].properties.name;
+                state.definition.name = state.originalName;
+                if (state.label === previousName) {
+                    state.label = state.originalName;
+                    state.displayInput.value = state.label;
+                }
+                if (state.legendLabel === previousName) {
+                    state.legendLabel = state.originalName;
+                    state.legendInput.value = state.legendLabel;
+                }
+                state.originalTitle.textContent = state.originalName;
+                state.originalTitle.title = 'Nome original: ' + state.originalName;
+                if (state.crsLabel) {
+                    state.crsLabel.textContent = 'Entrada: ' + state.sourceCrs + ' · geometria: SIRGAS 2000 / EPSG:4674';
+                }
+                updateLayerSearchText(state);
+                refreshLayer(state);
+            } else {
+                state = createManualState(geometryType, coordinates, sourceCrs, sourceValues, settings,
+                    geometryType === 'Polygon' ? polygonVertexValues : []);
+                states.push(state);
+                addStateToMap(state);
+                addLayerControls(state);
+            }
+            if (geometryType === 'Point') {
+                map.setView([coordinates[1], coordinates[0]], Math.max(map.getZoom(), 14));
+            } else if (state.layer.getBounds().isValid()) {
+                map.fitBounds(state.layer.getBounds(), { padding: [30, 30], maxZoom: 16 });
+            }
+            elements.geometryDialog.close();
+            editingState = null;
+            updateMapComposition();
+        } catch (error) {
+            elements.geometryError.textContent = error.message || 'Não foi possível construir a geometria.';
+        }
+    }
+
     function bindControls() {
         elements.basemap.addEventListener('change', function () {
             setBasemap(elements.basemap.value);
@@ -1959,9 +2464,37 @@
         });
         elements.legendLimit.addEventListener('change', updateMapComposition);
         elements.fileImport.addEventListener('change', function () {
-            importLocalFile(elements.fileImport.files && elements.fileImport.files[0]);
+            Array.prototype.forEach.call(elements.fileImport.files || [], importLocalFile);
         });
         elements.exportButton.addEventListener('click', exportMap);
+        elements.layerSearch.addEventListener('input', updateLayerSearch);
+        elements.clearLayerSearch.addEventListener('click', function () {
+            elements.layerSearch.value = '';
+            updateLayerSearch();
+            elements.layerSearch.focus();
+        });
+        elements.pointButton.addEventListener('click', function () { openGeometryDialog('Point'); });
+        elements.polygonButton.addEventListener('click', function () { openGeometryDialog('Polygon'); });
+        elements.geometryCrs.addEventListener('change', refreshGeometryFields);
+        elements.coordinateFormat.addEventListener('change', refreshGeometryFields);
+        elements.addVertex.addEventListener('click', function () {
+            captureVertexValues();
+            polygonVertexValues.push({});
+            renderVertexRows();
+            elements.geometryError.textContent = '';
+        });
+        elements.geometryForm.addEventListener('submit', confirmGeometry);
+        elements.cancelGeometry.addEventListener('click', function () {
+            closeGeometryDialog();
+            elements.geometryDialog.close();
+            editingState = null;
+        });
+        elements.closeGeometryDialog.addEventListener('click', function () {
+            closeGeometryDialog();
+            elements.geometryDialog.close();
+            editingState = null;
+        });
+        elements.geometryDialog.addEventListener('close', closeGeometryDialog);
     }
 
     function start() {
@@ -1972,6 +2505,7 @@
             return;
         }
         elements.date.value = todayISO();
+        initializeUtmZoneOptions();
         initializeMaps();
         bindControls();
         setBasemap('white');

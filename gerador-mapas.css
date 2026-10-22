@@ -212,6 +212,301 @@ body {
     margin: 0 0 12px;
 }
 
+.layer-search {
+    margin: 12px 0;
+}
+
+.layer-search .field-label {
+    margin-top: 0;
+}
+
+.layer-search-control {
+    display: flex;
+    gap: 5px;
+}
+
+.layer-search-control input {
+    min-width: 0;
+    flex: 1;
+    padding: 8px 9px;
+    color: var(--map-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    border: 1px solid #c9d4d4;
+    border-radius: 7px;
+}
+
+.layer-search-control button,
+.icon-button {
+    width: 36px;
+    min-height: 36px;
+    color: var(--map-teal-dark);
+    background: #f3f8f7;
+    border: 1px solid #c9d4d4;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.layer-item[hidden] {
+    display: none;
+}
+
+.layer-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.layer-actions button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: var(--map-teal-dark);
+    background: #fff;
+    border: 1px solid #c9d4d4;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.layer-actions button:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+.layer-item-header {
+    grid-template-columns: minmax(0, 1fr) 28px auto;
+}
+
+.layer-item.zone-managed .layer-item-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.layer-crs {
+    margin: 6px 0 0;
+    color: var(--map-muted);
+    font-size: 0.7rem;
+}
+
+.layer-legend-name {
+    width: 100%;
+    margin-top: 7px;
+    padding: 6px 8px;
+    color: #334548;
+    font: inherit;
+    font-size: 0.78rem;
+    background: #fff;
+    border: 1px solid #d3dfde;
+    border-radius: 5px;
+}
+
+.legend-name-row {
+    display: flex;
+    gap: 4px;
+}
+
+.legend-name-row .layer-legend-name {
+    min-width: 0;
+}
+
+.legend-name-reset {
+    flex: 0 0 auto;
+    margin-top: 7px;
+    padding: 5px 7px;
+    color: var(--map-teal-dark);
+    font-size: 0.72rem;
+    background: #eef7f5;
+    border: 1px solid #c8ddda;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.zone-name-input {
+    width: 100%;
+    margin: 5px 0 0 20px;
+    padding: 5px 6px;
+    color: #334548;
+    font: inherit;
+    font-size: 0.73rem;
+    border: 1px solid #d3dfde;
+    border-radius: 5px;
+}
+
+.geometry-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0 0 10px;
+}
+
+.secondary-button {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 9px;
+    color: var(--map-teal-dark);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: #eff8f6;
+    border: 1px solid #bfd9d4;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.secondary-button:hover {
+    background: #dff1ed;
+}
+
+.geometry-dialog {
+    width: min(620px, calc(100vw - 28px));
+    max-height: min(88vh, 850px);
+    padding: 0;
+    color: var(--map-ink);
+    background: #fff;
+    border: 1px solid var(--map-border);
+    border-radius: 12px;
+    box-shadow: 0 15px 60px #092d3350;
+}
+
+.geometry-dialog::backdrop {
+    background: #102b2bc2;
+}
+
+.geometry-dialog form {
+    max-height: inherit;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.geometry-dialog-header,
+.polygon-editor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.geometry-dialog-header h2,
+.polygon-editor-heading h3 {
+    margin: 0;
+    color: var(--map-teal-dark);
+    font-size: 1.05rem;
+}
+
+.geometry-dialog .field-label {
+    margin: 14px 0 6px;
+}
+
+.geometry-dialog input,
+.geometry-dialog select {
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 9px;
+    color: var(--map-ink);
+    font: inherit;
+    font-size: 0.88rem;
+    border: 1px solid #c9d4d4;
+    border-radius: 7px;
+}
+
+.geometry-dialog .field-row > div {
+    min-width: 0;
+}
+
+.coordinate-fields {
+    display: grid;
+    gap: 9px;
+}
+
+.coordinate-fields .field-label {
+    margin: 11px 0 5px;
+}
+
+.polygon-editor-heading {
+    margin-top: 15px;
+}
+
+.compact-button {
+    min-height: 32px;
+}
+
+.polygon-vertices {
+    display: grid;
+    gap: 8px;
+    margin-top: 9px;
+}
+
+.vertex-item {
+    padding: 9px;
+    background: #f7faf9;
+    border: 1px solid #e1e9e8;
+    border-radius: 7px;
+}
+
+.vertex-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    color: var(--map-teal-dark);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.vertex-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.vertex-actions button {
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    color: var(--map-teal-dark);
+    background: #fff;
+    border: 1px solid #c9d4d4;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.vertex-coordinate-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.vertex-coordinate-row label {
+    color: var(--map-muted);
+    font-size: 0.73rem;
+}
+
+.vertex-coordinate-row input {
+    margin-top: 4px;
+}
+
+.geometry-error {
+    min-height: 1.2em;
+    margin: 8px 0;
+    color: #a52d22;
+    font-size: 0.82rem;
+}
+
+.geometry-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.geometry-dialog-actions .export-button {
+    width: auto;
+    min-height: 38px;
+    margin: 0;
+    padding: 7px 13px;
+    font-size: 0.82rem;
+}
+
 .layer-item {
     padding: 9px 10px;
     background: #f8fbfa;
@@ -264,7 +559,7 @@ body {
 
 .layer-item-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 28px;
+    grid-template-columns: minmax(0, 1fr) 28px auto;
     align-items: center;
     gap: 5px;
 }
@@ -489,8 +784,8 @@ body {
 
 .north-arrow {
     position: absolute;
-    top: 2.5%;
-    right: 2.2%;
+    top: 8px;
+    right: 10px;
     z-index: 500;
     display: grid;
     width: 30px;
@@ -559,8 +854,8 @@ body {
 
 .preview-scale {
     position: absolute;
-    right: 5%;
-    bottom: 4%;
+    right: 10px;
+    bottom: 8px;
     z-index: 450;
     min-width: 110px;
     color: #111;

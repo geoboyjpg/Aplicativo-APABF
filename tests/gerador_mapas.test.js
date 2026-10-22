@@ -110,39 +110,181 @@ test('composition uses the requested existing institutional logos', function () 
         const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
         assert.ok(page.includes(encodedPath));
     });
+});
 
-    test('location inset is paired with stacked logos and credits remain outside the map', function () {
-        const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
-        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
-        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
-        const sidebar = page.slice(page.indexOf('<aside class="preview-sidebar">'), page.indexOf('</aside>', page.indexOf('<aside class="preview-sidebar">')));
+test('location inset retains provider credits without duplicating satellite attribution', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const sidebar = page.slice(page.indexOf('<aside class="preview-sidebar">'), page.indexOf('</aside>', page.indexOf('<aside class="preview-sidebar">')));
 
-        assert.doesNotMatch(sidebar, /Localização na APABF/);
-        assert.doesNotMatch(sidebar, /overview-caption/);
-        assert.match(sidebar, /class="overview-frame"[\s\S]*?class="preview-logos"/);
-        assert.match(styles, /\.preview-logos\s*\{[^}]*flex-direction:\s*column/s);
-        assert.match(implementation, /attributionControl:\s*false/);
-        assert.match(implementation, /Satélite da localização: Esri, Vantor, Earthstar Geographics/);
-        assert.match(implementation, /weight:\s*1\.2,\s*opacity:\s*1,\s*fillOpacity:\s*0/);
-    });
+    assert.doesNotMatch(sidebar, /Localização na APABF/);
+    assert.doesNotMatch(sidebar, /overview-caption/);
+    assert.match(sidebar, /class="overview-frame"[\s\S]*?class="preview-logos"/);
+    assert.match(styles, /\.preview-logos\s*\{[^}]*flex-direction:\s*column/s);
+    assert.match(implementation, /attributionControl:\s*false/);
+    assert.match(implementation, /Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community/);
+    assert.match(implementation, /Imagem de satélite: Esri, Vantor, Earthstar Geographics e comunidade GIS/);
+    assert.match(implementation, /weight:\s*1\.2,\s*opacity:\s*1,\s*fillOpacity:\s*0/);
+});
 
-    test('legend can switch columns and explicitly report configured omissions', function () {
-        const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
-        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
-        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
-        assert.match(page, /id="legend-limit"/);
-        assert.match(styles, /\.legend-list\.is-two-columns/);
-        assert.match(implementation, /entryItems\.length > 8 \? 2 : 1/);
-        assert.match(implementation, /Mais ' \+ legend\.omitted \+ ' itens não exibidos/);
-        assert.match(implementation, /essential:\s*Boolean\(state\.zoneStyles\)/);
-    });
+test('legend can switch columns and explicitly report configured omissions', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    assert.match(page, /id="legend-limit"/);
+    assert.match(styles, /\.legend-list\.is-two-columns/);
+    assert.match(implementation, /entryItems\.length > 8 \? 2 : 1/);
+    assert.match(implementation, /Mais ' \+ legend\.omitted \+ ' itens não exibidos/);
+    assert.match(implementation, /essential:\s*Boolean\(state\.zoneStyles\)/);
+});
 
-    test('print composition uses dynamic two-column legends and rotated left coordinates', function () {
-        const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
-        const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
-        assert.match(implementation, /context\.rotate\(-Math\.PI \/ 2\)/);
-        assert.match(implementation, /renderLegendCanvas\(context,[\s\S]*?legendMaxHeight/);
-        assert.match(implementation, /metersPerPixel = groundWidth[\s\S]*?renderScaleBar/);
-        assert.match(styles, /\.map-latitudes span\s*\{[^}]*rotate\(-90deg\)/s);
-    });
+test('print composition retains top/left coordinate labels and anchors map furniture to the frame', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const frame = implementation.slice(implementation.indexOf('function drawCoordinateFrame'), implementation.indexOf('function wrappedLines'));
+    assert.match(frame, /topCoordinate\.lon/);
+    assert.match(frame, /leftCoordinate\.lat/);
+    assert.doesNotMatch(frame, /bottomCoordinate|rightCoordinate/);
+    assert.match(frame, /context\.strokeStyle = '#000'/);
+    assert.match(implementation, /frame\.x \+ frame\.width \* 0\.72,[\s\S]*?frame\.y \+ frame\.height - 9 \* scaleFactor/);
+    assert.match(implementation, /frame\.x \+ frame\.width - 12 \* scaleFactor/);
+    assert.match(implementation, /context\.rotate\(-Math\.PI \/ 2\)/);
+    assert.match(implementation, /renderLegendCanvas\(context,[\s\S]*?legendMaxHeight/);
+    assert.match(implementation, /metersPerPixel = groundWidth[\s\S]*?renderScaleBar/);
+    assert.match(styles, /\.map-latitudes span\s*\{[^}]*rotate\(-90deg\)/s);
+});
+
+test('imports selected KML/KMZ files without replacing layer state or the sidebar', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const geometry = fs.readFileSync(path.join(ROOT, 'gerador-mapas-geometrias.js'), 'utf8');
+    assert.match(page, /id="file-import"[^>]*multiple/);
+    assert.match(implementation, /mergeLayerStates\(loadedStates, states\)/);
+    assert.match(geometry, /function mergeLayerStates\(loadedStates, existingStates\)/);
+    assert.match(implementation, /function addLayerControls\(state\)[\s\S]*?elements\.layerList\.appendChild\(item\)/);
+    assert.match(implementation, /function parseKml\(text, filename\)/);
+    assert.match(implementation, /window\.JSZip\.loadAsync\(buffer\)/);
+    assert.match(implementation, /candidates\[0\]\.async\('text'\)/);
+    assert.match(implementation, /id: 'importado-' \+ Date\.now\(\) \+ '-' \+ \(\+\+manualSequence\)/);
+});
+
+test('concurrent catalog completion preserves imported and manually created layer objects', function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const imported = { id: 'importado-teste', layer: { visible: true } };
+    const manual = { id: 'manual-teste', layer: { visible: true } };
+    const official = [{ id: 'zoneamento' }];
+    const merged = geometry.mergeLayerStates(official, [imported, manual]);
+    assert.deepEqual(merged, [official[0], imported, manual]);
+    assert.equal(merged[1].layer, imported.layer);
+    assert.equal(merged[2].layer, manual.layer);
+});
+
+test('layer panel separates original, display, and legend names and supports live search', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    assert.match(page, /id="layer-search"/);
+    assert.match(page, /id="clear-layer-search"/);
+    assert.match(implementation, /originalName: definition\.name/);
+    assert.match(implementation, /legendLabel: definition\.name/);
+    assert.match(implementation, /names = \[state\.originalName, state\.label, state\.legendLabel\]/);
+    assert.match(implementation, /state\.legendLabel = state\.originalName/);
+    assert.match(implementation, /elements\.clearLayerSearch\.addEventListener\('click'/);
+    assert.match(implementation, /item\.hidden = query && item\.dataset\.searchText\.indexOf\(query\) === -1/);
+    assert.match(implementation, /names\.push\(zone\.name, zone\.displayLabel\)/);
+    assert.match(implementation, /state\.zoneStyles\.forEach/);
+    assert.match(implementation, /zone\.displayLabel = zoneNameInput\.value\.trim\(\) \|\| zone\.name/);
+});
+
+test('zone main layer omits aggregate style controls while individual zone controls remain', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    assert.match(implementation, /if \(!state\.zoneStyles\) \{[\s\S]*?color\.type = 'color'[\s\S]*?opacityRow/);
+    assert.match(implementation, /zoneNameInput\.type = 'text'/);
+    assert.match(implementation, /zone\.color = color\.value/);
+    assert.match(implementation, /zone\.opacity = Number\(opacity\.value\) \/ 100/);
+});
+
+test('geographic decimal and DMS inputs validate ranges and hemispheres', function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    assert.deepEqual(geometry.geographicCoordinates({ latitude: '-28.5', longitude: '-48,75' }, 'decimal'), [-48.75, -28.5]);
+    assert.deepEqual(geometry.geographicCoordinates({ latitude: '28 30 0 S', longitude: '48 45 0 W' }, 'dms'), [-48.75, -28.5]);
+    assert.throws(function () {
+        geometry.geographicCoordinates({ latitude: '91', longitude: '0' }, 'decimal');
+    }, /Latitude fora/);
+    assert.throws(function () {
+        geometry.geographicCoordinates({ latitude: '28 60 0 N', longitude: '48 0 0 W' }, 'dms');
+    }, /Minutos e segundos/);
+    assert.throws(function () {
+        geometry.geographicCoordinates({ latitude: '28 30 0 E', longitude: '48 0 0 W' }, 'dms');
+    }, /hemisfério/);
+});
+
+test('coordinate conversion selects geographic and UTM source CRS and preserves E/N order', function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const calls = [];
+    function projection(source, target, coordinates) {
+        calls.push({ source: source, target: target, coordinates: coordinates });
+        return [-48.5, -28.2];
+    }
+    projection.defs = function (code, definition) {
+        calls.push({ code: code, definition: definition });
+    };
+    assert.deepEqual(geometry.toSIRGAS2000(
+        { latitude: '-28.2', longitude: '-48.5' },
+        { crs: 'EPSG:4326', format: 'decimal' },
+        projection
+    ), [-48.5, -28.2]);
+    assert.equal(calls.find(function (call) { return call.source; }).source, 'EPSG:4326');
+    calls.length = 0;
+    assert.deepEqual(geometry.toSIRGAS2000(
+        { easting: '650000', northing: '6900000' },
+        { crs: 'UTM', zone: '22', hemisphere: 'south' },
+        projection
+    ), [-48.5, -28.2]);
+    assert.deepEqual(calls.find(function (call) { return call.coordinates; }).coordinates, [650000, 6900000]);
+    assert.ok(calls.some(function (call) {
+        return call.code === 'SIRGAS2000_UTM_22S' && call.definition.includes('+south');
+    }));
+    assert.throws(function () {
+        geometry.toSIRGAS2000({ easting: '650000', northing: '6900000' },
+            { crs: 'UTM', zone: '61', hemisphere: 'south' }, projection);
+    }, /zona UTM/);
+});
+
+test('polygons close rings and reject too few, zero-area, and self-intersecting vertices', function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const ring = geometry.closeAndValidatePolygon([[0, 0], [1, 0], [1, 1]]);
+    assert.deepEqual(ring, [[0, 0], [1, 0], [1, 1], [0, 0]]);
+    assert.throws(function () {
+        geometry.closeAndValidatePolygon([[0, 0], [1, 1], [0, 0]]);
+    }, /três vértices distintos/);
+    assert.throws(function () {
+        geometry.closeAndValidatePolygon([[0, 0], [1, 1], [2, 2]]);
+    }, /área nula/);
+    assert.throws(function () {
+        geometry.closeAndValidatePolygon([[0, 0], [2, 2], [0, 2], [2, 0]]);
+    }, /área nula|cruzam/);
+    assert.throws(function () {
+        geometry.closeAndValidatePolygon([[0, 0], [3, 3], [0, 2], [2, 0]]);
+    }, /cruzam/);
+});
+
+test('manual geometry workflow includes preview, vertex editing, CRS metadata, and session-layer management', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const geometry = fs.readFileSync(path.join(ROOT, 'gerador-mapas-geometrias.js'), 'utf8');
+    assert.match(page, /Adicionar ponto/);
+    assert.match(page, /Adicionar polígono/);
+    assert.match(implementation, /function updatePolygonPreview\(\)/);
+    assert.match(geometry, /function closeAndValidatePolygon/);
+    assert.match(implementation, /addLayerControls\(state\)/);
+    assert.match(implementation, /sourceCrs: sourceCrs/);
+    assert.match(implementation, /state\.manual/);
+    assert.match(implementation, /function closeGeometryDialog\(\)/);
+    assert.match(implementation, /polygonVertexValues\.push\(\{\}\)/);
+    assert.match(implementation, /polygonVertexValues\.splice\(target, 0, moved\)/);
+    assert.match(implementation, /polygonVertexValues\.splice\(index, 1\)/);
+    assert.match(implementation, /map\.removeLayer\(previewGeometryLayer\)/);
+    assert.match(implementation, /state\.sourceSettings = Object\.assign/);
+});
 });
