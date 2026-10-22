@@ -55,6 +55,44 @@ class RelevanceTests(unittest.TestCase):
         self.assertIn(item["relevance"]["level"], {"alta", "media"})
         self.assertIn("Imbituba", item["locations"])
 
+    def test_keywords_without_summary_recover_scientific_and_regional_work(self):
+        item = self.item(
+            "Ecologia da baleia-franca-austral",
+            source_type="academica",
+        )
+        item["keywords"] = ["Eubalaena australis", "Santa Catarina"]
+        self.assertTrue(collector.classify(item, self.config))
+        self.assertIn(item["relevance"]["level"], {"alta", "media"})
+
+    def test_english_marine_science_without_apabf_name_is_complementary(self):
+        item = self.item(
+            "Southern right whale habitat and marine conservation",
+            "A synthesis of coastal biodiversity in Brazil.",
+            source_type="academica",
+        )
+        self.assertTrue(collector.classify(item, self.config))
+        self.assertEqual(item["relevance"]["level"], "complementar")
+        self.assertTrue(any("contexto científico complementar" in reason
+                            for reason in item["relevance"]["reason"]))
+
+    def test_spanish_species_and_coastal_conservation_terms_are_normalized(self):
+        item = self.item(
+            "Ecología de la ballena franca austral",
+            "Conservación marina y biodiversidad costera en Brasil.",
+            source_type="academica",
+        )
+        self.assertTrue(collector.classify(item, self.config))
+        self.assertEqual(item["relevance"]["level"], "complementar")
+
+    def test_generic_context_in_an_unrelated_region_is_not_complementary(self):
+        item = self.item(
+            "Marine conservation in Bahia",
+            "A study of coastal biodiversity.",
+            source_type="academica",
+        )
+        self.assertFalse(collector.classify(item, self.config))
+        self.assertEqual(item["relevance"]["level"], "baixa")
+
     def test_isolated_whale_mention_is_penalized(self):
         item = self.item("Baleia-franca é vista no oceano", "Espécie observada em águas distantes")
         self.assertFalse(collector.classify(item, self.config))
@@ -150,6 +188,15 @@ class RelevanceTests(unittest.TestCase):
         self.assertIn("Trilha do Casqueiro", vigia["aliases"])
         self.assertNotIn("Rota da Baleia Franca", caminhos["aliases"])
         self.assertEqual(rota["category"], "cicloturismo")
+        for query in (
+            "Eubalaena australis Santa Catarina",
+            "marine mammal strandings Santa Catarina",
+            "coastal biodiversity southern Brazil",
+            "conservación marina costa de Santa Catarina",
+        ):
+            self.assertIn(query, self.config["openalex_queries"])
+            self.assertIn(query, self.config["crossref_queries"])
+        self.assertIn("southern right whale", self.config["contextual_publication_topics"])
 
     def test_existing_item_reclassification_is_detected_as_json_change(self):
         item = self.item("Qualidade da água no Rio Tubarão")
@@ -190,13 +237,12 @@ class RelevanceTests(unittest.TestCase):
         self.assertTrue(study_result["evidence"]["territory"]["unit_terms"])
         self.assertTrue(study_result["evidence"]["topics"]["concrete_evidence"])
 
-    def test_contextual_assessment_is_explainable_and_does_not_change_legacy_filter(self):
+    def test_contextual_assessment_and_publication_filter_reject_traffic_camera_noise(self):
         with (ROOT / "dados" / "noticias-publicacoes.json").open(encoding="utf-8") as handle:
             records = json.load(handle)["items"]
         motorcycle = next(item for item in records if "motociclista" in item["title"])
+        self.assertFalse(collector.classify(motorcycle, self.config))
         original_reason = list(motorcycle["relevance"]["reason"])
-
-        self.assertTrue(collector.classify(motorcycle, self.config))
         evaluation = collector.assess_candidate(motorcycle, self.config)
 
         self.assertEqual(evaluation["decision"], "discarded")
@@ -416,6 +462,39 @@ class NormalizationTests(unittest.TestCase):
         self.assertEqual(duplicates, 1)
         self.assertEqual(added, 1)
 
+    def test_same_doi_merges_cross_source_metadata_but_similar_distinct_works_remain(self):
+        first = collector.make_item(
+            "Estudo costeiro", "Resumo curto", "https://doi.org/10.1234/alpha",
+            {"name": "OpenAlex", "type": "academica"}, "2026-01-01",
+            doi="10.1234/alpha", keywords=["coastal ecology"],
+            authors=["Ana Silva"], journal="Marine Ecology",
+        )
+        second = collector.make_item(
+            "Estudo costeiro", "Resumo detalhado sobre a biodiversidade local.",
+            "https://publisher.example/alpha",
+            {"name": "Crossref", "type": "academica"}, "2026-01-01",
+            doi="https://doi.org/10.1234/alpha", keywords=["coastal biodiversity"],
+            authors=["João Costa"],
+        )
+        distinct = collector.make_item(
+            "Estudo costeiro", "Outro trabalho", "https://doi.org/10.1234/beta",
+            {"name": "Crossref", "type": "academica"}, "2026-01-01",
+            doi="10.1234/beta",
+        )
+        merged, duplicates, added = collector.merge_items(
+            [], [first, second, distinct], "2026-01-02T00:00:00+00:00"
+        )
+        alpha = next(item for item in merged if item["doi"] == "https://doi.org/10.1234/alpha")
+
+        self.assertEqual(len(merged), 2)
+        self.assertEqual(duplicates, 1)
+        self.assertEqual(added, 2)
+        self.assertIn("Resumo detalhado", alpha["summary"])
+        self.assertEqual(set(alpha["authors"]), {"Ana Silva", "João Costa"})
+        self.assertIn("coastal biodiversity", alpha["keywords"])
+        self.assertEqual(alpha["journal"], "Marine Ecology")
+        self.assertEqual(set(alpha["sources"]), {"OpenAlex", "Crossref"})
+
 
 class CollectionSafetyTests(unittest.TestCase):
     @classmethod
@@ -519,7 +598,7 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertEqual(len(data["items"]), 95)
         self.assertTrue(all(item.get("id") and item.get("title") and item.get("url") for item in data["items"]))
 
-    def test_one_source_failure_keeps_successful_results_and_previous_records(self):
+    def test_one_source_failure_publishes_complete_source_and_preserves_old_records(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
         original_bytes = self.output_path.read_bytes()
@@ -529,10 +608,12 @@ class CollectionSafetyTests(unittest.TestCase):
         updated = json.loads(self.output_path.read_text(encoding="utf-8"))
         report = self.read_report()
         self.assertEqual(status, "partial")
-        self.assertEqual(self.output_path.read_bytes(), original_bytes)
-        self.assertEqual(updated["items"], previous)
-        self.assertFalse(report["data_written"])
-        self.assertEqual(report["summary"]["candidate_records_not_published"], 1)
+        self.assertNotEqual(self.output_path.read_bytes(), original_bytes)
+        self.assertEqual(len(updated["items"]), 2)
+        self.assertIn(previous[0]["id"], [item["id"] for item in updated["items"]])
+        self.assertEqual(updated["collection_status"], "partial")
+        self.assertTrue(report["data_written"])
+        self.assertEqual(report["summary"]["candidate_records_not_published"], 0)
         self.assertEqual(report["status"], "partial")
         self.assertEqual(report["summary"]["raw_results"], 1)
         self.assertEqual(report["summary"]["valid_records"], 1)
@@ -545,7 +626,7 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertEqual(report["source_summaries"]["Fonte válida"]["status"], "complete")
         self.assertEqual(report["source_summaries"]["Fonte falha"]["status"], "failed")
 
-    def test_all_sources_failing_does_not_rewrite_previous_data(self):
+    def test_all_sources_failing_preserves_snapshot_and_publishes_failure_status(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
         original_bytes = self.output_path.read_bytes()
@@ -562,12 +643,15 @@ class CollectionSafetyTests(unittest.TestCase):
             status = collector.run("news")
 
         self.assertEqual(status, "failed")
-        self.assertEqual(self.output_path.read_bytes(), original_bytes)
+        updated = json.loads(self.output_path.read_text(encoding="utf-8"))
+        self.assertNotEqual(self.output_path.read_bytes(), original_bytes)
+        self.assertEqual(updated["items"], previous)
+        self.assertEqual(updated["collection_status"], "failed")
         report = self.read_report()
-        self.assertFalse(report["data_written"])
+        self.assertTrue(report["data_written"])
         self.assertEqual(report["summary"]["failed_or_partial_requests"], 2)
 
-    def test_partial_source_does_not_publish_candidates_or_replace_existing_records(self):
+    def test_partial_page_can_enrich_existing_record_without_losing_its_identity(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
         original_bytes = self.output_path.read_bytes()
@@ -581,6 +665,7 @@ class CollectionSafetyTests(unittest.TestCase):
             if source["name"] == "Fonte falha":
                 metric["request_status"] = "success"
                 metric["collection_status"] = "partial"
+                metric["pages_consulted"] = 1
                 metric["raw_results"] = 1
                 metric["valid_records"] = 1
                 duplicate["_diagnostic_metric_id"] = metric["query_id"]
@@ -595,11 +680,14 @@ class CollectionSafetyTests(unittest.TestCase):
         updated = json.loads(self.output_path.read_text(encoding="utf-8"))
         report = self.read_report()
         self.assertEqual(status, "partial")
-        self.assertEqual(self.output_path.read_bytes(), original_bytes)
-        self.assertEqual(updated["items"], previous)
+        self.assertNotEqual(self.output_path.read_bytes(), original_bytes)
+        self.assertEqual(len(updated["items"]), 1)
+        self.assertEqual(updated["items"][0]["id"], previous[0]["id"])
+        self.assertEqual(updated["items"][0]["title"], duplicate["title"])
+        self.assertEqual(updated["collection_status"], "partial")
         self.assertEqual(report["summary"]["candidate_records_not_published"], 0)
 
-    def test_successful_partial_page_is_not_published(self):
+    def test_successful_partial_page_publishes_valid_records_with_partial_status(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
         original_bytes = self.output_path.read_bytes()
@@ -626,10 +714,12 @@ class CollectionSafetyTests(unittest.TestCase):
         updated = json.loads(self.output_path.read_text(encoding="utf-8"))
         report = self.read_report()
         self.assertEqual(status, "partial")
-        self.assertEqual(self.output_path.read_bytes(), original_bytes)
-        self.assertEqual(updated["items"], previous)
-        self.assertFalse(report["data_written"])
-        self.assertEqual(report["summary"]["candidate_records_not_published"], 1)
+        self.assertNotEqual(self.output_path.read_bytes(), original_bytes)
+        self.assertEqual(len(updated["items"]), 2)
+        self.assertIn(item["title"], [record["title"] for record in updated["items"]])
+        self.assertEqual(updated["collection_status"], "partial")
+        self.assertTrue(report["data_written"])
+        self.assertEqual(report["summary"]["candidate_records_not_published"], 0)
 
     def test_complete_empty_run_preserves_existing_records(self):
         previous = [self.existing_item()]
@@ -650,8 +740,11 @@ class CollectionSafetyTests(unittest.TestCase):
         updated = json.loads(self.output_path.read_text(encoding="utf-8"))
         report = self.read_report()
         self.assertEqual(status, "complete")
-        self.assertEqual(updated["items"], previous)
-        self.assertFalse(report["data_written"])
+        self.assertEqual(len(updated["items"]), 1)
+        self.assertEqual(updated["items"][0]["id"], previous[0]["id"])
+        self.assertEqual(updated["items"][0]["title"], previous[0]["title"])
+        self.assertTrue(report["data_written"])
+        self.assertEqual(updated["last_checked_at"], report["run_id"])
 
     def test_reexecution_deduplicates_and_preserves_identifiers(self):
         previous = [self.existing_item()]
@@ -665,8 +758,8 @@ class CollectionSafetyTests(unittest.TestCase):
         second = json.loads(self.output_path.read_text(encoding="utf-8"))
         self.assertEqual(first_status, "partial")
         self.assertEqual(second_status, "partial")
-        self.assertEqual(first["items"], previous)
-        self.assertEqual(second["items"], previous)
+        self.assertEqual(len(first["items"]), 2)
+        self.assertEqual(len(second["items"]), 2)
         self.assertEqual(
             {item["id"] for item in first["items"]},
             {item["id"] for item in second["items"]},
@@ -817,6 +910,17 @@ class PaginationTests(unittest.TestCase):
         ]
         self.assertEqual(pages_requested, ["1", "2"])
 
+    def test_openalex_short_page_before_announced_total_is_partial(self):
+        config = self.openalex_config()
+        metrics = []
+        response = self.openalex_response([self.openalex_work("10.1234/one")], 3)
+        with mock.patch.object(collector, "fetch_json", return_value=response):
+            items = collector.collect_openalex(config, None, metrics)
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(metrics[0]["collection_status"], "partial")
+        self.assertEqual(metrics[0]["interruption_reason"], "short_page_before_announced_total")
+
     def test_openalex_retries_transient_failure_and_reports_attempts(self):
         config = self.openalex_config()
         metrics = []
@@ -955,6 +1059,24 @@ class PaginationTests(unittest.TestCase):
         self.assertEqual(items[0]["keywords"], ["coastal ecology"])
         self.assertEqual(items[0]["authors"], ["Ada Silva"])
 
+    def test_crossref_requests_author_and_journal_fields(self):
+        config = self.openalex_config()
+        metrics = []
+        response = self.crossref_response([{
+            **self.crossref_record("10.2345/journal"),
+            "container-title": ["Journal of Coastal Ecology"],
+            "author": [{"given": "Ana", "family": "Silva"}],
+        }], 1)
+        with mock.patch.object(collector, "fetch_json", return_value=response) as fetch:
+            items = collector.collect_crossref(config, metrics)
+        params = collector.urllib.parse.parse_qs(
+            collector.urllib.parse.urlsplit(fetch.call_args.args[0]).query
+        )
+        self.assertIn("container-title", params["select"][0])
+        self.assertIn("author", params["select"][0])
+        self.assertEqual(items[0]["journal"], "Journal of Coastal Ecology")
+        self.assertEqual(items[0]["authors"], ["Ana Silva"])
+
     def test_crossref_short_and_empty_pages_complete_normally(self):
         config = self.openalex_config()
         for response, expected_count in (
@@ -969,6 +1091,30 @@ class PaginationTests(unittest.TestCase):
             self.assertEqual(len(items), expected_count)
             self.assertEqual(metrics[0]["collection_status"], "complete")
             self.assertEqual(metrics[0]["pages_consulted"], 1)
+
+    def test_crossref_incomplete_page_or_missing_cursor_is_partial(self):
+        config = self.openalex_config()
+        cases = (
+            (
+                self.crossref_response([self.crossref_record("10.2345/short")], 3),
+                "short_page_before_announced_total",
+            ),
+            (
+                self.crossref_response([
+                    self.crossref_record("10.2345/one"),
+                    self.crossref_record("10.2345/two"),
+                ], 5),
+                "missing_cursor_before_announced_total",
+            ),
+        )
+        for response, reason in cases:
+            metrics = []
+            with self.subTest(reason=reason), mock.patch.object(
+                collector, "fetch_json", return_value=response
+            ):
+                collector.collect_crossref(config, metrics)
+            self.assertEqual(metrics[0]["collection_status"], "partial")
+            self.assertEqual(metrics[0]["interruption_reason"], reason)
 
     def test_crossref_announced_total_completes_without_following_repeated_cursor(self):
         config = self.openalex_config()
@@ -1041,6 +1187,19 @@ class PaginationTests(unittest.TestCase):
         self.assertEqual(metrics[0]["collection_status"], "partial")
         self.assertEqual(metrics[0]["interruption_reason"], "repeated_cursor")
         self.assertFalse(metrics[0]["limit_reached"])
+
+    def test_openalex_extracts_primary_journal_name(self):
+        config = self.openalex_config()
+        work = self.openalex_work("10.1234/journal")
+        work["primary_location"] = {
+            "landing_page_url": "https://example.org/work",
+            "source": {"display_name": "Marine Ecology"},
+        }
+        with mock.patch.object(
+            collector, "fetch_json", return_value=self.openalex_response([work], 1)
+        ):
+            items = collector.collect_openalex(config, None, [])
+        self.assertEqual(items[0]["journal"], "Marine Ecology")
 
 
 class OaiContinuationTests(unittest.TestCase):
@@ -1363,25 +1522,22 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("concurrency:", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
         self.assertIn("if: always()", self.workflow)
-        self.assertIn("Garantir relatório de diagnóstico", self.workflow)
+        self.assertIn("Preparar estado do relatório", self.workflow)
         self.assertIn("Armazenar métricas da coleta", self.workflow)
         self.assertIn("upload-artifact@v4", self.workflow)
-        self.assertIn("diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json", self.workflow)
-        self.assertIn("diagnosticos/coletas/workflow-${{ github.run_id }}.json", self.workflow)
-        self.assertIn("workflow-fallback", self.workflow)
+        self.assertIn('f"diagnosticos/coletas/coleta-{run_id}-*.json"', self.workflow)
+        self.assertIn('f"diagnosticos/coletas/workflow-{run_id}.json"', self.workflow)
+        self.assertIn("collector_outcome", self.workflow)
 
-    def test_workflow_persists_state_on_failure_but_gates_public_data(self):
+    def test_workflow_persists_state_and_only_publishes_collector_validated_data(self):
         self.assertIn(
             "git add -- .github/state/noticias-oai-continuations.json",
             self.workflow,
         )
         self.assertIn('if [[ -f .github/state/noticias-oai-continuations.json ]]', self.workflow)
-        self.assertIn(
-            'if [[ "$COLLECT_OUTCOME" == "success" && "$DIAGNOSTIC_PREP_OUTCOME" == "success" && "$REPORT_OUTCOME" == "success" ]]',
-            self.workflow,
-        )
+        self.assertIn('if [[ "$DATA_WRITTEN" == "true" && -f dados/noticias-publicacoes.json ]]', self.workflow)
         self.assertIn("git add -- dados/noticias-publicacoes.json", self.workflow)
-        self.assertIn('git push origin "HEAD:${GITHUB_REF_NAME}"', self.workflow)
+        self.assertIn('git push origin "HEAD:${BRANCH}"', self.workflow)
         self.assertNotIn("--force", self.workflow)
         self.assertNotIn("OPENALEX_API_KEY", self.workflow)
 

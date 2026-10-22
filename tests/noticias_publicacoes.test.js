@@ -98,7 +98,7 @@ async function loadPage(fetchImpl) {
 
 function itemCount(items) {
     return items.filter(item => item.relevance
-        && ['alta', 'media'].includes(item.relevance.level)).length;
+        && ['alta', 'media', 'complementar'].includes(item.relevance.level)).length;
 }
 
 test('the page loads the valid dataset and renders searchable, filterable links', async function () {
@@ -118,7 +118,7 @@ test('the page loads the valid dataset and renders searchable, filterable links'
     });
     const results = elements.get('news-results');
     const visibleItems = data.items.filter(item => item.relevance
-        && ['alta', 'media'].includes(item.relevance.level));
+        && ['alta', 'media', 'complementar'].includes(item.relevance.level));
 
     assert.equal(requestedPath, 'dados/noticias-publicacoes.json');
     assert.equal(results.children.length, itemCount(data.items));
@@ -165,6 +165,82 @@ test('the page loads the valid dataset and renders searchable, filterable links'
     search.dispatch('input');
     assert.equal(results.children.length, 0);
     assert.match(elements.get('news-status').textContent, /Nenhum conteúdo corresponde/);
+});
+
+test('complementary publications, authors, journals, and partial collection status are visible', async function () {
+    const publication = {
+        title: 'Southern right whale ecology in Brazil',
+        summary: '',
+        url: 'https://doi.org/10.1234/example',
+        source: { name: 'Crossref', type: 'academica' },
+        published_at: '2025-01-01T00:00:00+00:00',
+        category: 'academico',
+        keywords: ['Eubalaena australis'],
+        authors: ['Ana Silva', 'João Costa'],
+        journal: 'Marine Ecology',
+        locations: [],
+        relevance: { level: 'complementar', score: 3, reason: ['contexto científico complementar'] }
+    };
+    const responseData = {
+        schema_version: 1,
+        generated_at: '2025-01-01T00:00:00+00:00',
+        last_checked_at: '2025-01-02T00:00:00+00:00',
+        collection_status: 'partial',
+        items: [publication]
+    };
+    const { elements } = await loadPage(async () => ({
+        ok: true,
+        json: async () => responseData
+    }));
+
+    const results = elements.get('news-results');
+    assert.equal(results.children.length, 1);
+    assert.match(results.children[0].textContent, /Relevância complementar/);
+    assert.match(results.children[0].textContent, /Ana Silva; João Costa/);
+    assert.match(results.children[0].textContent, /Marine Ecology/);
+    assert.match(elements.get('last-updated').textContent, /Coleta parcial/);
+    assert.match(elements.get('news-status').textContent, /dados anteriores foram preservados/);
+});
+
+test('a failed collection state is not displayed as a successful empty search', async function () {
+    const responseData = {
+        schema_version: 1,
+        generated_at: '',
+        last_checked_at: '2025-01-02T00:00:00+00:00',
+        collection_status: 'failed',
+        items: []
+    };
+    const { elements } = await loadPage(async () => ({
+        ok: true,
+        json: async () => responseData
+    }));
+
+    assert.match(elements.get('last-updated').textContent, /Última coleta falhou/);
+    assert.match(elements.get('news-status').textContent, /última coleta falhou/);
+    assert.equal(elements.get('results-count').textContent, '0 resultados');
+});
+
+test('a stale snapshot is labeled instead of appearing as a fresh collection', async function () {
+    const responseData = {
+        schema_version: 1,
+        generated_at: '2020-01-01T00:00:00+00:00',
+        items: [{
+            title: 'Publicação anterior',
+            summary: '',
+            url: 'https://example.org/old',
+            source: { name: 'Arquivo', type: 'academica' },
+            published_at: '2020-01-01T00:00:00+00:00',
+            category: 'academico',
+            relevance: { level: 'media', score: 5, reason: [] }
+        }]
+    };
+    const { elements } = await loadPage(async () => ({
+        ok: true,
+        json: async () => responseData
+    }));
+
+    assert.match(elements.get('last-updated').textContent, /Checagem desatualizada/);
+    assert.match(elements.get('news-status').textContent, /data da última checagem está desatualizada/);
 });
 
 test('a failed request offers retry and recovers after data becomes available', async function () {

@@ -12,6 +12,8 @@
     var sortSelect = document.getElementById('sort-order');
     var items = [];
     var filtersWired = false;
+    var collectionStatus = 'unknown';
+    var collectionFreshness = 'unknown';
     var categoryLabels = {
         noticia: 'Notícias',
         academico: 'Acadêmico',
@@ -54,16 +56,27 @@
         badges.className = 'news-badges';
         badges.appendChild(textElement('span', 'news-badge', categoryLabels[item.category] || 'Publicação'));
         var isHigh = item.relevance && item.relevance.level === 'alta';
+        var isComplementary = item.relevance && item.relevance.level === 'complementar';
         badges.appendChild(textElement(
             'span',
-            'news-badge ' + (isHigh ? 'relevance-high' : 'relevance-medium'),
-            'Relevância ' + (isHigh ? 'alta' : 'média') + ' · ' + item.relevance.score
+            'news-badge ' + (isHigh ? 'relevance-high' : isComplementary ? 'relevance-complementary' : 'relevance-medium'),
+            'Relevância ' + (isHigh ? 'alta' : isComplementary ? 'complementar' : 'média') + ' · ' + item.relevance.score
         ));
         card.appendChild(badges);
 
         card.appendChild(textElement('h2', '', item.title || 'Conteúdo sem título'));
         if (item.summary) {
             card.appendChild(textElement('p', 'news-card-summary', item.summary));
+        }
+        var academicDetails = [];
+        if (Array.isArray(item.authors) && item.authors.length) {
+            academicDetails.push(item.authors.join('; '));
+        }
+        if (item.journal) {
+            academicDetails.push(item.journal);
+        }
+        if (academicDetails.length) {
+            card.appendChild(textElement('p', 'news-card-authors', academicDetails.join(' · ')));
         }
 
         var metadata = document.createElement('div');
@@ -125,6 +138,9 @@
             var searchable = normalize([
                 item.title,
                 item.summary,
+                (item.authors || []).join(' '),
+                item.journal,
+                item.doi,
                 item.source && item.source.name,
                 (item.locations || []).join(' '),
                 (item.keywords || []).join(' ')
@@ -149,11 +165,23 @@
         });
         countElement.textContent = filtered.length + (filtered.length === 1 ? ' resultado' : ' resultados');
 
-        if (!items.length) {
+        if (!items.length && collectionStatus === 'failed') {
+            statusElement.textContent = 'A última coleta falhou e não há resultados publicados para exibir. Consulte o estado da coleta ou tente novamente mais tarde.';
+            statusElement.hidden = false;
+        } else if (!items.length) {
             statusElement.textContent = 'Ainda não há resultados publicados. A coleta automática será executada pelo GitHub Actions.';
             statusElement.hidden = false;
         } else if (!filtered.length) {
             statusElement.textContent = 'Nenhum conteúdo corresponde aos filtros selecionados.';
+            statusElement.hidden = false;
+        } else if (collectionStatus === 'partial') {
+            statusElement.textContent = 'Coleta parcial: os resultados de consultas concluídas estão disponíveis; os dados anteriores foram preservados.';
+            statusElement.hidden = false;
+        } else if (collectionStatus === 'failed') {
+            statusElement.textContent = 'A última coleta falhou. Os resultados exibidos pertencem à base anterior preservada.';
+            statusElement.hidden = false;
+        } else if (collectionFreshness === 'stale') {
+            statusElement.textContent = 'A data da última checagem está desatualizada. Os resultados publicados podem não incluir coletas recentes.';
             statusElement.hidden = false;
         } else {
             statusElement.hidden = true;
@@ -189,11 +217,27 @@
             }
             items = data.items.filter(function (item) {
                 return item.relevance
-                    && (item.relevance.level === 'alta' || item.relevance.level === 'media');
+                    && ['alta', 'media', 'complementar'].includes(item.relevance.level);
             });
-            updatedElement.textContent = data.generated_at
-                ? 'Última atualização: ' + formatDate(data.generated_at)
-                : 'Data da última atualização indisponível';
+            collectionStatus = data.collection_status || 'unknown';
+            var lastChecked = data.last_checked_at
+                ? 'Última checagem: ' + formatDate(data.last_checked_at)
+                : '';
+            var lastPublished = data.generated_at
+                ? 'Última publicação: ' + formatDate(data.generated_at)
+                : 'Data da última publicação indisponível';
+            var checkedAt = new Date(data.last_checked_at || data.generated_at || '');
+            collectionFreshness = Number.isNaN(checkedAt.getTime())
+                || Date.now() - checkedAt.getTime() > 7 * 24 * 60 * 60 * 1000
+                ? 'stale'
+                : 'fresh';
+            updatedElement.textContent = collectionStatus === 'partial'
+                ? 'Coleta parcial. ' + lastChecked + ' ' + lastPublished
+                : collectionStatus === 'failed'
+                    ? 'Última coleta falhou. ' + lastChecked + ' ' + lastPublished
+                    : collectionFreshness === 'stale'
+                        ? 'Checagem desatualizada. ' + lastChecked + ' ' + lastPublished
+                    : lastChecked || lastPublished;
             wireFilters();
             render();
         })
