@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: atualizar-noticias-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   atualizar:
     runs-on: ubuntu-latest
@@ -21,14 +25,64 @@ jobs:
           python-version: '3.x'
 
       - name: Coletar e atualizar os registros
+        id: collect
         run: python scripts/noticias_publicacoes.py
 
-      - name: Publicar alterações nos dados
+      - name: Garantir relatório de diagnóstico
+        if: always()
+        id: ensure_diagnostics
+        env:
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
         run: |
+          set -euo pipefail
+          mkdir -p diagnosticos/coletas
+          if ! compgen -G "diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json" > /dev/null; then
+            jq -n \
+              --arg run_id "$GITHUB_RUN_ID" \
+              --arg workflow "$GITHUB_WORKFLOW" \
+              --arg ref "$GITHUB_REF" \
+              --arg outcome "$COLLECT_OUTCOME" \
+              '{
+                schema_version: 1,
+                kind: "workflow-fallback",
+                run_id: $run_id,
+                workflow: $workflow,
+                ref: $ref,
+                collector_outcome: $outcome,
+                detail: "Collector did not produce a diagnostic report"
+              }' > "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json"
+          fi
+
+      - name: Armazenar métricas da coleta
+        if: always()
+        id: diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostico-noticias-${{ github.run_id }}
+          path: |
+            diagnosticos/coletas/coleta-${{ github.run_id }}-*.json
+            diagnosticos/coletas/workflow-${{ github.run_id }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Persistir estado OAI-PMH e publicar dados completos
+        if: always()
+        id: persist
+        env:
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+          DIAGNOSTIC_PREP_OUTCOME: ${{ steps.ensure_diagnostics.outcome }}
+          REPORT_OUTCOME: ${{ steps.diagnostics.outcome }}
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dados/noticias-publicacoes.json
+          if [[ -f .github/state/noticias-oai-continuations.json ]]; then
+            git add -- .github/state/noticias-oai-continuations.json
+          fi
+          if [[ "$COLLECT_OUTCOME" == "success" && "$DIAGNOSTIC_PREP_OUTCOME" == "success" && "$REPORT_OUTCOME" == "success" ]]; then
+            git add -- dados/noticias-publicacoes.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza notícias e publicações"
-            git push
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi

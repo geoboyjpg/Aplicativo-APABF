@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import gzip
 import hashlib
@@ -12,6 +13,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 import unicodedata
 import urllib.error
@@ -26,16 +28,210 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "noticias-publicacoes.json"
 OUTPUT_PATH = ROOT / "dados" / "noticias-publicacoes.json"
+DIAGNOSTICS_PATH = ROOT / "diagnosticos" / "coletas"
+OAI_STATE_PATH = ROOT / ".github" / "state" / "noticias-oai-continuations.json"
 USER_AGENT = "APABF-Publicacoes/1.0 (GitHub Actions; metadata-only collector)"
 TRACKING_PARAMS = {
     "fbclid", "gclid", "mc_cid", "mc_eid", "ref", "ref_src",
 }
 TIMEOUT_SECONDS = 25
 OAI_TIMEOUT_SECONDS = 90
+MAX_RETRY_ATTEMPTS = 3
 
 
 def log(message: str) -> None:
     print(f"[{dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')}] {message}", flush=True)
+
+
+def utc_now() -> str:
+    return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def safe_error(error: Exception) -> str:
+    if isinstance(error, urllib.error.HTTPError):
+        return f"HTTP {error.code}"
+    if isinstance(error, urllib.error.URLError):
+        reason = error.reason
+        return f"falha de conexão: {type(reason).__name__}"
+    if isinstance(error, TimeoutError):
+        return "tempo limite excedido"
+    if isinstance(error, ET.ParseError):
+        return "resposta XML inválida"
+    if isinstance(error, json.JSONDecodeError):
+        return "resposta JSON inválida"
+    return type(error).__name__
+
+
+def new_source_metric(
+    source: str,
+    query_id: str,
+    query: str,
+    limit: int | None = None,
+) -> dict:
+    return {
+        "source": source,
+        "query_id": query_id,
+        "query": query,
+        "attempted_at": utc_now(),
+        "request_status": "pending",
+        "raw_results": 0,
+        "valid_records": 0,
+        "accepted": 0,
+        "review": 0,
+        "discarded": 0,
+        "legacy_accepted": 0,
+        "legacy_discarded": 0,
+        "duplicates": 0,
+        "transient_failures": 0,
+        "permanent_failures": 0,
+        "rate_limit_events": 0,
+        "discard_reasons": {},
+        "decision_reasons": {},
+        "pages_consulted": 0,
+        "requests_succeeded": 0,
+        "results_announced": None,
+        "results_retrieved": 0,
+        "unique_records": 0,
+        "duration_seconds": 0.0,
+        "collection_status": "pending",
+        "limit": limit,
+        "limit_reached": False,
+        "attempts": 0,
+        "retries": 0,
+        "interruption_reason": None,
+        "continuation_available": False,
+        "resume_possible": False,
+        "resume_attempted": False,
+        "resume_status": "not_applicable",
+        "errors": [],
+    }
+
+
+def add_metric_error(metric: dict, error: Exception) -> None:
+    message = safe_error(error)
+    if message not in metric["errors"]:
+        metric["errors"].append(message)
+    if isinstance(error, urllib.error.HTTPError) and error.code == 429:
+        metric["rate_limit_events"] += 1
+
+
+def retry_delay(error: Exception, attempt: int, config: dict) -> float:
+    base = max(0.0, float(config.get("retry_base_seconds", 1)))
+    cap = max(base, float(config.get("retry_max_seconds", 20)))
+    if isinstance(error, urllib.error.HTTPError):
+        retry_after = error.headers.get("Retry-After") if error.headers else None
+        if retry_after:
+            try:
+                return min(cap, max(0.0, float(retry_after)))
+            except ValueError:
+                try:
+                    retry_at = parsedate_to_datetime(retry_after)
+                    return min(cap, max(
+                        0.0,
+                        (retry_at - dt.datetime.now(retry_at.tzinfo or dt.timezone.utc)).total_seconds(),
+                    ))
+                except (TypeError, ValueError, OverflowError):
+                    pass
+    return min(cap, base * (2 ** max(0, attempt - 1)))
+
+
+def is_retryable(error: Exception) -> bool:
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code == 429 or 500 <= error.code < 600
+    return (
+        isinstance(error, (urllib.error.URLError, TimeoutError, OSError))
+    )
+
+
+def fetch_json_with_retries(url: str, metric: dict, config: dict) -> dict:
+    max_attempts = max(1, min(
+        MAX_RETRY_ATTEMPTS,
+        int(config.get("retry_attempts", MAX_RETRY_ATTEMPTS)),
+    ))
+    for attempt in range(1, max_attempts + 1):
+        metric["attempts"] += 1
+        try:
+            data = fetch_json(url)
+            if not isinstance(data, dict):
+                raise ValueError("resposta JSON deve ser um objeto")
+            metric["requests_succeeded"] += 1
+            return data
+        except (
+            urllib.error.URLError, urllib.error.HTTPError, TimeoutError,
+            OSError, json.JSONDecodeError, ValueError,
+        ) as exc:
+            add_metric_error(metric, exc)
+            failure_key = "transient_failures" if is_retryable(exc) else "permanent_failures"
+            metric[failure_key] += 1
+            if not is_retryable(exc) or attempt >= max_attempts:
+                raise
+            metric["retries"] += 1
+            time.sleep(retry_delay(exc, attempt, config))
+    raise RuntimeError("tentativas de requisição esgotadas")
+
+
+def request_bytes_with_retries(
+    url: str,
+    metric: dict,
+    config: dict,
+    timeout: int = TIMEOUT_SECONDS,
+) -> bytes:
+    max_attempts = max(1, min(
+        MAX_RETRY_ATTEMPTS,
+        int(config.get("retry_attempts", MAX_RETRY_ATTEMPTS)),
+    ))
+    for attempt in range(1, max_attempts + 1):
+        metric["attempts"] += 1
+        try:
+            payload = request_bytes(url, timeout=timeout)
+            metric["requests_succeeded"] += 1
+            return payload
+        except (
+            urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError,
+        ) as exc:
+            add_metric_error(metric, exc)
+            failure_key = "transient_failures" if is_retryable(exc) else "permanent_failures"
+            metric[failure_key] += 1
+            if not is_retryable(exc) or attempt >= max_attempts:
+                raise
+            metric["retries"] += 1
+            time.sleep(retry_delay(exc, attempt, config))
+    raise RuntimeError("tentativas de requisição esgotadas")
+
+
+def positive_int(config: dict, key: str, default: int, maximum: int | None = None) -> int:
+    value = config.get(key, default)
+    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        raise ValueError(f"configuração {key} deve ser inteiro positivo")
+    if maximum is not None and value > maximum:
+        raise ValueError(f"configuração {key} não pode exceder {maximum}")
+    return value
+
+
+def validate_pagination_config(config: dict) -> None:
+    positive_int(config, "retry_attempts", MAX_RETRY_ATTEMPTS, MAX_RETRY_ATTEMPTS)
+    for key, default in (("retry_base_seconds", 1), ("retry_max_seconds", 20)):
+        value = config.get(key, default)
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+            raise ValueError(f"configuração {key} deve ser número não negativo")
+    if config.get("retry_max_seconds", 20) < config.get("retry_base_seconds", 1):
+        raise ValueError("retry_max_seconds não pode ser menor que retry_base_seconds")
+    interval = config.get("request_interval_seconds", 1)
+    if not isinstance(interval, (int, float)) or isinstance(interval, bool) or interval < 0:
+        raise ValueError("request_interval_seconds deve ser número não negativo")
+
+
+def record_identity(item: dict) -> str:
+    keys = dedup_keys(item)
+    return keys[0] if keys else ""
+
+
+def metric_duration_start() -> float:
+    return time.monotonic()
+
+
+def finish_metric(metric: dict, started_at: float) -> None:
+    metric["duration_seconds"] = round(max(0.0, time.monotonic() - started_at), 3)
 
 
 def normalized_text(value: str) -> str:
@@ -184,12 +380,14 @@ def make_item(
     }
 
 
-def parse_feed(payload: bytes, source: dict) -> list[dict]:
+def parse_feed(payload: bytes, source: dict, metric: dict | None = None) -> list[dict]:
     root = ET.fromstring(payload)
     items = []
     for node in root.iter():
         if node.tag.rsplit("}", 1)[-1].casefold() not in {"item", "entry"}:
             continue
+        if metric is not None:
+            metric["raw_results"] += 1
         title = text_of(find_child(node, "title"))
         description = (
             text_of(find_child(node, "description"))
@@ -220,6 +418,12 @@ def parse_feed(payload: bytes, source: dict) -> list[dict]:
         entry = make_item(title, description, link or guid, source, pubdate, guid=guid, doi=doi)
         if entry:
             items.append(entry)
+        elif metric is not None:
+            metric["discard_reasons"]["missing_title_or_valid_url"] = (
+                metric["discard_reasons"].get("missing_title_or_valid_url", 0) + 1
+            )
+    if metric is not None:
+        metric["valid_records"] = len(items)
     return items
 
 
@@ -415,6 +619,224 @@ def classify(item: dict, config: dict) -> bool:
     return score >= points["medium_threshold"]
 
 
+def assess_candidate(item: dict, config: dict) -> dict:
+    title = str(item.get("title") or "")
+    summary = str(item.get("summary") or "")
+    keywords = item.get("keywords", [])
+    if not isinstance(keywords, list):
+        keywords = []
+    keyword_text = " ".join(str(value) for value in keywords if value)
+    content_fields = {
+        "title": title,
+        "summary": summary,
+        "keywords": keyword_text,
+    }
+    content = normalized_text(" ".join(content_fields.values()))
+    validation = config.get("classification_validation", {})
+    ambiguous_terms = validation.get(
+        "ambiguous_activity_terms",
+        config.get("generic_themes", []) + ["monitoramento", "visitação"],
+    )
+    legacy_terms = list(dict.fromkeys(
+        config.get("territorial", {}).get("environmental_terms", [])
+        + config.get("ecosystems_and_species", [])
+        + config.get("themes", [])
+    ))
+    title_terms = matching_terms(legacy_terms, normalized_text(title))
+    summary_terms = matching_terms(legacy_terms, normalized_text(summary))
+    keyword_terms = matching_terms(legacy_terms, normalized_text(keyword_text))
+    ambiguous_hits = matching_terms(ambiguous_terms, content)
+    non_environmental_contexts = matching_terms(
+        validation.get("non_environmental_contexts", []), content
+    )
+
+    positive_topics = []
+    all_topic_evidence = []
+    uncertain_topic_evidence = []
+    document_type_matches = []
+    for topic_id, topic in validation.get("contextual_topics", {}).items():
+        strong_hits = matching_terms(topic.get("strong_terms", []), content)
+        support_hits = matching_terms(topic.get("support_terms", []), content)
+        document_type_matches.extend(
+            matching_terms(topic.get("document_type_terms", []), content)
+        )
+        supported = bool(strong_hits or len(support_hits) >= 2)
+        topic_evidence = {
+            "id": topic_id,
+            "label": topic.get("label", topic_id),
+            "strong_terms": strong_hits,
+            "support_terms": support_hits,
+        }
+        if supported:
+            positive_topics.append(topic_evidence)
+            all_topic_evidence.extend(strong_hits or support_hits)
+        elif support_hits:
+            uncertain_topic_evidence.append(topic_evidence)
+
+    thematic_status = (
+        "pertinente" if positive_topics
+        else "incerta" if ambiguous_hits or uncertain_topic_evidence
+        else "nao_evidenciada"
+    )
+
+    unit_hits = matching_terms(
+        config.get("unit_terms", []) + validation.get("unit_aliases", []),
+        content,
+    )
+    inside_hits = matching_terms(config.get("inside_area_phrases", []), content)
+    municipality_hits = matching_terms(config.get("municipalities", []), content)
+    locality_hits = matching_terms(config.get("localities", []), content)
+    regional_term_hits = matching_terms(config.get("regional_terms", []), content)
+    other_region_hits = matching_terms(config.get("other_region_terms", []), content)
+    catalogue_matches = find_territorial_matches(
+        content, config.get("territorial", {})
+    )
+    confirmed_matches = [
+        match for match in catalogue_matches
+        if match.get("evidence_level") == "oficial"
+        and match.get("territorial_relation") in {"limite_legal", "trecho_confirmado"}
+    ]
+    regional_matches = [
+        match for match in catalogue_matches
+        if match.get("territorial_relation") == "associado_regionalmente"
+        and match.get("evidence_level") in {"oficial", "secundaria"}
+    ]
+    direct_territory = bool(unit_hits or inside_hits or confirmed_matches)
+    has_territorial_clue = bool(
+        municipality_hits or locality_hits or catalogue_matches or regional_term_hits
+    )
+    if direct_territory:
+        territorial_relation = "direta"
+    elif regional_matches:
+        territorial_relation = "regional"
+    elif has_territorial_clue or (other_region_hits and direct_territory):
+        territorial_relation = "incerta"
+    elif thematic_status == "pertinente" and other_region_hits:
+        territorial_relation = "tematica_contextual"
+    else:
+        territorial_relation = "incerta"
+
+    sparse_metadata = len(content) < 24 or not (title.strip() or summary.strip())
+    territory_positive = []
+    if unit_hits:
+        territory_positive.append("menção explícita à APABF/unidade: " + ", ".join(unit_hits))
+    if inside_hits:
+        territory_positive.append("expressão explícita de localização dentro da unidade: " + ", ".join(inside_hits))
+    if confirmed_matches:
+        territory_positive.extend(
+            f"{match['name']} consta em catálogo territorial oficial ({match['territorial_relation']})"
+            for match in confirmed_matches
+        )
+    if regional_matches:
+        territory_positive.extend(
+            f"{match['name']} tem associação regional catalogada"
+            for match in regional_matches
+        )
+    territory_ambiguous = []
+    if municipality_hits:
+        territory_ambiguous.append(
+            "menção municipal não comprova o local do estudo nem interseção com a APABF: "
+            + ", ".join(municipality_hits)
+        )
+    if locality_hits and not (confirmed_matches or regional_matches):
+        territory_ambiguous.append(
+            "localidade identificada sem evidência territorial suficiente no catálogo: "
+            + ", ".join(locality_hits)
+        )
+    if regional_term_hits:
+        territory_ambiguous.append(
+            "referência regional ampla não comprova relação espacial com a unidade: "
+            + ", ".join(regional_term_hits)
+        )
+    if other_region_hits and not direct_territory:
+        territory_ambiguous.append(
+            "o conteúdo menciona outra região; não foi inferida relação direta com a APABF: "
+            + ", ".join(other_region_hits)
+        )
+
+    topic_negative = []
+    if ambiguous_hits and not positive_topics:
+        topic_negative.append(
+            "termos genéricos sem corroboração temática: " + ", ".join(ambiguous_hits)
+        )
+    if non_environmental_contexts:
+        topic_negative.append(
+            "contexto não ambiental identificado: " + ", ".join(non_environmental_contexts)
+        )
+    if sparse_metadata:
+        topic_negative.append("metadados textuais insuficientes para uma avaliação segura")
+
+    evidence = {
+        "title": {"matched_terms": title_terms},
+        "summary": {"text": summary, "matched_terms": summary_terms},
+        "keywords": {"matched_terms": keyword_terms},
+        "territory": {
+            "unit_terms": unit_hits,
+            "inside_area_phrases": inside_hits,
+            "localities": locality_hits,
+            "municipalities": municipality_hits,
+            "catalogue_matches": catalogue_matches,
+            "positive": territory_positive,
+            "ambiguous": territory_ambiguous,
+            "relationship": territorial_relation,
+        },
+        "topics": {
+            "concrete_evidence": list(dict.fromkeys(all_topic_evidence)),
+            "ambiguous_activity_terms": ambiguous_hits,
+            "positive": positive_topics,
+            "uncertain": uncertain_topic_evidence,
+            "negative_or_ambiguous": topic_negative,
+            "non_environmental_contexts": non_environmental_contexts,
+            "document_type": list(dict.fromkeys(document_type_matches)),
+        },
+    }
+
+    if thematic_status == "pertinente" and territorial_relation in {"direta", "regional"}:
+        decision = "accepted"
+        reasons = [
+            "tema contextual corroborado: "
+            + ", ".join(topic["label"] for topic in positive_topics),
+            "relação territorial sustentada como " + territorial_relation,
+        ]
+    elif not positive_topics and non_environmental_contexts and not sparse_metadata:
+        decision = "discarded"
+        reasons = [
+            "contexto identificado não demonstra pauta ambiental ou socioambiental",
+            "evidência contextual: " + ", ".join(non_environmental_contexts),
+        ]
+    elif thematic_status == "nao_evidenciada" and not ambiguous_hits and not sparse_metadata:
+        decision = "discarded"
+        reasons = ["não foram identificadas evidências temáticas socioambientais suficientes"]
+    elif sparse_metadata:
+        decision = "review"
+        reasons = ["metadados insuficientes; a avaliação não infere tema ou território"]
+    elif thematic_status == "incerta":
+        decision = "review"
+        reasons = ["há termos ambíguos sem evidência contextual suficiente"]
+    elif territorial_relation in {"incerta", "tematica_contextual"}:
+        decision = "review"
+        reasons = ["tema pertinente, mas a relação territorial com a APABF não foi comprovada"]
+    else:
+        decision = "review"
+        reasons = ["evidências insuficientes para uma decisão automática"]
+
+    return {
+        "decision": decision,
+        "thematic_status": thematic_status,
+        "territorial_relation": territorial_relation,
+        "needs_review": decision == "review",
+        "fields_used": [
+            field for field, value in content_fields.items() if value.strip()
+        ],
+        "excluded_metadata": [
+            field for field in ("authors", "source", "locations")
+            if item.get(field)
+        ],
+        "reasons": reasons,
+        "evidence": evidence,
+    }
+
+
 def abstract_from_openalex(work: dict) -> str:
     inverted = work.get("abstract_inverted_index") or {}
     words: dict[int, str] = {}
@@ -424,104 +846,385 @@ def abstract_from_openalex(work: dict) -> str:
     return " ".join(words[index] for index in sorted(words))
 
 
-def collect_feed(source: dict) -> list[dict]:
-    last_error: Exception | None = None
+def collect_feed(source: dict, metrics: list[dict] | None = None) -> list[dict]:
+    started_at = metric_duration_start()
+    metric = new_source_metric(source["name"], "rss:feed", source["url"])
+    if metrics is not None:
+        metrics.append(metric)
     for attempt in range(1, 4):
+        metric["attempts"] = attempt
         try:
-            return parse_feed(request_bytes(source["url"]), source)
+            payload = request_bytes(source["url"])
+            metric["requests_succeeded"] += 1
+            metric["pages_consulted"] = 1
+            items = parse_feed(payload, source, metric)
+            metric["results_retrieved"] = metric["raw_results"]
+            metric["unique_records"] = metric["valid_records"]
+            metric["request_status"] = "success"
+            metric["collection_status"] = "complete"
+            finish_metric(metric, started_at)
+            for item in items:
+                item["_diagnostic_metric_id"] = metric["query_id"]
+            return items
         except (urllib.error.URLError, TimeoutError, OSError, ET.ParseError, ValueError) as exc:
-            last_error = exc
-            if attempt < 3:
-                log(f"Tentativa {attempt}/3 falhou para {source['name']}: {exc}; tentando novamente")
+            add_metric_error(metric, exc)
+            retryable = is_retryable(exc)
+            if retryable:
+                metric["transient_failures"] += 1
+            else:
+                metric["permanent_failures"] += 1
+            if retryable and attempt < 3:
+                metric["retries"] += 1
+                log(f"Tentativa {attempt}/3 falhou para {source['name']}: {safe_error(exc)}; tentando novamente")
                 time.sleep(attempt)
-    if last_error:
-        raise last_error
+            elif not retryable:
+                break
+    metric["request_status"] = "failed"
+    metric["collection_status"] = "failed"
+    finish_metric(metric, started_at)
     return []
 
 
-def collect_openalex(config: dict, api_key: str | None) -> list[dict]:
+def collect_openalex(
+    config: dict,
+    api_key: str | None,
+    metrics: list[dict] | None = None,
+) -> list[dict]:
     items = []
     fields = "id,doi,title,publication_date,abstract_inverted_index,primary_location,authorships,keywords,type"
-    for query in config["openalex_queries"]:
+    options = config.get("pagination", {})
+    validate_pagination_config(options)
+    page_limit = positive_int(options, "openalex_per_page", 100, maximum=100)
+    max_pages = positive_int(options, "openalex_max_pages_per_query", 3)
+    max_results = positive_int(
+        options, "openalex_max_results_per_query", page_limit * max_pages
+    )
+    effective_pages = min(max_pages, (max_results + page_limit - 1) // page_limit)
+    if effective_pages * page_limit > 10_000 or max_results > 10_000:
+        raise ValueError("paginação OpenAlex com page/per-page deve permanecer nos primeiros 10.000 resultados")
+    for query_index, query in enumerate(config["openalex_queries"], start=1):
+        if query_index > 1:
+            time.sleep(max(0.0, float(options.get("request_interval_seconds", 1.0))))
+        started_at = metric_duration_start()
+        query_id = f"openalex:{query_index:02d}"
+        metric = new_source_metric("OpenAlex", query_id, query, max_results)
+        if metrics is not None:
+            metrics.append(metric)
         params = {
             "search": query,
-            "per-page": str(config["openalex_results_per_query"]),
+            "per_page": str(page_limit),
             "select": fields,
+            "page": "1",
         }
         if api_key:
             params["api_key"] = api_key
-        url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
-        data = fetch_json(url)
-        results = data.get("results", [])
-        log(f"OpenAlex consulta '{query}': {len(results)} resultados")
-        for work in results:
-            location = work.get("primary_location") or {}
-            landing = location.get("landing_page_url") or ""
-            doi = work.get("doi") or ""
-            link = doi or landing or work.get("id", "")
-            keywords = [entry.get("display_name", "") for entry in work.get("keywords", [])]
-            item = make_item(
-                work.get("title", ""),
-                abstract_from_openalex(work),
-                link,
-                {"name": "OpenAlex", "type": "academica", "category": "academico"},
-                work.get("publication_date", ""),
-                keywords=keywords,
-                doi=doi,
-                authors=[
-                    (authorship.get("author") or {}).get("display_name", "")
-                    for authorship in work.get("authorships", [])
-                ],
+        seen: set[str] = set()
+        pages = 0
+        total_announced = None
+        has_more = True
+        while has_more and pages < max_pages and metric["results_retrieved"] < max_results:
+            params["page"] = str(pages + 1)
+            remaining = max_results - metric["results_retrieved"]
+            params["per_page"] = str(min(page_limit, remaining))
+            url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
+            response_received = False
+            try:
+                data = fetch_json_with_retries(url, metric, options)
+                response_received = True
+                results = data.get("results")
+                meta = data.get("meta")
+                if not isinstance(results, list) or not isinstance(meta, dict):
+                    raise ValueError("resposta OpenAlex sem results/meta válidos")
+                count = meta.get("count")
+                if isinstance(count, int) and count >= 0:
+                    total_announced = count
+                    metric["results_announced"] = count
+                pages += 1
+                metric["pages_consulted"] = pages
+                metric["raw_results"] += len(results)
+                metric["results_retrieved"] += len(results)
+                for work in results:
+                    if not isinstance(work, dict):
+                        metric["discard_reasons"]["invalid_result_shape"] = (
+                            metric["discard_reasons"].get("invalid_result_shape", 0) + 1
+                        )
+                        continue
+                    location = work.get("primary_location") or {}
+                    landing = location.get("landing_page_url") or ""
+                    doi = work.get("doi") or ""
+                    link = doi or landing or work.get("id", "")
+                    keywords = [
+                        entry.get("display_name", "")
+                        for entry in work.get("keywords", [])
+                        if isinstance(entry, dict)
+                    ]
+                    item = make_item(
+                        work.get("title", ""),
+                        abstract_from_openalex(work),
+                        link,
+                        {"name": "OpenAlex", "type": "academica", "category": "academico"},
+                        work.get("publication_date", ""),
+                        keywords=keywords,
+                        doi=doi,
+                        authors=[
+                            (authorship.get("author") or {}).get("display_name", "")
+                            for authorship in work.get("authorships", [])
+                            if isinstance(authorship, dict)
+                        ],
+                    )
+                    if not item:
+                        metric["discard_reasons"]["missing_title_or_valid_url"] = (
+                            metric["discard_reasons"].get("missing_title_or_valid_url", 0) + 1
+                        )
+                        continue
+                    metric["valid_records"] += 1
+                    identity = record_identity(item)
+                    if identity in seen:
+                        metric["duplicates"] += 1
+                        continue
+                    seen.add(identity)
+                    item["_diagnostic_metric_id"] = query_id
+                    items.append(item)
+                    metric["unique_records"] += 1
+                if total_announced is not None and metric["results_retrieved"] >= total_announced:
+                    has_more = False
+                elif not results or len(results) < int(params["per_page"]):
+                    has_more = False
+                else:
+                    has_more = total_announced is None or metric["results_retrieved"] < total_announced
+                if has_more and pages < max_pages and metric["results_retrieved"] < max_results:
+                    time.sleep(max(0.0, float(options.get("request_interval_seconds", 0.2))))
+            except (
+                urllib.error.URLError, urllib.error.HTTPError, TimeoutError,
+                OSError, json.JSONDecodeError, ValueError, KeyError, TypeError,
+            ) as exc:
+                if response_received:
+                    add_metric_error(metric, exc)
+                    metric["permanent_failures"] += 1
+                metric["interruption_reason"] = safe_error(exc)
+                metric["resume_status"] = "restart_required"
+                metric["request_status"] = "partial" if pages else "failed"
+                metric["collection_status"] = "partial" if pages else "failed"
+                has_more = False
+        limit_hit = bool(
+            has_more
+            and (
+                pages >= max_pages
+                or metric["results_retrieved"] >= max_results
             )
-            if item:
-                items.append(item)
-        time.sleep(0.2)
+        )
+        if limit_hit:
+            metric["limit_reached"] = True
+            metric["interruption_reason"] = (
+                "configured_page_limit" if pages >= max_pages else "configured_result_limit"
+            )
+            metric["continuation_available"] = True
+            metric["resume_status"] = "restart_required"
+            metric["request_status"] = "partial"
+            metric["collection_status"] = "partial"
+        elif pages and metric["collection_status"] != "partial":
+            metric["request_status"] = "success"
+            metric["collection_status"] = "complete"
+            metric["resume_status"] = "not_needed"
+        elif not pages and metric["collection_status"] == "pending":
+            metric["request_status"] = "failed"
+            metric["collection_status"] = "failed"
+        finish_metric(metric, started_at)
+        log(
+            f"OpenAlex consulta '{query}': brutos={metric['raw_results']}; "
+            f"únicos={metric['unique_records']}; páginas={pages}; "
+            f"estado={metric['collection_status']}"
+        )
     return items
 
 
-def collect_crossref(config: dict) -> list[dict]:
+def collect_crossref(
+    config: dict,
+    metrics: list[dict] | None = None,
+) -> list[dict]:
     items = []
-    for query in config["crossref_queries"]:
+    options = config.get("pagination", {})
+    validate_pagination_config(options)
+    page_limit = positive_int(options, "crossref_rows_per_page", 100, maximum=1000)
+    max_pages = positive_int(options, "crossref_max_pages_per_query", 3)
+    max_results = positive_int(
+        options, "crossref_max_results_per_query", page_limit * max_pages
+    )
+    for query_index, query in enumerate(config["crossref_queries"], start=1):
+        if query_index > 1:
+            time.sleep(max(0.0, float(options.get("request_interval_seconds", 1.0))))
+        started_at = metric_duration_start()
+        query_id = f"crossref:{query_index:02d}"
+        metric = new_source_metric("Crossref", query_id, query, max_results)
+        if metrics is not None:
+            metrics.append(metric)
         params = {
             "query.bibliographic": query,
-            "rows": str(config["crossref_rows_per_query"]),
+            "rows": str(page_limit),
             "select": "DOI,title,URL,published,published-print,published-online,created,abstract,subject,type",
+            "cursor": "*",
         }
-        url = "https://api.crossref.org/works?" + urllib.parse.urlencode(params)
-        data = fetch_json(url)
-        records = data.get("message", {}).get("items", [])
-        log(f"Crossref consulta '{query}': {len(records)} resultados")
-        for record in records:
-            title = (record.get("title") or [""])[0]
-            published = record.get("published-print") or record.get("published-online") or record.get("published") or record.get("created") or {}
-            date_parts = published.get("date-parts", [[]])[0]
-            published_at = "-".join(str(part).zfill(2) if index > 0 else str(part) for index, part in enumerate(date_parts))
-            doi = record.get("DOI", "")
-            abstract = clean_text(record.get("abstract", ""), 420)
-            keywords = record.get("subject", [])
-            authors = [
-                " ".join(part for part in (author.get("given", ""), author.get("family", "")) if part).strip()
-                for author in record.get("author", [])
-            ]
-            item = make_item(
-                title,
-                abstract,
-                record.get("URL") or (f"https://doi.org/{doi}" if doi else ""),
-                {"name": "Crossref", "type": "academica", "category": "academico"},
-                published_at,
-                keywords=keywords,
-                doi=doi,
-                authors=authors,
+        seen: set[str] = set()
+        pages = 0
+        total_announced = None
+        has_more = True
+        previous_cursor = ""
+        while has_more and pages < max_pages and metric["results_retrieved"] < max_results:
+            remaining = max_results - metric["results_retrieved"]
+            params["rows"] = str(min(page_limit, remaining))
+            url = "https://api.crossref.org/works?" + urllib.parse.urlencode(params)
+            response_received = False
+            try:
+                data = fetch_json_with_retries(url, metric, options)
+                response_received = True
+                message = data.get("message")
+                if not isinstance(message, dict) or not isinstance(message.get("items"), list):
+                    raise ValueError("resposta Crossref sem message/items válidos")
+                records = message["items"]
+                count = message.get("total-results")
+                if isinstance(count, int) and count >= 0:
+                    total_announced = count
+                    metric["results_announced"] = count
+                pages += 1
+                metric["pages_consulted"] = pages
+                metric["raw_results"] += len(records)
+                metric["results_retrieved"] += len(records)
+                for record in records:
+                    if not isinstance(record, dict):
+                        metric["discard_reasons"]["invalid_result_shape"] = (
+                            metric["discard_reasons"].get("invalid_result_shape", 0) + 1
+                        )
+                        continue
+                    title = (record.get("title") or [""])[0]
+                    published = (
+                        record.get("published-print") or record.get("published-online")
+                        or record.get("published") or record.get("created") or {}
+                    )
+                    date_parts = published.get("date-parts", [[]])[0]
+                    published_at = "-".join(
+                        str(part).zfill(2) if index > 0 else str(part)
+                        for index, part in enumerate(date_parts)
+                    )
+                    doi = record.get("DOI", "")
+                    abstract = clean_text(record.get("abstract", ""), 420)
+                    keywords = record.get("subject", [])
+                    authors = [
+                        " ".join(part for part in (author.get("given", ""), author.get("family", "")) if part).strip()
+                        for author in record.get("author", [])
+                        if isinstance(author, dict)
+                    ]
+                    item = make_item(
+                        title,
+                        abstract,
+                        record.get("URL") or (f"https://doi.org/{doi}" if doi else ""),
+                        {"name": "Crossref", "type": "academica", "category": "academico"},
+                        published_at,
+                        keywords=keywords,
+                        doi=doi,
+                        authors=authors,
+                    )
+                    if not item:
+                        metric["discard_reasons"]["missing_title_or_valid_url"] = (
+                            metric["discard_reasons"].get("missing_title_or_valid_url", 0) + 1
+                        )
+                        continue
+                    metric["valid_records"] += 1
+                    identity = record_identity(item)
+                    if identity in seen:
+                        metric["duplicates"] += 1
+                        continue
+                    seen.add(identity)
+                    item["_diagnostic_metric_id"] = query_id
+                    items.append(item)
+                    metric["unique_records"] += 1
+                next_cursor = message.get("next-cursor")
+                if (
+                    not records
+                    or len(records) < int(params["rows"])
+                    or (
+                        total_announced is not None
+                        and metric["results_retrieved"] >= total_announced
+                    )
+                ):
+                    has_more = False
+                elif isinstance(next_cursor, str) and next_cursor and next_cursor != previous_cursor:
+                    previous_cursor = next_cursor
+                    params["cursor"] = next_cursor
+                    has_more = total_announced is None or metric["results_retrieved"] < total_announced
+                elif not isinstance(next_cursor, str) or not next_cursor:
+                    has_more = False
+                elif next_cursor == previous_cursor:
+                    metric["interruption_reason"] = "repeated_cursor"
+                    has_more = True
+                    break
+                elif total_announced is not None and metric["results_retrieved"] >= total_announced:
+                    has_more = False
+                else:
+                    previous_cursor = next_cursor
+                    params["cursor"] = next_cursor
+                    has_more = True
+                if has_more and pages < max_pages and metric["results_retrieved"] < max_results:
+                    time.sleep(max(0.0, float(options.get("request_interval_seconds", 1.0))))
+            except (
+                urllib.error.URLError, urllib.error.HTTPError, TimeoutError,
+                OSError, json.JSONDecodeError, ValueError, KeyError, TypeError,
+            ) as exc:
+                if response_received:
+                    add_metric_error(metric, exc)
+                    metric["permanent_failures"] += 1
+                metric["interruption_reason"] = safe_error(exc)
+                metric["resume_status"] = "restart_required"
+                metric["request_status"] = "partial" if pages else "failed"
+                metric["collection_status"] = "partial" if pages else "failed"
+                has_more = False
+        stalled = metric["interruption_reason"] == "repeated_cursor"
+        limit_hit = bool(
+            has_more
+            and (
+                pages >= max_pages
+                or metric["results_retrieved"] >= max_results
             )
-            if item:
-                items.append(item)
-        time.sleep(1.1)
+        )
+        if limit_hit or stalled:
+            metric["limit_reached"] = pages >= max_pages or metric["results_retrieved"] >= max_results
+            if not metric["interruption_reason"]:
+                metric["interruption_reason"] = (
+                    "configured_page_limit" if pages >= max_pages else "configured_result_limit"
+                )
+            metric["continuation_available"] = limit_hit
+            metric["resume_status"] = "restart_required"
+            metric["request_status"] = "partial"
+            metric["collection_status"] = "partial"
+        elif pages and metric["collection_status"] != "partial":
+            metric["request_status"] = "success"
+            metric["collection_status"] = "complete"
+            metric["resume_status"] = "not_needed"
+        elif not pages and metric["collection_status"] == "pending":
+            metric["request_status"] = "failed"
+            metric["collection_status"] = "failed"
+        finish_metric(metric, started_at)
+        log(
+            f"Crossref consulta '{query}': brutos={metric['raw_results']}; "
+            f"únicos={metric['unique_records']}; páginas={pages}; "
+            f"estado={metric['collection_status']}"
+        )
     return items
 
 
-def oai_record_to_item(record: ET.Element, repository: dict) -> dict | None:
+def oai_record_to_item(
+    record: ET.Element,
+    repository: dict,
+    metric: dict | None = None,
+) -> dict | None:
+    def invalid_record(reason: str) -> None:
+        if metric is not None:
+            metric["discard_reasons"][reason] = (
+                metric["discard_reasons"].get(reason, 0) + 1
+            )
+
     metadata = find_child(record, "metadata")
     if metadata is None:
+        invalid_record("missing_metadata")
         return None
     fields: dict[str, list[str]] = {}
     for child in metadata.iter():
@@ -539,6 +1242,7 @@ def oai_record_to_item(record: ET.Element, repository: dict) -> dict | None:
     if doi:
         link = "https://doi.org/" + doi.removeprefix("https://doi.org/").removeprefix("http://doi.org/")
     if not link:
+        invalid_record("missing_url")
         return None
     summary = " ".join(fields.get("description") or [])
     keywords = fields.get("subject", [])
@@ -556,6 +1260,10 @@ def oai_record_to_item(record: ET.Element, repository: dict) -> dict | None:
         keywords=keywords,
         authors=fields.get("creator", []),
     )
+    if metric is not None and item is None:
+        metric["discard_reasons"]["missing_title_or_valid_url"] = (
+            metric["discard_reasons"].get("missing_title_or_valid_url", 0) + 1
+        )
     return item
 
 
@@ -581,52 +1289,339 @@ def oai_from_date(config: dict, old_data: dict | None, repository: dict) -> str:
     return (today - dt.timedelta(days=config["oai_initial_lookback_days"])).isoformat()
 
 
-def collect_oai(config: dict, old_data: dict | None) -> list[dict]:
+def load_oai_state() -> dict:
+    if not OAI_STATE_PATH.exists():
+        return {"schema_version": 1, "updated_at": utc_now(), "repositories": {}}
+    try:
+        state = json.loads(OAI_STATE_PATH.read_text(encoding="utf-8"))
+        if (
+            isinstance(state, dict)
+            and state.get("schema_version") == 1
+            and isinstance(state.get("repositories"), dict)
+        ):
+            valid_repositories = {
+                state_id: entry
+                for state_id, entry in state["repositories"].items()
+                if valid_oai_state_entry(state_id, entry)
+            }
+            if len(valid_repositories) != len(state["repositories"]):
+                log("Entradas OAI-PMH inválidas ignoradas; os tokens não serão reutilizados")
+            return {
+                "schema_version": 1,
+                "updated_at": state.get("updated_at", utc_now()),
+                "repositories": valid_repositories,
+            }
+    except (OSError, json.JSONDecodeError):
+        pass
+    log("Estado OAI-PMH inválido; será reconstruído sem tokens anteriores")
+    return {"schema_version": 1, "updated_at": utc_now(), "repositories": {}}
+
+
+def valid_oai_state_entry(state_id: str, entry: object) -> bool:
+    if not isinstance(state_id, str) or not isinstance(entry, dict):
+        return False
+    name = entry.get("repository_name")
+    url = entry.get("repository_url")
+    from_date = entry.get("from_date")
+    token = entry.get("resumption_token")
+    updated_at = entry.get("updated_at")
+    try:
+        parsed_url = urllib.parse.urlsplit(url)
+        dt.date.fromisoformat(from_date)
+        updated = dt.datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+        expiration = entry.get("expiration_date")
+        if expiration is not None:
+            dt.datetime.fromisoformat(expiration.replace("Z", "+00:00"))
+    except (AttributeError, TypeError, ValueError, OverflowError):
+        return False
+    return bool(
+        name
+        and isinstance(name, str)
+        and parsed_url.scheme in {"http", "https"}
+        and parsed_url.netloc
+        and entry.get("metadata_prefix") == "oai_dc"
+        and isinstance(token, str)
+        and token.strip()
+        and updated.tzinfo is not None
+        and state_id == oai_repository_state_id({"url": url, "name": name})
+    )
+
+
+def save_oai_state(state: dict) -> None:
+    """Atomically replace the validated continuation snapshot.
+
+    A crash before replacement keeps the previous snapshot; a crash after a
+    response but before its checkpoint may refetch that page. The workflow
+    serializes runs and persists checkpoints after both complete and failed
+    collections. A runner lost before its final push can still lose its latest
+    local checkpoint, so a later collection must safely restart and deduplicate.
+    """
+    if (
+        not isinstance(state, dict)
+        or not isinstance(state.get("repositories"), dict)
+        or state.get("schema_version", 1) != 1
+        or any(
+            not valid_oai_state_entry(state_id, entry)
+            for state_id, entry in state["repositories"].items()
+        )
+    ):
+        raise ValueError("estado OAI-PMH inválido; arquivo anterior preservado")
+    if not state["repositories"] and not OAI_STATE_PATH.exists():
+        return
+    state = {
+        "schema_version": 1,
+        "updated_at": utc_now(),
+        "repositories": state["repositories"],
+    }
+    OAI_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=OAI_STATE_PATH.parent,
+            prefix=OAI_STATE_PATH.name + ".",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            handle.write(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, OAI_STATE_PATH)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+
+
+def oai_repository_state_id(repository: dict) -> str:
+    return hashlib.sha256(
+        (repository["url"].rstrip("/") + "|" + repository["name"]).encode("utf-8")
+    ).hexdigest()[:20]
+
+
+def oai_state_is_fresh(entry: dict, max_age_days: int) -> bool:
+    try:
+        updated = dt.datetime.fromisoformat(
+            entry["updated_at"].replace("Z", "+00:00")
+        )
+        age = dt.datetime.now(dt.timezone.utc) - updated.astimezone(dt.timezone.utc)
+        if age < dt.timedelta(0) or age > dt.timedelta(days=max_age_days):
+            return False
+        expiration = entry.get("expiration_date")
+        if expiration:
+            expires = dt.datetime.fromisoformat(expiration.replace("Z", "+00:00"))
+            if expires <= dt.datetime.now(dt.timezone.utc):
+                return False
+        return bool(entry.get("resumption_token"))
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return False
+
+
+def collect_oai(
+    config: dict,
+    old_data: dict | None,
+    metrics: list[dict] | None = None,
+) -> list[dict]:
     items = []
+    options = config.get("pagination", {})
+    validate_pagination_config(options)
+    max_pages = positive_int(config, "oai_max_pages_per_repository", 15)
+    retry_config = {
+        **options,
+        "retry_attempts": options.get("retry_attempts", MAX_RETRY_ATTEMPTS),
+    }
+    resume_max_age_days = positive_int(options, "oai_resume_max_age_days", 7)
+    state = load_oai_state()
+    repository_states = state["repositories"]
     for repository in config["oai_repositories"]:
-        from_date = oai_from_date(config, old_data, repository)
-        query = urllib.parse.urlencode({
+        started_at = metric_duration_start()
+        state_id = oai_repository_state_id(repository)
+        pending_state = repository_states.get(state_id)
+        same_query_state = (
+            isinstance(pending_state, dict)
+            and pending_state.get("repository_url") == repository["url"]
+            and pending_state.get("metadata_prefix") == "oai_dc"
+        )
+        has_pending = (
+            same_query_state
+            and oai_state_is_fresh(pending_state, resume_max_age_days)
+        )
+        if same_query_state and not has_pending:
+            repository_states.pop(state_id, None)
+            resume_status = "expired_or_invalid_restart"
+        else:
+            resume_status = "resumed" if has_pending else "not_needed"
+        from_date = (
+            pending_state["from_date"]
+            if same_query_state and pending_state.get("from_date")
+            else oai_from_date(config, old_data, repository)
+        )
+        query_id = "oai:" + normalized_text(repository["name"]).replace(" ", "-")
+        metric = new_source_metric(
+            repository["name"],
+            query_id,
+            f"ListRecords metadataPrefix=oai_dc from={from_date}",
+            max_pages,
+        )
+        if metrics is not None:
+            metrics.append(metric)
+        metric["resume_attempted"] = has_pending
+        metric["resume_status"] = resume_status
+        params: dict[str, str] = {
             "verb": "ListRecords",
             "metadataPrefix": "oai_dc",
             "from": from_date,
-        })
-        url = repository["url"] + ("&" if "?" in repository["url"] else "?") + query
-        records_found = 0
+        }
+        if has_pending:
+            params = {
+                "verb": "ListRecords",
+                "resumptionToken": pending_state["resumption_token"],
+            }
+        base_url = repository["url"] + ("&" if "?" in repository["url"] else "?")
+        url = base_url + urllib.parse.urlencode(params)
         pages = 0
         complete = False
-        while url and pages < config["oai_max_pages_per_repository"]:
-            payload = request_bytes(url, timeout=OAI_TIMEOUT_SECONDS)
-            root = ET.fromstring(payload)
-            error = find_child(root, "error")
-            if error is not None:
-                if error.attrib.get("code") == "noRecordsMatch":
-                    log(f"{repository['name']} OAI-PMH desde {from_date}: nenhum registro alterado no período")
-                    return items
-                raise RuntimeError(f"OAI-PMH erro {error.attrib.get('code', '')}: {text_of(error)}")
-            list_records = find_child(root, "ListRecords")
-            if list_records is None:
-                raise RuntimeError("resposta OAI-PMH sem ListRecords")
-            for record in list_records:
-                if record.tag.rsplit("}", 1)[-1] != "record":
-                    continue
-                records_found += 1
-                item = oai_record_to_item(record, repository)
-                if item:
-                    items.append(item)
-            token = find_child(list_records, "resumptionToken")
-            token_value = text_of(token) if token is not None else ""
-            pages += 1
-            if token_value:
-                url = repository["url"] + "?" + urllib.parse.urlencode({
-                    "verb": "ListRecords",
-                    "resumptionToken": token_value,
-                })
-                time.sleep(1.0)
-            else:
+        token_available = bool(has_pending)
+        resumed = has_pending
+        restart_after_invalid_token = False
+        seen: set[str] = set()
+        while url and pages < max_pages:
+            response_received = False
+            try:
+                payload = request_bytes_with_retries(
+                    url, metric, retry_config, timeout=OAI_TIMEOUT_SECONDS
+                )
+                response_received = True
+                root = ET.fromstring(payload)
+                error = find_child(root, "error")
+                if error is not None:
+                    if error.attrib.get("code") == "noRecordsMatch":
+                        pages += 1
+                        metric["pages_consulted"] = pages
+                        complete = True
+                        url = ""
+                        break
+                    if (
+                        error.attrib.get("code") == "badResumptionToken"
+                        and resumed
+                        and not restart_after_invalid_token
+                    ):
+                        repository_states.pop(state_id, None)
+                        save_oai_state(state)
+                        metric["resume_status"] = "invalid_token_restart"
+                        metric["restart_count"] = metric.get("restart_count", 0) + 1
+                        params = {
+                            "verb": "ListRecords",
+                            "metadataPrefix": "oai_dc",
+                            "from": from_date,
+                        }
+                        url = base_url + urllib.parse.urlencode(params)
+                        resumed = False
+                        restart_after_invalid_token = True
+                        continue
+                    raise RuntimeError(
+                        f"OAI-PMH erro {error.attrib.get('code', '')}"
+                    )
+                list_records = find_child(root, "ListRecords")
+                if list_records is None:
+                    raise RuntimeError("resposta OAI-PMH sem ListRecords")
+                pages += 1
+                metric["pages_consulted"] = pages
+                for record in list_records:
+                    if record.tag.rsplit("}", 1)[-1] != "record":
+                        continue
+                    metric["raw_results"] += 1
+                    item = oai_record_to_item(record, repository, metric)
+                    if item:
+                        metric["valid_records"] += 1
+                        identity = record_identity(item)
+                        if identity in seen:
+                            metric["duplicates"] += 1
+                            continue
+                        seen.add(identity)
+                        item["_diagnostic_metric_id"] = query_id
+                        items.append(item)
+                        metric["unique_records"] += 1
+                token = find_child(list_records, "resumptionToken")
+                token_value = (
+                    "".join(token.itertext()).strip()
+                    if token is not None
+                    else ""
+                )
+                if token_value:
+                    token_available = True
+                    complete_list_size = token.attrib.get("completeListSize") if token is not None else None
+                    if complete_list_size and complete_list_size.isdigit():
+                        metric["results_announced"] = int(complete_list_size)
+                    expiration_date = token.attrib.get("expirationDate") if token is not None else None
+                    next_state = {
+                        "repository_name": repository["name"],
+                        "repository_url": repository["url"],
+                        "metadata_prefix": "oai_dc",
+                        "from_date": from_date,
+                        "resumption_token": token_value,
+                        "expiration_date": expiration_date,
+                        "updated_at": utc_now(),
+                    }
+                    repository_states[state_id] = next_state
+                    save_oai_state(state)
+                    params = {
+                        "verb": "ListRecords",
+                        "resumptionToken": token_value,
+                    }
+                    url = base_url + urllib.parse.urlencode(params)
+                    if pages < max_pages:
+                        time.sleep(max(
+                            0.0,
+                            float(options.get("request_interval_seconds", 1.0)),
+                        ))
+                else:
+                    url = ""
+                    complete = True
+                    repository_states.pop(state_id, None)
+            except (
+                urllib.error.URLError, urllib.error.HTTPError, TimeoutError,
+                OSError, ET.ParseError, RuntimeError, ValueError, TypeError,
+            ) as exc:
+                if response_received:
+                    add_metric_error(metric, exc)
+                    metric["permanent_failures"] += 1
+                metric["interruption_reason"] = safe_error(exc)
                 url = ""
-                complete = True
-        status = "completa" if complete else f"parcial (limite de {config['oai_max_pages_per_repository']} páginas)"
-        log(f"{repository['name']} OAI-PMH desde {from_date}: {records_found} registros em {pages} páginas; colheita {status}")
+        limit_hit = bool(url and pages >= max_pages)
+        metric["continuation_available"] = token_available and state_id in repository_states
+        metric["resume_possible"] = metric["continuation_available"]
+        metric["limit_reached"] = limit_hit
+        if limit_hit:
+            metric["request_status"] = "partial"
+            metric["collection_status"] = "partial"
+            metric["interruption_reason"] = "configured_page_limit"
+            metric["resume_status"] = "continuation_saved"
+        elif complete:
+            metric["request_status"] = "success"
+            metric["collection_status"] = "complete"
+            metric["resume_status"] = "completed"
+        elif metric["errors"]:
+            metric["request_status"] = "partial" if pages else "failed"
+            metric["collection_status"] = "partial" if pages else "failed"
+            metric["resume_status"] = (
+                "continuation_saved"
+                if metric["resume_possible"]
+                else "restart_required"
+            )
+        else:
+            metric["request_status"] = "failed"
+            metric["collection_status"] = "failed"
+            metric["interruption_reason"] = "no_progress"
+        metric["results_retrieved"] = metric["raw_results"]
+        finish_metric(metric, started_at)
+        log(
+            f"{repository['name']} OAI-PMH desde {from_date}: "
+            f"brutos={metric['raw_results']}; páginas={pages}; "
+            f"estado={metric['collection_status']}; retomável={metric['resume_possible']}"
+        )
+    save_oai_state(state)
     return items
 
 
@@ -696,7 +1691,12 @@ def items_changed(previous: list[dict], current: list[dict]) -> bool:
     )
 
 
-def merge_items(previous: list[dict], new_items: list[dict], now: str) -> tuple[list[dict], int, int]:
+def merge_items(
+    previous: list[dict],
+    new_items: list[dict],
+    now: str,
+    preserve_existing_duplicates: bool = False,
+) -> tuple[list[dict], int, int]:
     merged: dict[str, dict] = {}
     key_index: dict[str, str] = {}
     duplicates = 0
@@ -720,11 +1720,28 @@ def merge_items(previous: list[dict], new_items: list[dict], now: str) -> tuple[
         if key in merged:
             duplicates += 1
             old = merged[key]
-            if item_content(public) == item_content(old):
-                public["collected_at"] = old.get("collected_at", now)
+            sources = list(dict.fromkeys(
+                (old.get("sources") or [old.get("source", {}).get("name")])
+                + [candidate.get("source", {}).get("name")]
+            ))
+            sources = [source for source in sources if source]
+            if preserve_existing_duplicates:
+                old["sources"] = sources
+                merged[key] = old
             else:
-                public["collected_at"] = now
-            merged[key] = public
+                combined = dict(old)
+                for field, value in public.items():
+                    if value not in (None, "", [], {}):
+                        combined[field] = value
+                combined["id"] = old.get("id", public["id"])
+                combined["source"] = old.get("source", public.get("source", {}))
+                combined["sources"] = sources
+                combined["collected_at"] = (
+                    old.get("collected_at", now)
+                    if item_content(public) == item_content(old)
+                    else now
+                )
+                merged[key] = combined
         else:
             public["collected_at"] = now
             merged[key] = public
@@ -741,102 +1758,430 @@ def merge_items(previous: list[dict], new_items: list[dict], now: str) -> tuple[
     return output, duplicates, added
 
 
-def run(mode: str) -> None:
+def write_diagnostics(report: dict, prefix: str = "coleta") -> Path:
+    DIAGNOSTICS_PATH.mkdir(parents=True, exist_ok=True)
+    timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    workflow_run = os.environ.get("GITHUB_RUN_ID", "").strip()
+    run_segment = f"-{workflow_run}" if workflow_run else ""
+    path = DIAGNOSTICS_PATH / f"{prefix}{run_segment}-{timestamp}.json"
+    path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def evaluate_existing(config: dict, items: list[dict]) -> dict:
+    evaluations = []
+    topic_distribution: dict[str, int] = {}
+    territorial_distribution = {
+        relation: 0
+        for relation in ("direta", "regional", "tematica_contextual", "incerta")
+    }
+    agreements = 0
+    divergences = 0
+    unresolved = 0
+    possible_false_positives = []
+    possible_false_negatives = []
+    review_candidates = []
+
+    for item in items:
+        evaluation = assess_candidate(item, config)
+        legacy_accepted = classify(copy.deepcopy(item), config)
+        diagnostic_accepted = evaluation["decision"] == "accepted"
+        is_review = evaluation["decision"] == "review"
+        if is_review:
+            unresolved += 1
+        elif legacy_accepted == diagnostic_accepted:
+            agreements += 1
+        else:
+            divergences += 1
+
+        record = {
+            "id": item.get("id"),
+            "url": item.get("url"),
+            "category": item.get("category"),
+            "source": item.get("source", {}).get("name"),
+            "published_at": item.get("published_at"),
+            "title": item.get("title", ""),
+            "summary": item.get("summary", ""),
+            "current_filter": "accepted" if legacy_accepted else "discarded",
+            "stored_relevance": item.get("relevance", {}).get("level"),
+            **evaluation,
+        }
+        evaluations.append(record)
+        territorial_distribution[evaluation["territorial_relation"]] = (
+            territorial_distribution.get(evaluation["territorial_relation"], 0) + 1
+        )
+        for topic in evaluation["evidence"]["topics"]["positive"]:
+            topic_id = topic["id"]
+            topic_distribution[topic_id] = topic_distribution.get(topic_id, 0) + 1
+        reference = {
+            "id": record["id"],
+            "title": record["title"],
+            "current_filter": record["current_filter"],
+            "diagnostic": evaluation["decision"],
+            "reasons": evaluation["reasons"],
+        }
+        if legacy_accepted and evaluation["decision"] == "discarded":
+            possible_false_positives.append(reference)
+        elif not legacy_accepted and evaluation["decision"] == "accepted":
+            possible_false_negatives.append(reference)
+        if is_review:
+            review_candidates.append(reference)
+
+    def examples(records: list[dict]) -> list[dict]:
+        return records[:5]
+
+    return {
+        "schema_version": 2,
+        "evaluated_at": utc_now(),
+        "mode": "contextual-evaluation-only",
+        "total": len(evaluations),
+        "comparison": {
+            "legacy_accepted": sum(
+                record["current_filter"] == "accepted" for record in evaluations
+            ),
+            "legacy_discarded": sum(
+                record["current_filter"] == "discarded" for record in evaluations
+            ),
+            "agreements": agreements,
+            "definite_divergences": divergences,
+            "diagnostic_review": unresolved,
+            "possible_false_positives": {
+                "count": len(possible_false_positives),
+                "examples": examples(possible_false_positives),
+            },
+            "possible_false_negatives": {
+                "count": len(possible_false_negatives),
+                "examples": examples(possible_false_negatives),
+            },
+            "review_candidates": {
+                "count": len(review_candidates),
+                "examples": examples(review_candidates),
+            },
+            "interpretation": (
+                "Divergências e candidatos à revisão são hipóteses para validação humana, "
+                "não erros confirmados."
+            ),
+        },
+        "decisions": {
+            decision: sum(record["decision"] == decision for record in evaluations)
+            for decision in ("accepted", "review", "discarded")
+        },
+        "topic_distribution": topic_distribution,
+        "territorial_distribution": territorial_distribution,
+        "items": evaluations,
+    }
+
+
+def run(mode: str) -> str:
     with CONFIG_PATH.open(encoding="utf-8") as handle:
         config = json.load(handle)
     previous = load_previous()
     old_data = previous or {}
     new_items: list[dict] = []
-    source_stats = []
-    collected = 0
-    discarded = 0
+    source_metrics: list[dict] = []
 
     sources: list[tuple[str, object]] = []
     if mode in {"all", "news"}:
         for feed in config["rss_feeds"]:
-            sources.append((feed["name"], lambda feed=feed: collect_feed(feed)))
+            sources.append((
+                feed["name"],
+                lambda metrics, feed=feed: collect_feed(feed, metrics),
+            ))
     if mode in {"all", "academic"}:
         key = os.environ.get("OPENALEX_API_KEY", "").strip()
         sources.extend([
-            ("OpenAlex", lambda: collect_openalex(config, key or None)),
-            ("Crossref", lambda: collect_crossref(config)),
+            ("OpenAlex", lambda metrics: collect_openalex(config, key or None, metrics)),
+            ("Crossref", lambda metrics: collect_crossref(config, metrics)),
         ])
         for repository in config["oai_repositories"]:
-            sources.append((repository["name"], lambda repository=repository: collect_oai({**config, "oai_repositories": [repository]}, old_data)))
+            sources.append((
+                repository["name"],
+                lambda metrics, repository=repository: collect_oai(
+                    {**config, "oai_repositories": [repository]},
+                    old_data,
+                    metrics,
+                ),
+            ))
 
     log(f"Início da execução; modo={mode}; fontes={len(sources)}")
     for name, collector in sources:
         log(f"Consultando fonte: {name}")
+        metrics: list[dict] = []
         try:
-            results = collector()
-            source_kept = []
-            source_discarded = 0
+            results = collector(metrics)
             for item in results:
+                metric = next(
+                    (
+                        row for row in metrics
+                        if row["query_id"] == item.get("_diagnostic_metric_id")
+                    ),
+                    metrics[0] if len(metrics) == 1 else None,
+                )
+                if metric is not None:
+                    evaluation = assess_candidate(item, config)
+                    metric[evaluation["decision"]] += 1
+                    for reason in evaluation["reasons"]:
+                        metric["decision_reasons"][reason] = (
+                            metric["decision_reasons"].get(reason, 0) + 1
+                        )
+                    item["_contextual_evaluation"] = evaluation
                 if classify(item, config):
-                    source_kept.append(item)
-                else:
-                    source_discarded += 1
-            collected += len(results)
-            discarded += source_discarded
-            new_items.extend(source_kept)
-            source_stats.append((name, len(results), len(source_kept), source_discarded, "OK"))
-            log(f"Fonte {name}: encontrados={len(results)}, alta/média={len(source_kept)}, baixa descartada={source_discarded}")
-        except (urllib.error.URLError, TimeoutError, OSError, ET.ParseError, json.JSONDecodeError, RuntimeError, ValueError, KeyError) as exc:
-            source_stats.append((name, 0, 0, 0, f"FALHA: {exc}"))
-            log(f"FALHA na fonte {name}: {exc}; resultados anteriores preservados")
+                    if metric is not None:
+                        metric["legacy_accepted"] += 1
+                    new_items.append(item)
+                elif metric is not None:
+                    metric["legacy_discarded"] += 1
+                    reasons = item.get("relevance", {}).get("reason", [])
+                    reason = "; ".join(reasons) or "abaixo do limiar atual de relevância"
+                    metric["discard_reasons"][reason] = (
+                        metric["discard_reasons"].get(reason, 0) + 1
+                    )
+            if not metrics:
+                failed_metric = new_source_metric(name, "source", "execução da fonte")
+                failed_metric["request_status"] = "failed"
+                failed_metric["collection_status"] = "failed"
+                failed_metric["errors"].append("coletor não produziu métricas")
+                metrics.append(failed_metric)
+            source_metrics.extend(metrics)
+            status = ", ".join(sorted({metric["collection_status"] for metric in metrics}))
+            log(f"Fonte {name}: status={status or 'falha'}; candidatos={len(results)}")
+        except (
+            urllib.error.URLError, TimeoutError, OSError, ET.ParseError,
+            json.JSONDecodeError, RuntimeError, ValueError, KeyError,
+        ) as exc:
+            if not metrics:
+                metrics.append(new_source_metric(name, "source", "execução da fonte"))
+            add_metric_error(metrics[0], exc)
+            metrics[0]["request_status"] = "failed"
+            metrics[0]["collection_status"] = "failed"
+            source_metrics.extend(metrics)
+            log(f"FALHA na fonte {name}: {safe_error(exc)}; resultados anteriores preservados")
         if name not in {"OpenAlex", "Crossref"}:
             time.sleep(0.25)
 
-    now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    now = utc_now()
     original_items = json.loads(json.dumps(old_data.get("items", []), ensure_ascii=False))
-    old_items = []
-    discarded_existing = 0
-    for item in old_data.get("items", []):
-        if classify(item, config):
-            old_items.append(item)
-        else:
-            discarded_existing += 1
-    merged, duplicate_count, added_count = merge_items(old_items, new_items, now)
-    high_count = sum(item.get("relevance", {}).get("level") == "alta" for item in merged)
-    medium_count = sum(item.get("relevance", {}).get("level") == "media" for item in merged)
-    changed = items_changed(original_items, merged)
-    output = {
-        "schema_version": 1,
-        "generated_at": now if changed or not previous else previous.get("generated_at", now),
-        "items": merged,
-    }
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    serialized = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
-    parsed = json.loads(serialized)
-    if parsed.get("schema_version") != 1 or not isinstance(parsed.get("items"), list):
-        raise RuntimeError("validação do JSON gerado falhou")
-    temporary_path = OUTPUT_PATH.with_suffix(".json.tmp")
-    temporary_path.write_text(serialized, encoding="utf-8")
-    temporary_path.replace(OUTPUT_PATH)
+    successful_metrics = [
+        metric for metric in source_metrics
+        if metric["request_status"] == "success"
+        or (metric["request_status"] == "partial" and metric["pages_consulted"] > 0)
+    ]
+    failed_metrics = [
+        metric for metric in source_metrics
+        if metric["request_status"] in {"failed", "partial"}
+        or metric["collection_status"] == "partial"
+    ]
+    if not successful_metrics:
+        run_status = "failed"
+        merged = original_items
+        duplicate_count = 0
+        added_count = 0
+        changed = False
+    else:
+        run_status = "partial" if failed_metrics else "complete"
+        merged, duplicate_count, added_count = merge_items(
+            original_items,
+            new_items,
+            now,
+            preserve_existing_duplicates=run_status != "complete",
+        )
+        seen_keys: set[str] = set()
+        metric_by_id = {metric["query_id"]: metric for metric in source_metrics}
+        new_item_ids = {id(item) for item in new_items}
+        for candidate in [*original_items, *new_items]:
+            keys = dedup_keys(candidate)
+            if any(key in seen_keys for key in keys) and id(candidate) in new_item_ids:
+                metric = metric_by_id.get(candidate.get("_diagnostic_metric_id"))
+                if metric is not None:
+                    metric["duplicates"] += 1
+            seen_keys.update(keys)
+        changed = items_changed(original_items, merged)
 
-    log("Resumo por fonte:")
-    for name, found, relevant, low, status in source_stats:
-        log(f"  {name}: encontrados={found}; relevantes={relevant}; baixa descartada={low}; {status}")
+    candidate_new_records = added_count
+    if run_status != "complete":
+        merged = original_items
+        added_count = 0
+        changed = False
+
+    data_written = False
+    if run_status == "complete" and (changed or not previous):
+        output = {
+            "schema_version": 1,
+            "generated_at": now if changed or not previous else previous.get("generated_at", now),
+            "items": merged,
+        }
+        OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        serialized = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
+        parsed = json.loads(serialized)
+        if parsed.get("schema_version") != 1 or not isinstance(parsed.get("items"), list):
+            raise RuntimeError("validação do JSON gerado falhou")
+        temporary_path = OUTPUT_PATH.with_suffix(".json.tmp")
+        temporary_path.write_text(serialized, encoding="utf-8")
+        temporary_path.replace(OUTPUT_PATH)
+        data_written = True
+
+    report = {
+        "schema_version": 1,
+        "run_id": now,
+        "mode": mode,
+        "status": run_status,
+        "data_written": data_written,
+        "classification_mode": "legacy-publication-filter; contextual assessment is diagnostic only",
+        "summary": {
+            "source_requests": len(source_metrics),
+            "successful_requests": len(successful_metrics),
+            "failed_or_partial_requests": len(failed_metrics),
+            "requests_attempted": sum(metric["attempts"] for metric in source_metrics),
+            "requests_succeeded": sum(metric["requests_succeeded"] for metric in source_metrics),
+            "pages_consulted": sum(metric["pages_consulted"] for metric in source_metrics),
+            "raw_results": sum(metric["raw_results"] for metric in source_metrics),
+            "valid_records": sum(metric["valid_records"] for metric in source_metrics),
+            "results_retrieved": sum(metric["results_retrieved"] for metric in source_metrics),
+            "unique_query_records": sum(metric["unique_records"] for metric in source_metrics),
+            "transient_failures": sum(metric["transient_failures"] for metric in source_metrics),
+            "permanent_failures": sum(metric["permanent_failures"] for metric in source_metrics),
+            "retries": sum(metric["retries"] for metric in source_metrics),
+            "queries_limit_reached": sum(metric["limit_reached"] for metric in source_metrics),
+            "announced_result_totals": sum(
+                metric["results_announced"]
+                for metric in source_metrics
+                if isinstance(metric["results_announced"], int)
+            ),
+            "queries_with_announced_totals": sum(
+                isinstance(metric["results_announced"], int)
+                for metric in source_metrics
+            ),
+            "completed_queries": sum(
+                metric["collection_status"] == "complete" for metric in source_metrics
+            ),
+            "interrupted_queries": sum(
+                metric["collection_status"] in {"partial", "failed"}
+                for metric in source_metrics
+            ),
+            "resumable_queries": sum(
+                metric["resume_possible"] for metric in source_metrics
+            ),
+            "duration_seconds": round(
+                sum(metric["duration_seconds"] for metric in source_metrics), 3
+            ),
+            "accepted": sum(metric["accepted"] for metric in source_metrics),
+            "review": sum(metric["review"] for metric in source_metrics),
+            "discarded": sum(metric["discarded"] for metric in source_metrics),
+            "published_by_legacy_filter": sum(
+                metric["legacy_accepted"] for metric in source_metrics
+            ),
+            "rejected_by_legacy_filter": sum(
+                metric["legacy_discarded"] for metric in source_metrics
+            ),
+            "duplicates": duplicate_count,
+            "new_records": added_count,
+            "candidate_records_not_published": (
+                candidate_new_records if run_status == "partial" else 0
+            ),
+            "preserved_previous_records": len(original_items),
+            "published_records": len(merged),
+        },
+        "source_summaries": {
+            source_name: {
+                "queries": len(source_rows),
+                "status": (
+                    "failed" if all(row["collection_status"] == "failed" for row in source_rows)
+                    else "partial" if any(row["collection_status"] != "complete" for row in source_rows)
+                    else "complete"
+                ),
+                "requests_attempted": sum(row["attempts"] for row in source_rows),
+                "requests_succeeded": sum(row["requests_succeeded"] for row in source_rows),
+                "pages_consulted": sum(row["pages_consulted"] for row in source_rows),
+                "raw_results": sum(row["raw_results"] for row in source_rows),
+                "results_retrieved": sum(row["results_retrieved"] for row in source_rows),
+                "valid_records": sum(row["valid_records"] for row in source_rows),
+                "unique_query_records": sum(row["unique_records"] for row in source_rows),
+                "duplicates": sum(row["duplicates"] for row in source_rows),
+                "transient_failures": sum(row["transient_failures"] for row in source_rows),
+                "permanent_failures": sum(row["permanent_failures"] for row in source_rows),
+                "retries": sum(row["retries"] for row in source_rows),
+                "queries_limit_reached": sum(row["limit_reached"] for row in source_rows),
+                "queries_with_continuation": sum(
+                    row["continuation_available"] for row in source_rows
+                ),
+                "duration_seconds": round(
+                    sum(row["duration_seconds"] for row in source_rows), 3
+                ),
+                "results_announced": sum(
+                    row["results_announced"]
+                    for row in source_rows
+                    if isinstance(row["results_announced"], int)
+                ),
+                "queries_with_announced_totals": sum(
+                    isinstance(row["results_announced"], int) for row in source_rows
+                ),
+                "interruption_reasons": {
+                    reason: sum(row["interruption_reason"] == reason for row in source_rows)
+                    for reason in dict.fromkeys(
+                        row["interruption_reason"] for row in source_rows
+                        if row["interruption_reason"]
+                    )
+                },
+            }
+            for source_name in dict.fromkeys(row["source"] for row in source_metrics)
+            for source_rows in [[row for row in source_metrics if row["source"] == source_name]]
+        },
+        "sources": source_metrics,
+    }
+    report_path = write_diagnostics(report)
     log(
-        f"Totais: encontrados={collected}; descartados_por_relevancia={discarded}; "
-        f"duplicados={duplicate_count}; novos={added_count}; alta={high_count}; "
-        f"média={medium_count}; antigos_descartados={discarded_existing}; "
-        f"total_publicado={len(merged)}; alterado={str(changed).lower()}"
+        f"Execução {run_status}: requisições={len(source_metrics)}; "
+        f"brutos={report['summary']['raw_results']}; válidos={report['summary']['valid_records']}; "
+        f"novos={added_count}; duplicados={duplicate_count}; "
+        f"mantidos={len(merged)}; JSON atualizado={str(data_written).lower()}"
     )
-    if not source_stats or all(status.startswith("FALHA") for _, _, _, _, status in source_stats):
-        log("Nenhuma fonte respondeu; o JSON anterior foi preservado sem perda de itens.")
+    log(f"Relatório de diagnóstico: {report_path}")
+    return run_status
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("all", "news", "academic"), default="all")
+    parser.add_argument(
+        "--evaluate-existing",
+        action="store_true",
+        help="gera avaliação contextual dos registros existentes sem alterar dados públicos",
+    )
     args = parser.parse_args()
-    run(args.mode)
+    if args.evaluate_existing:
+        with CONFIG_PATH.open(encoding="utf-8") as handle:
+            config = json.load(handle)
+        previous = load_previous() or {"items": []}
+        report = evaluate_existing(config, previous["items"])
+        report_path = write_diagnostics(report, prefix="avaliacao-contextual")
+        log(
+            "Avaliação contextual: "
+            + ", ".join(f"{key}={value}" for key, value in report["decisions"].items())
+            + f"; divergências={report['comparison']['definite_divergences']}; "
+            + f"revisão={report['comparison']['diagnostic_review']}"
+        )
+        log(f"Relatório de avaliação: {report_path}")
+        return
+    if run(args.mode) != "complete":
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        log(f"Erro fatal: {exc}")
+        log(f"Erro fatal: {safe_error(exc)}")
+        try:
+            path = write_diagnostics({
+                "schema_version": 1,
+                "run_id": utc_now(),
+                "status": "failed",
+                "fatal_error": safe_error(exc),
+            })
+            log(f"Relatório de falha fatal: {path}")
+        except OSError as diagnostic_error:
+            log(f"Não foi possível gravar o diagnóstico fatal: {safe_error(diagnostic_error)}")
         sys.exit(1)
