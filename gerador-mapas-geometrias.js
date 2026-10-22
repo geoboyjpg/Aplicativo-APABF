@@ -193,11 +193,24 @@
         }));
     }
 
+    function loadLayersIndependently(definitions, loader) {
+        return Promise.all(definitions.map(function (definition) {
+            return Promise.resolve().then(function () {
+                return loader(definition);
+            }).then(function (state) {
+                return { definition: definition, state: state, error: null };
+            }, function (error) {
+                return { definition: definition, state: null, error: error };
+            });
+        }));
+    }
+
     return {
         parseAxis: parseAxis,
         geographicCoordinates: geographicCoordinates,
         toSIRGAS2000: toSIRGAS2000,
         closeAndValidatePolygon: closeAndValidatePolygon,
-        mergeLayerStates: mergeLayerStates
+        mergeLayerStates: mergeLayerStates,
+        loadLayersIndependently: loadLayersIndependently
     };
 }));

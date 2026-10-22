@@ -369,6 +369,10 @@ body {
     box-shadow: 0 15px 60px #092d3350;
 }
 
+.geometry-dialog [hidden] {
+    display: none !important;
+}
+
 .geometry-dialog::backdrop {
     background: #102b2bc2;
 }
@@ -590,18 +594,6 @@ body {
     cursor: pointer;
 }
 
-.layer-name {
-    width: 100%;
-    margin-top: 7px;
-    padding: 6px 8px;
-    color: #334548;
-    font: inherit;
-    font-size: 0.8rem;
-    background: #fff;
-    border: 1px solid #d3dfde;
-    border-radius: 5px;
-}
-
 .layer-opacity-row {
     display: grid;
     grid-template-columns: auto 1fr 34px;
@@ -626,6 +618,23 @@ body {
     color: #a52d22;
     font-size: 0.78rem;
     line-height: 1.35;
+}
+
+.layer-retry {
+    margin-top: 6px;
+    padding: 5px 8px;
+    color: var(--map-teal-dark);
+    font: inherit;
+    font-size: 0.75rem;
+    background: #eff8f6;
+    border: 1px solid #bfd9d4;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.layer-retry:disabled {
+    cursor: wait;
+    opacity: 0.65;
 }
 
 .status-message,

@@ -180,6 +180,68 @@ test('concurrent catalog completion preserves imported and manually created laye
     assert.equal(merged[2].layer, manual.layer);
 });
 
+test('layer loading isolates request failures and preserves independent state references', async function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const available = { id: 'online-ok', visible: true, color: '#123456' };
+    const definitions = [
+        { id: 'online-ok', source: 'serviço de teste' },
+        { id: 'online-fail', source: 'serviço indisponível' },
+        { id: 'online-other', source: 'outro serviço' }
+    ];
+    const results = await geometry.loadLayersIndependently(definitions, function (definition) {
+        if (definition.id === 'online-fail') {
+            return Promise.reject(new Error('HTTP 503'));
+        }
+        return Promise.resolve(definition.id === 'online-ok' ? available : {
+            id: definition.id,
+            visible: false,
+            color: '#abcdef'
+        });
+    });
+
+    assert.equal(results.length, 3);
+    assert.equal(results[0].state, available);
+    assert.equal(results[0].error, null);
+    assert.match(results[1].error.message, /HTTP 503/);
+    assert.equal(results[2].state.id, 'online-other');
+    assert.notEqual(results[0].state, results[2].state);
+    assert.equal(available.visible, true);
+});
+
+test('undefined state regression is fixed at the geometry and layer-control scopes', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const bounds = implementation.slice(
+        implementation.indexOf('function getGeometryBounds'),
+        implementation.indexOf('function getOverviewBounds')
+    );
+    const controls = implementation.slice(
+        implementation.indexOf('function addLayerControls'),
+        implementation.indexOf('function addZoneControls')
+    );
+    assert.doesNotMatch(bounds, /\bstate\b|\bname\b|\btitle\b/);
+    assert.match(controls, /state\.originalTitle = title/);
+    assert.match(controls, /state\.legendInput = legendName/);
+    assert.match(implementation, /function loadDefinition\(definition\)[\s\S]*?etapa: \s*\+[\s\S]*?cálculo da extensão geográfica/);
+    assert.match(implementation, /Camadas carregadas com ' \+ failures\.length/);
+    assert.match(implementation, /Tentar novamente/);
+    assert.match(implementation, /loadLayersIndependently\(catalog, loadDefinition\)/);
+});
+
+test('layer list keeps one original name and the editable legend name, without the redundant display field', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const controls = implementation.slice(
+        implementation.indexOf('function addLayerControls'),
+        implementation.indexOf('function addZoneControls')
+    );
+    assert.match(controls, /title\.textContent = state\.originalName/);
+    assert.match(controls, /legendName\.className = 'layer-legend-name'/);
+    assert.match(controls, /state\.legendInput = legendName/);
+    assert.doesNotMatch(controls, /className = 'layer-name'|append\(header, name\)/);
+    assert.doesNotMatch(styles, /\.layer-name\s*\{/);
+    assert.match(implementation, /zoneNameInput\.className = 'zone-name-input'/);
+});
+
 test('layer panel separates original, display, and legend names and supports live search', function () {
     const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
@@ -251,6 +313,33 @@ test('coordinate conversion selects geographic and UTM source CRS and preserves 
     }, /zona UTM/);
 });
 
+test('geographic and UTM forms render only the selected coordinate fields and clear stale values', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    assert.match(page, /value="EPSG:4674"/);
+    assert.match(page, /value="EPSG:4326"/);
+    assert.match(page, /value="UTM"/);
+    assert.match(implementation, /if \(elements\.geometryCrs\.value === 'UTM'\)[\s\S]*?createCoordinateInput\(row, 'easting'[\s\S]*?createCoordinateInput\(row, 'northing'/);
+    assert.match(implementation, /createCoordinateInput\(row, 'latitude'[\s\S]*?createCoordinateInput\(row, 'longitude'/);
+    assert.match(implementation, /elements\.coordinateFormat\.hidden = isUtm/);
+    assert.match(implementation, /elements\.utmOptions\.hidden = !isUtm/);
+    assert.match(styles, /\.geometry-dialog \[hidden\]\s*\{\s*display:\s*none !important/s);
+    assert.match(implementation, /input\.required = true/);
+    const inputHelpers = implementation.slice(
+        implementation.indexOf('var pointCoordinateValues'),
+        implementation.indexOf('function createCoordinateInput')
+    );
+    assert.match(inputHelpers, /function clearGeometryInputValues\(\)/);
+    assert.ok(
+        implementation.indexOf('function clearGeometryInputValues') <
+            implementation.indexOf('function createCoordinateInput'),
+        'a limpeza dos valores deve estar no escopo compartilhado do formulário'
+    );
+    assert.match(implementation, /\[elements\.geometryCrs, elements\.coordinateFormat, elements\.utmZone, elements\.utmHemisphere\]/);
+    assert.match(implementation, /function getPolygonCoordinates\(\)[\s\S]*?polygonVertexValues\.map/);
+});
+
 test('polygons close rings and reject too few, zero-area, and self-intersecting vertices', function () {
     const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
     const ring = geometry.closeAndValidatePolygon([[0, 0], [1, 0], [1, 1]]);
@@ -286,5 +375,4 @@ test('manual geometry workflow includes preview, vertex editing, CRS metadata, a
     assert.match(implementation, /polygonVertexValues\.splice\(index, 1\)/);
     assert.match(implementation, /map\.removeLayer\(previewGeometryLayer\)/);
     assert.match(implementation, /state\.sourceSettings = Object\.assign/);
-});
 });

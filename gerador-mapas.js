@@ -113,8 +113,6 @@
                 visit(feature.geometry.coordinates);
             }
         });
-        state.displayInput = name;
-        state.originalTitle = title;
         return Number.isFinite(bounds.west) ? bounds : null;
     }
 
@@ -147,23 +145,28 @@
             };
             document.head.appendChild(script);
         });
-        state.legendInput = legendName;
     }
 
     function loadDefinition(definition) {
+        var stage = definition.format === 'script'
+            ? 'carregamento do arquivo de dados'
+            : 'requisição dos dados';
         var request = definition.format === 'script'
             ? loadScriptData(definition)
             : fetch(definition.url).then(function (response) {
                 if (!response.ok) {
                     throw new Error('Servidor respondeu com HTTP ' + response.status + '.');
                 }
+                stage = 'leitura da resposta GeoJSON';
                 return response.json();
             });
 
         return request.then(function (data) {
+            stage = 'validação do GeoJSON';
             if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || !data.features.length) {
                 throw new Error('O arquivo não contém feições geográficas.');
             }
+            stage = 'cálculo da extensão geográfica';
             var state = {
                 id: definition.id,
                 definition: definition,
@@ -185,6 +188,11 @@
                 initializeZoneStyles(state);
             }
             return state;
+        }).catch(function (error) {
+            throw new Error(
+                definition.name + ' (' + definition.source + '; ' + definition.url + ') — etapa: ' +
+                stage + ' — ' + (error && error.message || 'falha desconhecida')
+            );
         });
     }
 
@@ -343,7 +351,6 @@
         var header = document.createElement('div');
         var visibilityLabel = document.createElement('label');
         var checkbox = document.createElement('input');
-        var name = document.createElement('input');
         var title = document.createElement('span');
         var actions = document.createElement('span');
         var up = document.createElement('button');
@@ -367,6 +374,7 @@
         });
         title.textContent = state.originalName;
         title.title = 'Nome original: ' + state.originalName;
+        state.originalTitle = title;
         visibilityLabel.append(checkbox, title);
 
         [up, down].forEach(function (button) {
@@ -405,21 +413,8 @@
             actions.appendChild(remove);
         }
 
-        name.type = 'text';
-        name.className = 'layer-name';
-        name.maxLength = 70;
-        name.value = state.label;
-        name.disabled = !state.layer;
-        name.setAttribute('aria-label', 'Nome de exibição para ' + state.originalName);
-        name.addEventListener('input', function () {
-            state.label = name.value.trim() || state.originalName || 'Camada';
-            name.title = 'Nome de exibição: ' + state.label;
-            updateLayerSearchText(state);
-            updateMapComposition();
-        });
-
         header.append(visibilityLabel, actions);
-        item.append(header, name);
+        item.appendChild(header);
         if (!state.zoneStyles) {
             var color = document.createElement('input');
             var opacityRow = document.createElement('label');
@@ -470,6 +465,7 @@
             updateLayerSearchText(state);
             updateMapComposition();
         });
+        state.legendInput = legendName;
         resetLegendName.type = 'button';
         resetLegendName.className = 'legend-name-reset';
         resetLegendName.textContent = 'Original';
@@ -493,9 +489,20 @@
 
         if (state.error) {
             var error = document.createElement('p');
+            var retry = document.createElement('button');
             error.className = 'layer-error';
             error.textContent = state.error;
-            item.appendChild(error);
+            retry.type = 'button';
+            retry.className = 'layer-retry';
+            retry.textContent = 'Tentar novamente';
+            retry.addEventListener('click', function () {
+                retry.disabled = true;
+                retry.textContent = 'Tentando…';
+                retryLayer(state);
+            });
+            item.append(error, retry);
+            state.errorMessage = error;
+            state.retryButton = retry;
         }
         elements.layerList.appendChild(item);
         updateLayerSearchText(state);
@@ -591,6 +598,49 @@
             }
         }
         updateMapComposition();
+    }
+
+    function retryLayer(failedState) {
+        var index = states.indexOf(failedState);
+        if (index < 0) {
+            return;
+        }
+        loadDefinition(failedState.definition).then(function (state) {
+            try {
+                addStateToMap(state);
+                addLayerControls(state);
+                if (state.id === 'limite-apabf') {
+                    addBoundaryToOverview(state);
+                }
+            } catch (error) {
+                if (state.layer && map.hasLayer(state.layer)) {
+                    map.removeLayer(state.layer);
+                }
+                throw new Error(
+                    state.originalName + ' (' + state.definition.source + '; ' + state.definition.url +
+                    ') — etapa: inclusão no mapa — ' + error.message
+                );
+            }
+            states[index] = state;
+            failedState.item.replaceWith(state.item);
+            updateLayerOrderControls();
+            updateCatalogFailureStatus();
+            updateMapComposition();
+        }).catch(function (error) {
+            failedState.error = error.message;
+            failedState.errorMessage.textContent = error.message;
+            failedState.retryButton.disabled = false;
+            failedState.retryButton.textContent = 'Tentar novamente';
+            updateCatalogFailureStatus();
+        });
+    }
+
+    function updateCatalogFailureStatus() {
+        var failures = states.filter(function (state) { return Boolean(state.error); }).length;
+        elements.catalogStatus.textContent = failures
+            ? 'Camadas carregadas com ' + failures + ' indisponível(is). Consulte as mensagens e tente novamente.'
+            : 'Camadas oficiais disponíveis carregadas.';
+        elements.catalogStatus.classList.toggle('is-error', failures > 0);
     }
 
     function symbolClass(geometry) {
@@ -931,53 +981,74 @@
         });
     }
 
+    function addBoundaryToOverview(state) {
+        boundaryState = state;
+        overviewBounds = getOverviewBounds(state.bounds);
+        overviewBaseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            crossOrigin: true,
+            attribution: 'Imagery &copy; Esri, Vantor, Earthstar Geographics, and the GIS User Community'
+        }).addTo(overviewMap);
+        overviewBoundaryCasing = L.geoJSON(state.data, {
+            style: { color: '#fff', weight: 2.2, opacity: 0.9, fillOpacity: 0 }
+        }).addTo(overviewMap);
+        overviewBoundary = L.geoJSON(state.data, {
+            style: { color: '#d0a800', weight: 1.2, opacity: 1, fillOpacity: 0 }
+        }).addTo(overviewMap);
+        overviewMap.invalidateSize({ pan: false });
+        overviewMap.fitBounds(L.latLngBounds(
+            [overviewBounds.south, overviewBounds.west],
+            [overviewBounds.north, overviewBounds.east]
+        ), { animate: false });
+    }
+
     function loadOfficialLayers() {
         var failures = [];
-        return Promise.all(catalog.map(function (definition) {
-            return loadDefinition(definition)
-                .catch(function (error) {
-                    failures.push(definition.name + ': ' + error.message);
-                    return {
-                        id: definition.id,
-                        definition: definition,
-                        data: { features: [] },
-                        originalName: definition.name,
-                        label: definition.name,
-                        legendLabel: definition.name,
-                        color: definition.color,
-                        opacity: definition.opacity,
-                        visible: false,
-                        layer: null,
-                        error: error.message
-                    };
-                });
-        })).then(function (loadedStates) {
-            states = window.GeradorGeometrias.mergeLayerStates(loadedStates, states);
-            states.forEach(function (state) {
-                if (!state.error) {
-                    addStateToMap(state);
-                    if (state.id === 'limite-apabf') {
-                        boundaryState = state;
-                        overviewBounds = getOverviewBounds(state.bounds);
-                        overviewBaseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                            maxZoom: 19,
-                            crossOrigin: true,
-                            attribution: 'Imagery &copy; Esri, Vantor, Earthstar Geographics, and the GIS User Community'
-                        }).addTo(overviewMap);
-                        overviewBoundaryCasing = L.geoJSON(state.data, {
-                            style: { color: '#fff', weight: 2.2, opacity: 0.9, fillOpacity: 0 }
-                        }).addTo(overviewMap);
-                        overviewBoundary = L.geoJSON(state.data, {
-                            style: { color: '#d0a800', weight: 1.2, opacity: 1, fillOpacity: 0 }
-                        }).addTo(overviewMap);
-                        overviewMap.invalidateSize({ pan: false });
-                        overviewMap.fitBounds(L.latLngBounds(
-                            [overviewBounds.south, overviewBounds.west],
-                            [overviewBounds.north, overviewBounds.east]
-                        ), { animate: false });
-                    }
+        return window.GeradorGeometrias.loadLayersIndependently(catalog, loadDefinition)
+            .then(function (results) {
+            var loadedStates = results.map(function (result) {
+                if (!result.error) {
+                    return result.state;
                 }
-                addLayerControls(state);
+                failures.push(result.error.message);
+                return {
+                    id: result.definition.id,
+                    definition: result.definition,
+                    data: { type: 'FeatureCollection', features: [] },
+                    originalName: result.definition.name,
+                    label: result.definition.name,
+                    legendLabel: result.definition.name,
+                    color: result.definition.color,
+                    opacity: result.definition.opacity,
+                    visible: false,
+                    layer: null,
+                    error: result.error.message
+                };
+            });
+            states = window.GeradorGeometrias.mergeLayerStates(loadedStates, states);
+            loadedStates.forEach(function (state) {
+                try {
+                    if (!state.error) {
+                        addStateToMap(state);
+                        if (state.id === 'limite-apabf') {
+                            addBoundaryToOverview(state);
+                        }
+                    }
+                    addLayerControls(state);
+                } catch (error) {
+                    if (state.layer && map.hasLayer(state.layer)) {
+                        map.removeLayer(state.layer);
+                    }
+                    state.layer = null;
+                    state.visible = false;
+                    state.error = state.originalName + ' (' + state.definition.source + '; ' +
+                        state.definition.url + ') — etapa: inclusão no mapa ou painel — ' + error.message;
+                    failures.push(state.error);
+                    if (state.item) {
+                        state.item.remove();
+                    }
+                    addLayerControls(state);
+                }
             });
             states.forEach(function (state) {
                 if (state.item) {
@@ -2113,6 +2184,15 @@
 
     var pointCoordinateValues = {};
 
+    function clearGeometryInputValues() {
+        pointCoordinateValues = {};
+        polygonVertexValues.forEach(function (values) {
+            Object.keys(values).forEach(function (axis) {
+                delete values[axis];
+            });
+        });
+    }
+
     function geometryInputSettings() {
         return {
             crs: elements.geometryCrs.value,
@@ -2127,12 +2207,13 @@
         var input = document.createElement('input');
         var isUtm = elements.geometryCrs.value === 'UTM';
         var labels = isUtm
-            ? { easting: 'E (metros)', northing: 'N (metros)' }
+            ? { easting: 'E (m)', northing: 'N (m)' }
             : { latitude: 'Latitude', longitude: 'Longitude' };
         wrapper.textContent = labels[axis];
         input.type = 'text';
         input.inputMode = 'decimal';
         input.autocomplete = 'off';
+        input.required = true;
         input.value = values[axis] || '';
         input.dataset.axis = axis;
         input.placeholder = isUtm
@@ -2250,6 +2331,15 @@
         if (previewGeometryLayer) {
             map.removeLayer(previewGeometryLayer);
             previewGeometryLayer = null;
+        }
+        captureVertexValues();
+        var coordinateInputs = elements.polygonVertices.querySelectorAll('input[data-axis]');
+        var hasIncompleteInput = Array.prototype.some.call(coordinateInputs, function (input) {
+            return !input.value.trim();
+        });
+        if (hasIncompleteInput) {
+            elements.geometryError.textContent = '';
+            return;
         }
         try {
             var ring = window.GeradorGeometrias.closeAndValidatePolygon(getPolygonCoordinates());
@@ -2410,7 +2500,6 @@
                 state.definition.name = state.originalName;
                 if (state.label === previousName) {
                     state.label = state.originalName;
-                    state.displayInput.value = state.label;
                 }
                 if (state.legendLabel === previousName) {
                     state.legendLabel = state.originalName;
@@ -2475,8 +2564,14 @@
         });
         elements.pointButton.addEventListener('click', function () { openGeometryDialog('Point'); });
         elements.polygonButton.addEventListener('click', function () { openGeometryDialog('Polygon'); });
-        elements.geometryCrs.addEventListener('change', refreshGeometryFields);
-        elements.coordinateFormat.addEventListener('change', refreshGeometryFields);
+        [elements.geometryCrs, elements.coordinateFormat, elements.utmZone, elements.utmHemisphere]
+            .forEach(function (input) {
+                input.addEventListener('change', function () {
+                    clearGeometryInputValues();
+                    elements.geometryError.textContent = '';
+                    refreshGeometryFields();
+                });
+            });
         elements.addVertex.addEventListener('click', function () {
             captureVertexValues();
             polygonVertexValues.push({});
