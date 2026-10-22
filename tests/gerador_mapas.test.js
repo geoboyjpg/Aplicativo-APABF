@@ -155,6 +155,60 @@ test('print composition retains top/left coordinate labels and anchors map furni
     assert.match(styles, /\.map-latitudes span\s*\{[^}]*rotate\(-90deg\)/s);
 });
 
+test('map preview restores frame-relative furniture and gives the inset its own scale and north arrow', function () {
+    const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const insetStart = page.indexOf('<div class="overview-frame">');
+    const inset = page.slice(insetStart, page.indexOf('</section>', insetStart));
+    const overviewRenderer = implementation.slice(
+        implementation.indexOf('function renderOverview'),
+        implementation.indexOf('function renderLegendCanvas')
+    );
+
+    assert.match(styles, /\.north-arrow\s*\{[^}]*top:\s*2\.5%;[^}]*right:\s*2\.2%/s);
+    assert.match(styles, /\.preview-scale\s*\{[^}]*right:\s*5%;[^}]*bottom:\s*4%/s);
+    assert.match(inset, /class="overview-north-arrow"/);
+    assert.match(inset, /id="overview-scale"/);
+    assert.match(styles, /\.overview-frame\s*\{[^}]*position:\s*relative/s);
+    assert.match(implementation, /function updateOverviewScale\(\)[\s\S]*?var metersPerPixel = metersAcross/);
+    assert.match(overviewRenderer, /drawNorthArrow\(context,[\s\S]*?renderScaleBar\(/);
+    assert.match(overviewRenderer, /var metersPerPixel = 156543\.03392/);
+});
+
+test('manual point label keeps its source name and matching halo in preview and export only for manual points', function () {
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+
+    assert.match(implementation, /function manualPointLabel\(state, feature\)[\s\S]*?if \(!state\.manual[\s\S]*?feature\.geometry\.type !== 'Point'/);
+    assert.match(implementation, /layer\.bindTooltip\(label,[\s\S]*?permanent:\s*true[\s\S]*?className:\s*'manual-feature-label'/);
+    assert.match(styles, /\.leaflet-tooltip\.manual-feature-label\s*\{[^}]*color:\s*#263238[^}]*-webkit-text-stroke:\s*0\.35px #fff/s);
+    assert.match(implementation, /context\.strokeText\(label, point\.x \+ 8 \* outputRatio, point\.y\)/);
+    assert.match(implementation, /state\.data\.features\[0\]\.properties\.name = elements\.geometryName\.value/);
+});
+
+test('legend outlines remain geometry-specific and print strokes stay proportional to preview', function () {
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const canvasLegend = implementation.slice(
+        implementation.indexOf('function renderLegendCanvas'),
+        implementation.indexOf('function renderPortraitPanel')
+    );
+    assert.match(styles, /\.legend-symbol\s*\{[^}]*border:\s*1px solid #333/s);
+    assert.match(styles, /\.legend-symbol\.is-line\s*\{[^}]*border:\s*0/s);
+    assert.match(styles, /\.legend-symbol\.is-point\s*\{[^}]*border-radius:\s*50%/s);
+    assert.match(canvasLegend, /lineWidth = Math\.max\(1, scaleFactor \* 0\.18\)/);
+    assert.doesNotMatch(canvasLegend, /scaleFactor \* 0\.65/);
+});
+
+test('title background follows wrapped text in preview and exported layouts', function () {
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    assert.match(styles, /\.preview-title-block\s*\{[^}]*width:\s*fit-content[^}]*max-width:\s*100%/s);
+    assert.match(implementation, /function drawTitleBlock\([\s\S]*?var blockWidth = Math\.min\(width, measuredWidth \+ horizontalPadding \* 2\)/);
+    assert.match(implementation, /drawTitleBlock\([\s\S]*?elements\.title\.value\.trim\(\) \|\| 'Mapa sem título'/);
+});
+
 test('imports selected KML/KMZ files without replacing layer state or the sidebar', function () {
     const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
@@ -221,7 +275,8 @@ test('undefined state regression is fixed at the geometry and layer-control scop
     assert.doesNotMatch(bounds, /\bstate\b|\bname\b|\btitle\b/);
     assert.match(controls, /state\.originalTitle = title/);
     assert.match(controls, /state\.legendInput = legendName/);
-    assert.match(implementation, /function loadDefinition\(definition\)[\s\S]*?etapa: \s*\+[\s\S]*?cálculo da extensão geográfica/);
+    assert.match(implementation, /stage = 'cálculo da extensão geográfica'/);
+    assert.match(implementation, /etapa: '\s*\+\s*stage/);
     assert.match(implementation, /Camadas carregadas com ' \+ failures\.length/);
     assert.match(implementation, /Tentar novamente/);
     assert.match(implementation, /loadLayersIndependently\(catalog, loadDefinition\)/);

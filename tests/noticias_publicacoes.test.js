@@ -167,50 +167,6 @@ test('the page loads the valid dataset and renders searchable, filterable links'
     assert.match(elements.get('news-status').textContent, /Nenhum conteúdo corresponde/);
 });
 
-test('institutional category from the dataset is displayed and filterable', async function () {
-    const institutionalItem = {
-        ...data.items.find(item => item.relevance
-            && ['alta', 'media', 'complementar'].includes(item.relevance.level)),
-        category: 'institucional'
-    };
-    const fixture = { ...data, items: [institutionalItem] };
-    const { elements } = await loadPage(async () => ({
-        ok: true,
-        json: async () => fixture
-    }));
-
-    const categoryFilter = elements.get('category-filter');
-    categoryFilter.value = 'institucional';
-    categoryFilter.dispatch('change');
-    const results = elements.get('news-results');
-    assert.equal(results.children.length, 1);
-    assert.match(results.children[0].children[0].children[0].textContent, /Institucional/);
-});
-
-test('publisher attribution from targeted news feeds is displayed and searchable', async function () {
-    const article = {
-        ...data.items.find(item => item.relevance
-            && ['alta', 'media', 'complementar'].includes(item.relevance.level)),
-        publisher: 'Portal Regional',
-        source: { name: 'Google News - baleia-franca e APABF', type: 'noticia' },
-        category: 'noticia'
-    };
-    const fixture = { ...data, items: [article] };
-    const { elements } = await loadPage(async () => ({
-        ok: true,
-        json: async () => fixture
-    }));
-
-    const results = elements.get('news-results');
-    assert.equal(results.children.length, 1);
-    assert.match(results.children[0].textContent, /Portal Regional \(via Google News\)/);
-    assert.equal(results.children[0].lastChild.textContent, 'Abrir notícia no Google News');
-    const search = elements.get('news-search');
-    search.value = 'Portal Regional';
-    search.dispatch('input');
-    assert.equal(results.children.length, 1);
-});
-
 test('complementary publications, authors, journals, and partial collection status are visible', async function () {
     const publication = {
         title: 'Southern right whale ecology in Brazil',
@@ -230,7 +186,6 @@ test('complementary publications, authors, journals, and partial collection stat
         generated_at: '2025-01-01T00:00:00+00:00',
         last_checked_at: '2025-01-02T00:00:00+00:00',
         collection_status: 'partial',
-        collection_scope: 'news',
         items: [publication]
     };
     const { elements } = await loadPage(async () => ({
@@ -244,7 +199,7 @@ test('complementary publications, authors, journals, and partial collection stat
     assert.match(results.children[0].textContent, /Ana Silva; João Costa/);
     assert.match(results.children[0].textContent, /Marine Ecology/);
     assert.match(elements.get('last-updated').textContent, /Coleta parcial/);
-    assert.match(elements.get('news-status').textContent, /registros acadêmicos e de pesquisa foram preservados/);
+    assert.match(elements.get('news-status').textContent, /dados anteriores foram preservados/);
 });
 
 test('a failed collection state is not displayed as a successful empty search', async function () {
@@ -290,17 +245,12 @@ test('a stale snapshot is labeled instead of appearing as a fresh collection', a
 
 test('a failed request offers retry and recovers after data becomes available', async function () {
     let attempts = 0;
-    const recoveredData = {
-        ...data,
-        collection_status: 'complete',
-        collection_scope: 'all'
-    };
     const { elements, errors } = await loadPage(async () => {
         attempts += 1;
         if (attempts === 1) {
             return { ok: false, status: 503 };
         }
-        return { ok: true, json: async () => recoveredData };
+        return { ok: true, json: async () => data };
     });
 
     const status = elements.get('news-status');

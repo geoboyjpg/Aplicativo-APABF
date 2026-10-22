@@ -793,8 +793,8 @@ body {
 
 .north-arrow {
     position: absolute;
-    top: 8px;
-    right: 10px;
+    top: 2.5%;
+    right: 2.2%;
     z-index: 500;
     display: grid;
     width: 30px;
@@ -861,10 +861,27 @@ body {
     paint-order: stroke fill;
 }
 
+.leaflet-tooltip.manual-feature-label {
+    padding: 0;
+    color: #263238;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font: 600 12px Arial, sans-serif;
+    -webkit-text-stroke: 0.35px #fff;
+    paint-order: stroke fill;
+    pointer-events: none;
+}
+
+.leaflet-tooltip.manual-feature-label::before {
+    display: none;
+}
+
 .preview-scale {
     position: absolute;
-    right: 10px;
-    bottom: 8px;
+    right: 5%;
+    bottom: 4%;
     z-index: 450;
     min-width: 110px;
     color: #111;
@@ -909,13 +926,17 @@ body {
 
 .preview-title-block {
     display: grid;
-    min-height: 9%;
+    align-self: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 0;
     place-items: center;
     padding: 2.5%;
     background: #d0eee8;
 }
 
 .preview-title-block h2 {
+    max-width: 100%;
     margin: 0;
     color: #131b1c;
     font-size: clamp(0.78rem, 1.45vw, 1.45rem);
@@ -981,6 +1002,9 @@ body {
     font-size: clamp(0.52rem, 0.78vw, 0.72rem);
     line-height: 1.18;
     overflow-wrap: anywhere;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
 }
 
 .legend-symbol {
@@ -988,6 +1012,8 @@ body {
     width: 100%;
     height: 13px;
     border: 1px solid #333;
+    outline: 0;
+    box-shadow: none;
 }
 
 .legend-symbol.is-line {
@@ -1026,6 +1052,7 @@ body {
 }
 
 .overview-frame {
+    position: relative;
     width: clamp(58px, 6vw, 95px);
     height: 100%;
     max-width: 100%;
@@ -1035,6 +1062,57 @@ body {
     overflow: hidden;
     background: #fff;
     border: 1px solid #333;
+}
+
+.overview-north-arrow {
+    position: absolute;
+    top: 2.5%;
+    right: 2.2%;
+    z-index: 800;
+    display: grid;
+    width: 14px;
+    justify-items: center;
+    color: #111;
+    line-height: 0.9;
+    pointer-events: none;
+}
+
+.overview-north-arrow span {
+    font-size: 0.72rem;
+    -webkit-text-stroke: 0.45px #fff;
+    paint-order: stroke fill;
+}
+
+.overview-north-arrow small {
+    font-size: 0.42rem;
+    font-weight: 700;
+    -webkit-text-stroke: 0.35px #fff;
+    paint-order: stroke fill;
+}
+
+.overview-scale {
+    position: absolute;
+    bottom: 3%;
+    left: 4%;
+    z-index: 800;
+    color: #111;
+    font-size: 0.42rem;
+    line-height: 1;
+    text-align: left;
+    pointer-events: none;
+}
+
+.overview-scale > span:first-child {
+    display: block;
+    width: max-content;
+    margin-bottom: 1px;
+    -webkit-text-stroke: 0.35px #fff;
+    paint-order: stroke fill;
+}
+
+.overview-scale .scale-bar {
+    height: 3px;
+    margin-top: 0;
 }
 
 .preview-logos {
@@ -1074,7 +1152,6 @@ body {
 .print-preview.is-portrait .preview-title-block {
     grid-column: 1 / -1;
     grid-row: 1;
-    min-height: 0;
 }
 
 .print-preview.is-portrait .preview-legend {

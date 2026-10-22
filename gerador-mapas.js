@@ -44,6 +44,7 @@
         coordinates: document.getElementById('map-coordinates'),
         latitudes: document.getElementById('map-latitudes'),
         scale: document.getElementById('preview-scale'),
+        overviewScale: document.getElementById('overview-scale'),
         toast: document.getElementById('export-status'),
         pointButton: document.getElementById('add-point'),
         polygonButton: document.getElementById('add-polygon'),
@@ -277,8 +278,29 @@
                     fillColor: color,
                     fillOpacity: state.opacity
                 });
+            },
+            onEachFeature: function (feature, layer) {
+                var label = manualPointLabel(state, feature);
+                if (label) {
+                    layer.bindTooltip(label, {
+                        permanent: true,
+                        direction: 'right',
+                        offset: [8, 0],
+                        opacity: 1,
+                        interactive: false,
+                        className: 'manual-feature-label'
+                    });
+                }
             }
         });
+    }
+
+    function manualPointLabel(state, feature) {
+        if (!state.manual || !feature || !feature.geometry || feature.geometry.type !== 'Point') {
+            return '';
+        }
+        var properties = feature.properties || {};
+        return String(properties.name || state.originalName || '').trim();
     }
 
     function addStateToMap(state) {
@@ -888,6 +910,26 @@
             fillColor: '#df3f94',
             fillOpacity: 0.16
         }).addTo(overviewMap);
+        updateOverviewScale();
+    }
+
+    function updateOverviewScale() {
+        if (!overviewMap || !overviewMap.getBounds().isValid()) {
+            return;
+        }
+        var bounds = overviewMap.getBounds();
+        var size = overviewMap.getSize();
+        var centerLat = bounds.getCenter().lat * Math.PI / 180;
+        var metersAcross = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
+        var metersPerPixel = metersAcross / Math.max(size.x, 1);
+        var scaleMeters = scaleDistance(metersPerPixel * Math.min(38, size.x * 0.28));
+        var barPixels = scaleMeters / metersPerPixel;
+        var label = scaleMeters >= 1000
+            ? (scaleMeters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
+            : Math.round(scaleMeters) + ' m';
+        elements.overviewScale.innerHTML =
+            '<span>' + label + '</span><span class="scale-bar" style="width:' +
+            barPixels + 'px"><span></span><span></span></span>';
     }
 
     function updateMapComposition() {
@@ -971,6 +1013,7 @@
             keyboard: false,
             touchZoom: false
         }).setView([-28.2, -48.8], 7);
+        overviewMap.on('resize zoomend moveend', updateOverviewScale);
         map.on('moveend zoomend', updateMapComposition);
         window.addEventListener('resize', function () {
             window.setTimeout(function () {
@@ -1000,6 +1043,7 @@
             [overviewBounds.south, overviewBounds.west],
             [overviewBounds.north, overviewBounds.east]
         ), { animate: false });
+        updateOverviewScale();
     }
 
     function loadOfficialLayers() {
@@ -1425,6 +1469,21 @@
                         4.5 * outputRatio,
                         zoneStyle ? state.opacity : undefined
                     );
+                    var label = manualPointLabel(state, feature);
+                    if (label) {
+                        var point = projection(feature.geometry.coordinates[0], feature.geometry.coordinates[1]);
+                        context.save();
+                        context.font = '600 ' + (12 * outputRatio) + 'px Arial';
+                        context.textAlign = 'left';
+                        context.textBaseline = 'middle';
+                        context.lineJoin = 'round';
+                        context.lineWidth = Math.max(1, 3 * outputRatio);
+                        context.strokeStyle = '#fff';
+                        context.strokeText(label, point.x + 8 * outputRatio, point.y);
+                        context.fillStyle = '#263238';
+                        context.fillText(label, point.x + 8 * outputRatio, point.y);
+                        context.restore();
+                    }
                 });
             });
     }
@@ -1657,6 +1716,18 @@
                 }
                 var arrowSize = Math.min(width, height) * 0.09;
                 drawNorthArrow(context, x + width - arrowSize, y + arrowSize * 1.3, arrowSize);
+                var centerLatitude = (viewBounds.north + viewBounds.south) / 2 * Math.PI / 180;
+                var metersPerPixel = 156543.03392 * Math.cos(centerLatitude) /
+                    (Math.pow(2, zoom) * fit);
+                var scalePadding = Math.min(width, height) * 0.055;
+                renderScaleBar(
+                    context,
+                    x + scalePadding * 1.8,
+                    y + height - scalePadding * 1.8,
+                    width,
+                    metersPerPixel,
+                    scaleFactor
+                );
             })
             .finally(function () {
                 context.restore();
@@ -1708,7 +1779,7 @@
                     context.fillStyle = entry.color;
                     context.fill();
                     context.strokeStyle = state.definition.stroke || '#333';
-                    context.lineWidth = Math.max(1, scaleFactor * 0.65);
+                    context.lineWidth = Math.max(1, scaleFactor * 0.18);
                     context.stroke();
                 } else if (entry.geometry === 'line') {
                     context.beginPath();
@@ -1721,7 +1792,7 @@
                     context.fillStyle = entry.color;
                     context.fillRect(columnX, symbolY, symbolWidth, symbolHeight);
                     context.strokeStyle = state.definition.stroke || '#333';
-                    context.lineWidth = Math.max(1, scaleFactor * 0.65);
+                    context.lineWidth = Math.max(1, scaleFactor * 0.18);
                     context.strokeRect(columnX, symbolY, symbolWidth, symbolHeight);
                 }
                 context.globalAlpha = 1;
@@ -1758,6 +1829,42 @@
         };
     }
 
+    function drawTitleBlock(context, title, x, y, width, height, scaleFactor, fontSize, maxLines, lineHeight) {
+        var horizontalPadding = 4 * scaleFactor;
+        var textWidth = Math.max(1, width * 0.9 - horizontalPadding * 2);
+        context.save();
+        context.font = 'bold ' + fontSize + 'px Arial';
+        var lines = wrappedLines(context, title, textWidth);
+        if (lines.length > maxLines) {
+            lines = lines.slice(0, maxLines);
+            var lastLine = lines.length - 1;
+            while (lines[lastLine] && context.measureText(lines[lastLine] + '…').width > textWidth) {
+                lines[lastLine] = lines[lastLine].slice(0, -1);
+            }
+            lines[lastLine] += '…';
+        }
+        var measuredWidth = lines.reduce(function (widest, line) {
+            return Math.max(widest, context.measureText(line).width);
+        }, 0);
+        var blockWidth = Math.min(width, measuredWidth + horizontalPadding * 2);
+        var blockX = x + (width - blockWidth) / 2;
+        var effectiveLineHeight = Math.min(lineHeight, (height - 2 * scaleFactor) / lines.length);
+        var blockHeight = Math.min(height, lines.length * effectiveLineHeight + 2 * scaleFactor);
+        var blockY = y + (height - blockHeight) / 2;
+        context.fillStyle = '#d0eee8';
+        context.fillRect(blockX, blockY, blockWidth, blockHeight);
+        context.fillStyle = '#111';
+        context.textAlign = 'center';
+        lines.forEach(function (line, index) {
+            context.fillText(
+                line,
+                x + width / 2,
+                blockY + blockHeight / 2 + (index - (lines.length - 1) / 2) * effectiveLineHeight
+            );
+        });
+        context.restore();
+    }
+
     function renderPortraitPanel(context, canvas, frame, mapBounds, scaleFactor, rightMargin) {
         var panelX = frame.x;
         var panelY = frame.y + frame.height + 6 * scaleFactor;
@@ -1765,24 +1872,18 @@
         var panelHeight = canvas.height - panelY - 12 * scaleFactor;
         var panelBottom = panelY + panelHeight;
         var titleHeight = 15 * scaleFactor;
-        context.fillStyle = '#d0eee8';
-        context.fillRect(panelX, panelY, panelWidth, titleHeight);
-        context.fillStyle = '#111';
-        context.textAlign = 'center';
-        context.font = 'bold ' + (4.2 * scaleFactor) + 'px Arial';
-        var titleWidth = panelWidth - 8 * scaleFactor;
-        var titleLines = wrappedLines(context, elements.title.value.trim() || 'Mapa sem título', titleWidth);
-        if (titleLines.length > 2) {
-            titleLines = titleLines.slice(0, 2);
-            titleLines[1] = titleLines[1].slice(0, -1) + '…';
-        }
-        titleLines.forEach(function (line, index) {
-            context.fillText(
-                line,
-                panelX + panelWidth / 2,
-                panelY + titleHeight / 2 + (index - (titleLines.length - 1) / 2) * 4.8 * scaleFactor
-            );
-        });
+        drawTitleBlock(
+            context,
+            elements.title.value.trim() || 'Mapa sem título',
+            panelX,
+            panelY,
+            panelWidth,
+            titleHeight,
+            scaleFactor,
+            4.2 * scaleFactor,
+            2,
+            4.8 * scaleFactor
+        );
 
         var activeStates = states.filter(function (state) { return state.visible && state.layer; });
         var legendX = panelX + 3 * scaleFactor;
@@ -1971,26 +2072,19 @@
                 var panelBottom = frame.y + frame.height;
                 var cursor = frame.y;
                 var titleHeight = 21 * scaleFactor;
-                context.fillStyle = '#d0eee8';
-                context.fillRect(panelX, cursor, panelWidth, titleHeight);
-                context.fillStyle = '#111';
-                context.textAlign = 'center';
-                context.font = 'bold ' + (4.8 * scaleFactor) + 'px Arial';
-                var titleWidth = panelWidth - 8 * scaleFactor;
-                var titleLines = wrappedLines(context, elements.title.value.trim() || 'Mapa sem título', titleWidth);
                 var maxTitleLines = Math.max(1, Math.floor((titleHeight - 2 * scaleFactor) / (5.2 * scaleFactor)));
-                if (titleLines.length > maxTitleLines) {
-                    titleLines = titleLines.slice(0, maxTitleLines);
-                    var lastLine = titleLines.length - 1;
-                    while (titleLines[lastLine] && context.measureText(titleLines[lastLine] + '…').width > titleWidth) {
-                        titleLines[lastLine] = titleLines[lastLine].slice(0, -1);
-                    }
-                    titleLines[lastLine] += '…';
-                }
-                var titleLineHeight = Math.min(5.2 * scaleFactor, (titleHeight - 2 * scaleFactor) / titleLines.length);
-                titleLines.forEach(function (line, index) {
-                    context.fillText(line, panelX + panelWidth / 2, cursor + titleHeight / 2 + (index - (titleLines.length - 1) / 2) * titleLineHeight);
-                });
+                drawTitleBlock(
+                    context,
+                    elements.title.value.trim() || 'Mapa sem título',
+                    panelX,
+                    cursor,
+                    panelWidth,
+                    titleHeight,
+                    scaleFactor,
+                    4.8 * scaleFactor,
+                    maxTitleLines,
+                    5.2 * scaleFactor
+                );
                 cursor += titleHeight + 3 * scaleFactor;
 
                 context.fillStyle = '#111';

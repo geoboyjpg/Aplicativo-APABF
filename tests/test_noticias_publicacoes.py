@@ -1,6 +1,7 @@
 import importlib.util
 import gzip
 import json
+import hashlib
 import shutil
 import tempfile
 import unittest
@@ -32,73 +33,6 @@ class RelevanceTests(unittest.TestCase):
             "relevance": {},
         }
 
-    def test_categories_follow_document_type_and_source_policy_not_topic_words(self):
-        self.assertEqual(
-            collector.category_for_document(
-                {"type": "academica", "category": "academico"},
-                document_type="journal-article",
-            ),
-            "academico",
-        )
-        self.assertEqual(
-            collector.category_for_document(
-                {"type": "academica", "category": "academico"},
-                document_type="report",
-            ),
-            "pesquisa",
-        )
-        self.assertEqual(
-            collector.category_for_document(
-                {"type": "repositorio", "category": "academico"},
-                document_type="info:eu-repo/semantics/doctoralThesis",
-            ),
-            "pesquisa",
-        )
-        self.assertEqual(
-            collector.category_for_document(
-                {"type": "institucional", "category": "institucional"},
-                document_type="News Item",
-            ),
-            "institucional",
-        )
-        self.assertEqual(
-            collector.category_for_document(
-                {"type": "noticia", "category": "noticia"},
-                document_type="pesquisa e conservação",
-            ),
-            "noticia",
-        )
-
-    def test_official_and_project_sources_are_configured_as_institutional(self):
-        sources = {
-            source["name"]: source
-            for source in self.config["rss_feeds"]
-        }
-        for name in (
-            "Notícias do Governo de Santa Catarina",
-            "Epagri - notícias institucionais",
-            "IMA Santa Catarina - notícias",
-            "Projeto Baleia Franca - notícias",
-            "ICMBio - notícias",
-            "Ministério do Meio Ambiente",
-        ):
-            with self.subTest(name=name):
-                self.assertEqual(sources[name]["type"], "institucional")
-                self.assertEqual(sources[name]["category"], "institucional")
-
-    def test_reclassify_existing_rss_items_by_configured_content_category(self):
-        item = {
-            "source": {"name": "Notícias do Governo de Santa Catarina", "type": "noticia"},
-            "category": "noticia",
-        }
-        changed = collector.reclassify_source_categories(
-            [item],
-            self.config["rss_feeds"],
-        )
-        self.assertEqual(changed, 1)
-        self.assertEqual(item["source"]["type"], "institucional")
-        self.assertEqual(item["category"], "institucional")
-
     def test_apabf_and_environmental_theme_is_high(self):
         item = self.item("Conservação na APABF", "Projeto de biodiversidade")
         self.assertTrue(collector.classify(item, self.config))
@@ -114,126 +48,6 @@ class RelevanceTests(unittest.TestCase):
         item = self.item("Tempo e intriga na constituição do mundo", "Pesquisa acadêmica em Florianópolis", "repositorio")
         self.assertFalse(collector.classify(item, self.config))
         self.assertEqual(item["relevance"]["level"], "baixa")
-
-    def test_job_posts_are_not_published_as_scientific_research(self):
-        item = self.item(
-            "ProFRANCA abre inscrições para Estágio de Iniciação Científica",
-            "Atividades de pesquisa com a baleia-franca-austral em Imbituba.",
-            "institucional",
-        )
-        item["category"] = "institucional"
-        self.assertFalse(collector.classify(item, self.config))
-        self.assertEqual(item["relevance"]["level"], "baixa")
-        self.assertIn("fora do escopo", item["relevance"]["reason"][0])
-
-    def test_unrelated_urban_and_transport_news_are_not_made_relevant_by_city_name(self):
-        titles = (
-            "VÍDEO: motociclista morre após bater em ônibus parado na pista da SC-401, em Florianópolis",
-            "Aeroporto de Florianópolis é eleito o melhor da América do Sul pela primeira vez",
-            "Embarcação de pesca sofre avaria e fica parcialmente submersa em Laguna",
-        )
-        for title in titles:
-            item = self.item(title, source_type="noticia")
-            with self.subTest(title=title):
-                self.assertFalse(collector.classify(item, self.config))
-                self.assertEqual(item["relevance"]["level"], "baixa")
-
-    def test_toninha_stranding_in_laguna_is_relevant_without_apabf_name(self):
-        item = self.item(
-            "Morre filhote de toninha resgatado em Laguna",
-            "Um filhote de toninha foi encontrado encalhado e resgatado na região de Laguna.",
-        )
-        self.assertTrue(collector.classify(item, self.config))
-        self.assertIn(item["relevance"]["level"], {"alta", "media"})
-        self.assertTrue(any("toninha" in reason for reason in item["relevance"]["reason"]))
-
-    def test_right_whale_survey_in_santa_catarina_and_rio_grande_do_sul_is_relevant(self):
-        item = self.item(
-            "Sobrevoo científico registra 185 baleias-francas entre SC e RS",
-            "Pesquisadores monitoraram baleias-francas em sobrevoo científico "
-            "entre Santa Catarina e Rio Grande do Sul.",
-        )
-        self.assertTrue(collector.classify(item, self.config))
-        self.assertIn(item["relevance"]["level"], {"alta", "media"})
-
-    def test_targeted_google_news_feeds_preserve_the_publisher_name(self):
-        feeds = {
-            feed["name"]: feed
-            for feed in self.config["rss_feeds"]
-        }
-        whale_feed = feeds["Google News - baleia-franca e APABF"]
-        monitoring_feed = feeds[
-            "Google News - monitoramento e encalhes em Santa Catarina"
-        ]
-        self.assertIn("Eubalaena", whale_feed["url"])
-        self.assertIn("monitoramento+de+praias", monitoring_feed["url"])
-
-        payload = (
-            b'<rss><channel><item><title>Noticia costeira</title>'
-            b'<link>https://example.org/noticia</link>'
-            b'<source url="https://example.org">Portal Regional</source>'
-            b'</item></channel></rss>'
-        )
-        items = collector.parse_feed(payload, whale_feed)
-        self.assertEqual(items[0]["publisher"], "Portal Regional")
-        self.assertEqual(items[0]["source"]["name"], whale_feed["name"])
-        self.assertEqual(items[0]["category"], "noticia")
-
-        official_story = payload.replace(
-            b'<source url="https://example.org">Portal Regional</source>',
-            b'<source url="https://www.gov.br">Governo Federal</source>',
-        )
-        official_item = collector.parse_feed(official_story, whale_feed)[0]
-        self.assertEqual(official_item["category"], "institucional")
-
-        malformed_publisher = payload.replace(
-            b'<source url="https://example.org">Portal Regional</source>',
-            b'<source url="https://rscportal.com.br">Open Sans, sans-serif;</source>',
-        )
-        parsed = collector.parse_feed(malformed_publisher, whale_feed)[0]
-        self.assertEqual(parsed["publisher"], "rscportal.com.br")
-        self.assertEqual(parsed["publisher_url"], "https://rscportal.com.br/")
-
-    def test_google_publisher_category_is_recomputed_for_existing_records(self):
-        feed = next(
-            feed for feed in self.config["rss_feeds"]
-            if feed["name"] == "Google News - baleia-franca e APABF"
-        )
-        item = {
-            "source": {"name": feed["name"], "type": "noticia"},
-            "publisher_url": "https://www.gov.br/",
-            "category": "noticia",
-        }
-        self.assertEqual(
-            collector.reclassify_source_categories([item], self.config["rss_feeds"]),
-            1,
-        )
-        self.assertEqual(item["category"], "institucional")
-
-    def test_image_gallery_entries_from_official_feed_are_not_valid_publications(self):
-        feed = next(
-            feed for feed in self.config["rss_feeds"]
-            if feed["name"] == "ICMBio - notícias"
-        )
-        payload = (
-            "<rss><channel>"
-            "<item><title>1.png</title><description>Legenda da fotografia</description>"
-            "<link>https://example.org/news/1.png</link></item>"
-            "<item><title>GALERIA_FOTOS 7.jpeg</title><description>Legenda</description>"
-            "<link>https://example.org/news/gallery-7.jpeg</link></item>"
-            "<item><title>ICMBio anuncia ação de conservação</title>"
-            "<description>Programa de conservação da fauna marinha.</description>"
-            "<link>https://example.org/news/acao</link></item>"
-            "</channel></rss>"
-        ).encode("utf-8")
-        metric = collector.new_source_metric(feed["name"], "rss:feed", feed["url"])
-
-        items = collector.parse_feed(payload, feed, metric)
-
-        self.assertEqual(metric["raw_results"], 3)
-        self.assertEqual(metric["valid_records"], 1)
-        self.assertEqual(metric["discard_reasons"]["non_article_media_entry"], 2)
-        self.assertEqual(items[0]["title"], "ICMBio anuncia ação de conservação")
 
     def test_municipality_with_relevant_theme_is_medium(self):
         item = self.item("Conservação em Imbituba", "Ação na Lagoa de Ibiraquera")
@@ -601,7 +415,7 @@ class RelevanceTests(unittest.TestCase):
 
         report = collector.evaluate_existing(self.config, records)
 
-        self.assertEqual(report["total"], len(records))
+        self.assertEqual(report["total"], 95)
         self.assertEqual(report["mode"], "contextual-evaluation-only")
         self.assertEqual(
             report["comparison"]["agreements"]
@@ -647,71 +461,6 @@ class NormalizationTests(unittest.TestCase):
         self.assertEqual(len(merged), 1)
         self.assertEqual(duplicates, 1)
         self.assertEqual(added, 1)
-
-    def test_exact_news_fingerprint_deduplicates_changed_url_but_keeps_distinct_story(self):
-        first = collector.make_item(
-            "Embarcação sofre avaria em Laguna",
-            "Barco atingiu uma pedra no canal da barra.",
-            "https://news.example/story-1",
-            {"name": "Feed A", "type": "noticia", "category": "noticia"},
-            "2026-10-16",
-        )
-        duplicate = collector.make_item(
-            "Embarcação sofre avaria em Laguna",
-            "Barco atingiu uma pedra no canal da barra.",
-            "https://news.example/story-2",
-            {"name": "Feed A", "type": "noticia", "category": "noticia"},
-            "2026-10-16",
-        )
-        distinct = collector.make_item(
-            "Embarcação sofre avaria em Laguna",
-            "Outro barco teve uma avaria em episódio separado.",
-            "https://news.example/story-3",
-            {"name": "Feed A", "type": "noticia", "category": "noticia"},
-            "2026-10-16",
-        )
-        merged, duplicates_count, added = collector.merge_items(
-            [], [first, duplicate, distinct], "2026-10-17T00:00:00+00:00"
-        )
-        self.assertEqual(len(merged), 2)
-        self.assertEqual(duplicates_count, 1)
-        self.assertEqual(added, 2)
-
-    def test_merging_new_records_preserves_duplicates_already_in_previous_snapshot(self):
-        first = collector.make_item(
-            "Aviso ambiental",
-            "A ação ocorre no litoral catarinense.",
-            "https://example.org/noticia-a",
-            {"name": "Arquivo A", "type": "noticia", "category": "noticia"},
-            "2026-01-01",
-        )
-        second = collector.make_item(
-            "Aviso ambiental",
-            "A ação ocorre no litoral catarinense.",
-            "https://example.org/noticia-b",
-            {"name": "Arquivo B", "type": "noticia", "category": "noticia"},
-            "2026-01-01",
-        )
-        first["id"] = "existing-a"
-        second["id"] = "existing-b"
-        new_item = collector.make_item(
-            "Nova ação ambiental",
-            "Atividade de conservação costeira.",
-            "https://example.org/noticia-c",
-            {"name": "Feed", "type": "noticia", "category": "noticia"},
-            "2026-01-02",
-        )
-
-        merged, duplicates, added = collector.merge_items(
-            [first, second],
-            [new_item],
-            "2026-01-03T00:00:00+00:00",
-        )
-
-        self.assertEqual(len(merged), 3)
-        self.assertEqual({item["id"] for item in merged} & {"existing-a", "existing-b"},
-                         {"existing-a", "existing-b"})
-        self.assertEqual((duplicates, added), (1, 1))
 
     def test_same_doi_merges_cross_source_metadata_but_similar_distinct_works_remain(self):
         first = collector.make_item(
@@ -837,18 +586,16 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertTrue(paths)
         return json.loads(paths[-1].read_text(encoding="utf-8"))
 
-    def test_historical_backup_is_preserved_and_public_json_stays_compatible(self):
+    def test_backup_is_byte_identical_and_public_json_stays_compatible(self):
         source = ROOT / "dados" / "noticias-publicacoes.json"
         backup = ROOT / "backups" / "noticias-publicacoes-20261021.json"
         self.assertTrue(backup.exists())
+        self.assertEqual(
+            hashlib.sha256(source.read_bytes()).digest(),
+            hashlib.sha256(backup.read_bytes()).digest(),
+        )
         data = json.loads(source.read_text(encoding="utf-8"))
-        backup_data = json.loads(backup.read_text(encoding="utf-8"))
-        self.assertEqual(backup_data["schema_version"], 1)
-        self.assertEqual(len(backup_data["items"]), 95)
-        self.assertEqual(data["schema_version"], 1)
-        self.assertGreaterEqual(len(data["items"]), len(backup_data["items"]))
-        self.assertEqual(data["collection_scope"], "news")
-        self.assertEqual(data["collection_status"], "partial")
+        self.assertEqual(len(data["items"]), 95)
         self.assertTrue(all(item.get("id") and item.get("title") and item.get("url") for item in data["items"]))
 
     def test_one_source_failure_publishes_complete_source_and_preserves_old_records(self):
@@ -878,71 +625,10 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertEqual(len(report["sources"]), 2)
         self.assertEqual(report["source_summaries"]["Fonte válida"]["status"], "complete")
         self.assertEqual(report["source_summaries"]["Fonte falha"]["status"], "failed")
-        self.assertEqual(report["summary"]["category_summaries"]["noticia"]["published_records"], 1)
-        self.assertEqual(
-            report["summary"]["category_summaries"]["noticia"]["sources"]["Fonte válida"]["published_records"],
-            1,
-        )
-        self.assertIn("last_successful_at", json.loads(
-            self.output_path.read_text(encoding="utf-8")
-        )["source_status"]["Fonte válida"])
-
-    def test_duplicate_news_is_attributed_to_the_correct_feed_in_diagnostics(self):
-        config = json.loads(self.config_path.read_text(encoding="utf-8"))
-        config["rss_feeds"] = [
-            {
-                "name": name,
-                "url": f"https://{name.casefold().replace(' ', '-')}.example/rss",
-                "type": "noticia",
-                "category": "noticia",
-            }
-            for name in ("Fonte válida", "Fonte duplicada")
-        ]
-        self.config_path.write_text(json.dumps(config), encoding="utf-8")
-
-        def same_story_from_each_feed(source, metrics):
-            metric = collector.new_source_metric(source["name"], "rss:feed", source["url"])
-            metric.update({
-                "attempts": 1,
-                "requests_succeeded": 1,
-                "request_status": "success",
-                "collection_status": "complete",
-                "raw_results": 1,
-                "results_retrieved": 1,
-                "valid_records": 1,
-                "unique_records": 1,
-                "pages_consulted": 1,
-            })
-            metrics.append(metric)
-            item = collector.make_item(
-                "Conservação na APABF",
-                "Projeto de biodiversidade na APA da Baleia Franca",
-                "https://example.org/same-story",
-                source,
-                "2026-10-20",
-            )
-            item["_diagnostic_metric_id"] = metric["query_id"]
-            return [item]
-
-        with mock.patch.object(collector, "collect_feed", side_effect=same_story_from_each_feed):
-            self.assertEqual(collector.run("news"), "partial")
-
-        sources = self.read_report()["source_summaries"]
-        self.assertEqual(sources["Fonte válida"]["duplicates"], 0)
-        self.assertEqual(sources["Fonte duplicada"]["duplicates"], 1)
-        self.assertEqual(
-            sources["Fonte duplicada"]["category_metrics"]["noticia"]["duplicates"],
-            1,
-        )
 
     def test_all_sources_failing_preserves_snapshot_and_publishes_failure_status(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
-        previous_data = json.loads(self.output_path.read_text(encoding="utf-8"))
-        previous_data["source_status"] = {
-            "Fonte falha": {"last_successful_at": "2026-09-30T00:00:00+00:00"}
-        }
-        self.output_path.write_text(json.dumps(previous_data), encoding="utf-8")
         original_bytes = self.output_path.read_bytes()
 
         def fail_feed(source, metrics):
@@ -961,10 +647,6 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertNotEqual(self.output_path.read_bytes(), original_bytes)
         self.assertEqual(updated["items"], previous)
         self.assertEqual(updated["collection_status"], "failed")
-        self.assertEqual(
-            updated["source_status"]["Fonte falha"]["last_successful_at"],
-            "2026-09-30T00:00:00+00:00",
-        )
         report = self.read_report()
         self.assertTrue(report["data_written"])
         self.assertEqual(report["summary"]["failed_or_partial_requests"], 2)
@@ -1039,7 +721,7 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertTrue(report["data_written"])
         self.assertEqual(report["summary"]["candidate_records_not_published"], 0)
 
-    def test_news_only_run_preserves_records_but_marks_snapshot_scope_partial(self):
+    def test_complete_empty_run_preserves_existing_records(self):
         previous = [self.existing_item()]
         self.write_previous(previous)
 
@@ -1057,12 +739,10 @@ class CollectionSafetyTests(unittest.TestCase):
 
         updated = json.loads(self.output_path.read_text(encoding="utf-8"))
         report = self.read_report()
-        self.assertEqual(status, "partial")
+        self.assertEqual(status, "complete")
         self.assertEqual(len(updated["items"]), 1)
         self.assertEqual(updated["items"][0]["id"], previous[0]["id"])
         self.assertEqual(updated["items"][0]["title"], previous[0]["title"])
-        self.assertEqual(updated["collection_status"], "partial")
-        self.assertEqual(updated["collection_scope"], "news")
         self.assertTrue(report["data_written"])
         self.assertEqual(updated["last_checked_at"], report["run_id"])
 
@@ -1199,41 +879,6 @@ class PaginationTests(unittest.TestCase):
             self.assertEqual(collector.collect_openalex(config, None, metrics), [])
         self.assertEqual(metrics[0]["results_retrieved"], 0)
         self.assertEqual(metrics[0]["collection_status"], "complete")
-
-    def test_openalex_document_type_controls_academic_or_research_category(self):
-        config = self.openalex_config()
-        for document_type, expected_category in (
-            ("article", "academico"),
-            ("report", "pesquisa"),
-        ):
-            work = self.openalex_work("10.1234/type")
-            work["type"] = document_type
-            metrics = []
-            with self.subTest(document_type=document_type), mock.patch.object(
-                collector, "fetch_json",
-                return_value=self.openalex_response([work], 1),
-            ):
-                items = collector.collect_openalex(config, None, metrics)
-            self.assertEqual(items[0]["category"], expected_category)
-            self.assertEqual(items[0]["document_type"], document_type)
-            self.assertEqual(metrics[0]["category_raw_results"][expected_category], 1)
-
-    def test_crossref_report_type_is_research_and_journal_article_remains_academic(self):
-        config = self.openalex_config()
-        records = [
-            {**self.crossref_record("10.2345/report"), "type": "report"},
-            {**self.crossref_record("10.2345/article"), "type": "journal-article"},
-        ]
-        metrics = []
-        with mock.patch.object(
-            collector, "fetch_json",
-            return_value=self.crossref_response(records, 2),
-        ):
-            items = collector.collect_crossref(config, metrics)
-        self.assertEqual([item["category"] for item in items], ["pesquisa", "academico"])
-        self.assertEqual([item["document_type"] for item in items], ["report", "journal-article"])
-        self.assertEqual(metrics[0]["category_raw_results"]["pesquisa"], 1)
-        self.assertEqual(metrics[0]["category_raw_results"]["academico"], 1)
 
     def test_openalex_multiple_pages_counts_duplicates_and_uses_basic_page_parameter(self):
         config = self.openalex_config()

@@ -37,7 +37,6 @@ TRACKING_PARAMS = {
 TIMEOUT_SECONDS = 25
 OAI_TIMEOUT_SECONDS = 90
 MAX_RETRY_ATTEMPTS = 3
-CONTENT_CATEGORIES = {"noticia", "academico", "pesquisa", "institucional"}
 
 
 def log(message: str) -> None:
@@ -88,8 +87,6 @@ def new_source_metric(
         "rate_limit_events": 0,
         "discard_reasons": {},
         "decision_reasons": {},
-        "category_metrics": {},
-        "category_raw_results": {},
         "pages_consulted": 0,
         "requests_succeeded": 0,
         "results_announced": None,
@@ -237,64 +234,11 @@ def finish_metric(metric: dict, started_at: float) -> None:
     metric["duration_seconds"] = round(max(0.0, time.monotonic() - started_at), 3)
 
 
-def count_raw_category(metric: dict | None, category: str) -> None:
-    if metric is None:
-        return
-    category_counts = metric.setdefault("category_raw_results", {})
-    category_counts[category] = category_counts.get(category, 0) + 1
-
-
 def normalized_text(value: str) -> str:
     value = unicodedata.normalize("NFKD", value or "")
     value = "".join(char for char in value if not unicodedata.combining(char))
     value = value.casefold()
     return re.sub(r"\s+", " ", re.sub(r"[^\w]+", " ", value, flags=re.UNICODE)).strip()
-
-
-def category_for_document(
-    source: dict,
-    default_category: str | None = None,
-    document_type: str = "",
-) -> str:
-    source_type = str(source.get("type") or "").casefold()
-    category = default_category or source.get("category")
-    separated_type = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", str(document_type))
-    normalized_type = normalized_text(separated_type)
-
-    if source_type in {"academica", "repositorio"}:
-        research_document_types = (
-            "thesis", "dissertation", "tese", "dissertacao", "monografia",
-            "trabalho de conclusao", "technical report", "research report",
-            "relatorio tecnico", "relatorio de pesquisa", "relatorio final", "report",
-            "relatorio",
-        )
-        if any(phrase_in_text(term, normalized_type) for term in research_document_types):
-            return "pesquisa"
-
-    if category in CONTENT_CATEGORIES:
-        return category
-    if source_type == "institucional":
-        return "institucional"
-    if source_type == "noticia":
-        return "noticia"
-    return "academico"
-
-
-def category_for_feed_item(source: dict, publisher_url: str = "") -> str:
-    host = (urllib.parse.urlsplit(publisher_url).hostname or "").casefold()
-    publisher_categories = source.get("publisher_categories", {})
-    if isinstance(publisher_categories, dict):
-        for domain, category in sorted(
-            publisher_categories.items(), key=lambda item: len(item[0]), reverse=True
-        ):
-            normalized_domain = str(domain).casefold().lstrip(".")
-            if (
-                category in CONTENT_CATEGORIES
-                and host
-                and (host == normalized_domain or host.endswith("." + normalized_domain))
-            ):
-                return category
-    return category_for_document(source, source.get("category"))
 
 
 def clean_text(value: str, limit: int = 500) -> str:
@@ -413,9 +357,6 @@ def make_item(
     keywords: list[str] | None = None,
     authors: list[str] | None = None,
     journal: str = "",
-    document_type: str = "",
-    publisher: str = "",
-    publisher_url: str = "",
 ) -> dict | None:
     title = clean_text(title, 300)
     url = normalize_url(url)
@@ -431,9 +372,6 @@ def make_item(
         "keywords": sorted({clean_text(term, 80) for term in (keywords or []) if clean_text(term, 80)})[:12],
         "authors": sorted({clean_text(author, 120) for author in (authors or []) if clean_text(author, 120)})[:20],
         "journal": clean_text(journal, 180),
-        "document_type": clean_text(document_type, 120),
-        "publisher": clean_text(publisher, 120),
-        "publisher_url": normalize_url(publisher_url),
         "locations": [],
         "relevance": {"level": "baixa", "score": 0, "reason": []},
         "collected_at": "",
@@ -442,35 +380,6 @@ def make_item(
         "_guid": guid.strip(),
         "_doi": doi.strip(),
     }
-
-
-def reclassify_source_categories(items: list[dict], feeds: list[dict]) -> int:
-    source_by_name = {
-        feed["name"]: feed
-        for feed in feeds
-        if feed.get("name") and feed.get("category") in CONTENT_CATEGORIES
-    }
-    changed = 0
-    for item in items:
-        source = item.get("source") or {}
-        feed = source_by_name.get(source.get("name"))
-        if feed is None:
-            continue
-        resolved_type = feed.get("type", source.get("type", ""))
-        resolved_category = category_for_feed_item(
-            feed,
-            item.get("publisher_url", ""),
-        )
-        item_changed = False
-        if source.get("type") != resolved_type:
-            source["type"] = resolved_type
-            item["source"] = source
-            item_changed = True
-        if item.get("category") != resolved_category:
-            item["category"] = resolved_category
-            item_changed = True
-        changed += item_changed
-    return changed
 
 
 def parse_feed(payload: bytes, source: dict, metric: dict | None = None) -> list[dict]:
@@ -508,39 +417,7 @@ def parse_feed(payload: bytes, source: dict, metric: dict | None = None) -> list
             or text_of(find_child(node, "date"))
         )
         doi = text_of(find_child(node, "doi"))
-        publisher_node = find_child(node, "source")
-        publisher = text_of(publisher_node)
-        publisher_url = normalize_url(
-            publisher_node.attrib.get("url", "") if publisher_node is not None else ""
-        )
-        if publisher_url and any(token in publisher.casefold() for token in ("sans-serif", "{", "}", ";")):
-            publisher = urllib.parse.urlsplit(publisher_url).hostname or publisher
-            if publisher.startswith("www."):
-                publisher = publisher[4:]
-        item_category = category_for_feed_item(source, publisher_url)
-        count_raw_category(metric, item_category)
-        if re.fullmatch(
-            r"(?:[\w -]+\s+)?[\w-]+\.(?:png|jpe?g|webp|gif|svg)",
-            title,
-            re.IGNORECASE,
-        ):
-            if metric is not None:
-                metric["discard_reasons"]["non_article_media_entry"] = (
-                    metric["discard_reasons"].get("non_article_media_entry", 0) + 1
-                )
-            continue
-        entry = make_item(
-            title,
-            description,
-            link or guid,
-            source,
-            pubdate,
-            category=item_category,
-            guid=guid,
-            doi=doi,
-            publisher=publisher,
-            publisher_url=publisher_url,
-        )
+        entry = make_item(title, description, link or guid, source, pubdate, guid=guid, doi=doi)
         if entry:
             items.append(entry)
         elif metric is not None:
@@ -613,20 +490,6 @@ def classify(item: dict, config: dict) -> bool:
     journal = str(item.get("journal") or "")
     saved_locations = " ".join(str(value) for value in item.get("locations", []) if value)
     content = normalized_text(f"{title} {summary} {keywords} {journal} {saved_locations}")
-    excluded_content = matching_terms(
-        config.get("classification_validation", {}).get("excluded_content_terms", []),
-        content,
-    )
-    if excluded_content:
-        item["relevance"] = {
-            "level": "baixa",
-            "score": 0,
-            "reason": [
-                "tipo de comunicado fora do escopo de notícias e publicações: "
-                + ", ".join(excluded_content[:3])
-            ],
-        }
-        return False
     points = config["scoring"]
     territorial = config.get("territorial", {})
     territorial_points = territorial.get("scoring", {})
@@ -1137,14 +1000,6 @@ def collect_openalex(
                 metric["raw_results"] += len(results)
                 metric["results_retrieved"] += len(results)
                 for work in results:
-                    work_type = work.get("type", "") if isinstance(work, dict) else ""
-                    count_raw_category(
-                        metric,
-                        category_for_document(
-                            {"type": "academica", "category": "academico"},
-                            document_type=work_type,
-                        ),
-                    )
                     if not isinstance(work, dict):
                         metric["discard_reasons"]["invalid_result_shape"] = (
                             metric["discard_reasons"].get("invalid_result_shape", 0) + 1
@@ -1166,10 +1021,6 @@ def collect_openalex(
                         link,
                         {"name": "OpenAlex", "type": "academica", "category": "academico"},
                         work.get("publication_date", ""),
-                        category=category_for_document(
-                            {"type": "academica", "category": "academico"},
-                            document_type=work.get("type", ""),
-                        ),
                         keywords=keywords,
                         doi=doi,
                         authors=[
@@ -1178,7 +1029,6 @@ def collect_openalex(
                             if isinstance(authorship, dict)
                         ],
                         journal=primary_source.get("display_name", ""),
-                        document_type=work.get("type", ""),
                     )
                     if not item:
                         metric["discard_reasons"]["missing_title_or_valid_url"] = (
@@ -1303,14 +1153,6 @@ def collect_crossref(
                 metric["raw_results"] += len(records)
                 metric["results_retrieved"] += len(records)
                 for record in records:
-                    record_type = record.get("type", "") if isinstance(record, dict) else ""
-                    count_raw_category(
-                        metric,
-                        category_for_document(
-                            {"type": "academica", "category": "academico"},
-                            document_type=record_type,
-                        ),
-                    )
                     if not isinstance(record, dict):
                         metric["discard_reasons"]["invalid_result_shape"] = (
                             metric["discard_reasons"].get("invalid_result_shape", 0) + 1
@@ -1340,15 +1182,10 @@ def collect_crossref(
                         record.get("URL") or (f"https://doi.org/{doi}" if doi else ""),
                         {"name": "Crossref", "type": "academica", "category": "academico"},
                         published_at,
-                        category=category_for_document(
-                            {"type": "academica", "category": "academico"},
-                            document_type=record.get("type", ""),
-                        ),
                         keywords=keywords,
                         doi=doi,
                         authors=authors,
                         journal=(record.get("container-title") or [""])[0],
-                        document_type=record.get("type", ""),
                     )
                     if not item:
                         metric["discard_reasons"]["missing_title_or_valid_url"] = (
@@ -1460,10 +1297,6 @@ def oai_record_to_item(
 
     metadata = find_child(record, "metadata")
     if metadata is None:
-        count_raw_category(
-            metric,
-            category_for_document(repository, repository.get("category")),
-        )
         invalid_record("missing_metadata")
         return None
     fields: dict[str, list[str]] = {}
@@ -1486,9 +1319,8 @@ def oai_record_to_item(
         return None
     summary = " ".join(fields.get("description") or [])
     keywords = fields.get("subject", [])
-    type_text = " ".join(fields.get("type", []))
-    category = category_for_document(repository, "academico", type_text)
-    count_raw_category(metric, category)
+    type_text = " ".join(fields.get("type", [])).casefold()
+    category = "pesquisa" if any(word in type_text for word in ("thesis", "dissertation", "tcc", "tese", "dissertação", "trabalho")) else "academico"
     date = next(iter(fields.get("date", [])), "")
     item = make_item(
         title,
@@ -1500,7 +1332,6 @@ def oai_record_to_item(
         doi=doi,
         keywords=keywords,
         authors=fields.get("creator", []),
-        document_type=type_text,
     )
     if metric is not None and item is None:
         metric["discard_reasons"]["missing_title_or_valid_url"] = (
@@ -1884,21 +1715,6 @@ def dedup_keys(item: dict) -> list[str]:
     canonical_url = normalize_url(item.get("url", ""))
     if canonical_url:
         keys.append("url:" + canonical_url)
-    if (
-        not doi
-        and item.get("category") in {"noticia", "institucional"}
-        and item.get("published_at")
-        and item.get("summary")
-        and item.get("title")
-    ):
-        story_signature = "|".join((
-            normalized_text(item["title"]),
-            str(item["published_at"])[:10],
-            normalized_text(item["summary"]),
-        ))
-        keys.append(
-            "story:" + hashlib.sha256(story_signature.encode("utf-8")).hexdigest()
-        )
     if not keys:
         title = normalized_text(item.get("title", ""))
         published = (item.get("published_at", "") or "")[:10]
@@ -1956,14 +1772,12 @@ def merge_items(
 ) -> tuple[list[dict], int, int]:
     merged: dict[str, dict] = {}
     key_index: dict[str, str] = {}
-    preserved_previous_duplicates: list[dict] = []
     duplicates = 0
     for candidate in previous:
         candidate_keys = dedup_keys(candidate)
         key = next((key_index[value] for value in candidate_keys if value in key_index), None)
         if key is not None:
             duplicates += 1
-            preserved_previous_duplicates.append(dict(candidate))
         else:
             key = candidate_keys[0]
             merged[key] = dict(candidate)
@@ -2015,7 +1829,7 @@ def merge_items(
             merged[key] = public
         for value in candidate_keys:
             key_index[value] = key
-    output = [*merged.values(), *preserved_previous_duplicates]
+    output = list(merged.values())
     output.sort(key=lambda entry: (
         0 if entry.get("relevance", {}).get("level") == "alta" else 1,
         -(entry.get("relevance", {}).get("score", 0)),
@@ -2148,19 +1962,10 @@ def run(mode: str) -> str:
         config = json.load(handle)
     previous = load_previous()
     old_data = previous or {}
-    if previous:
-        reclassify_source_categories(
-            old_data.get("items", []),
-            config.get("rss_feeds", []),
-        )
     new_items: list[dict] = []
     publishable_items: list[dict] = []
     partial_candidates = 0
     source_metrics: list[dict] = []
-    category_candidate_ids: dict[str, set[str]] = {}
-    metric_category_ids: dict[int, dict[str, set[str]]] = {}
-    metric_approved_ids: dict[int, dict[str, set[str]]] = {}
-    metric_duplicate_counts: dict[int, dict[str, int]] = {}
 
     sources: list[tuple[str, object]] = []
     if mode in {"all", "news"}:
@@ -2199,27 +2004,7 @@ def run(mode: str) -> str:
                     ),
                     metrics[0] if len(metrics) == 1 else None,
                 )
-                item_category = item.get("category")
-                if item_category not in CONTENT_CATEGORIES:
-                    item_category = category_for_document(item.get("source") or {})
-                    item["category"] = item_category
-                identity = record_identity(item)
-                category_candidate_ids.setdefault(item_category, set()).add(identity)
                 if metric is not None:
-                    category_metrics = metric["category_metrics"].setdefault(
-                        item_category,
-                        {
-                            "collected_candidates": 0,
-                            "approved_candidates": 0,
-                            "discarded_candidates": 0,
-                            "unique_records": 0,
-                            "published_records": 0,
-                        },
-                    )
-                    category_metrics["collected_candidates"] += 1
-                    metric_category_ids.setdefault(id(metric), {}).setdefault(
-                        item_category, set()
-                    ).add(identity)
                     evaluation = assess_candidate(item, config)
                     metric[evaluation["decision"]] += 1
                     for reason in evaluation["reasons"]:
@@ -2230,10 +2015,6 @@ def run(mode: str) -> str:
                 if classify(item, config):
                     if metric is not None:
                         metric["relevance_accepted"] += 1
-                        category_metrics["approved_candidates"] += 1
-                        metric_approved_ids.setdefault(id(metric), {}).setdefault(
-                            item_category, set()
-                        ).add(identity)
                     new_items.append(item)
                     if metric is None or metric["pages_consulted"] > 0:
                         publishable_items.append(item)
@@ -2241,7 +2022,6 @@ def run(mode: str) -> str:
                         partial_candidates += 1
                 elif metric is not None:
                     metric["relevance_discarded"] += 1
-                    category_metrics["discarded_candidates"] += 1
                     reasons = item.get("relevance", {}).get("reason", [])
                     reason = "; ".join(reasons) or "abaixo do limiar atual de relevância"
                     metric["discard_reasons"][reason] = (
@@ -2289,7 +2069,7 @@ def run(mode: str) -> str:
         added_count = 0
         changed = False
     else:
-        run_status = "partial" if failed_metrics or mode != "all" else "complete"
+        run_status = "partial" if failed_metrics else "complete"
         merged, duplicate_count, added_count = merge_items(
             original_items,
             publishable_items,
@@ -2297,188 +2077,21 @@ def run(mode: str) -> str:
             preserve_existing_duplicates=False,
         )
         seen_keys: set[str] = set()
-        metric_by_source_query = {
-            (metric["source"], metric["query_id"]): metric
-            for metric in source_metrics
-        }
+        metric_by_id = {metric["query_id"]: metric for metric in source_metrics}
         new_item_ids = {id(item) for item in publishable_items}
         for candidate in [*original_items, *publishable_items]:
             keys = dedup_keys(candidate)
             if any(key in seen_keys for key in keys) and id(candidate) in new_item_ids:
-                source_name = (candidate.get("source") or {}).get("name", "")
-                metric = metric_by_source_query.get((
-                    source_name,
-                    candidate.get("_diagnostic_metric_id"),
-                ))
+                metric = metric_by_id.get(candidate.get("_diagnostic_metric_id"))
                 if metric is not None:
                     metric["duplicates"] += 1
-                    category = candidate.get("category", "")
-                    duplicate_categories = metric_duplicate_counts.setdefault(
-                        id(metric), {}
-                    )
-                    duplicate_categories[category] = (
-                        duplicate_categories.get(category, 0) + 1
-                    )
             seen_keys.update(keys)
-        changed = items_changed(original_items, merged)
-
-    configured_feed_names = {
-        feed.get("name")
-        for feed in config.get("rss_feeds", [])
-        if feed.get("name")
-    }
-    if mode in {"all", "news"}:
-        for item in merged:
-            if item.get("source", {}).get("name") in configured_feed_names:
-                classify(item, config)
         changed = items_changed(original_items, merged)
 
     if run_status == "complete":
         for item in merged:
             classify(item, config)
         changed = items_changed(original_items, merged)
-
-    merged_identities = {
-        key
-        for item in merged
-        for key in dedup_keys(item)
-    }
-    previous_identities = {
-        key
-        for item in original_items
-        for key in dedup_keys(item)
-    }
-    newly_published_by_source: dict[str, dict[str, set[str]]] = {}
-    for item in merged:
-        keys = dedup_keys(item)
-        if any(key in previous_identities for key in keys):
-            continue
-        source_name = (item.get("source") or {}).get("name", "")
-        category = item.get("category", "")
-        if source_name and category in CONTENT_CATEGORIES:
-            newly_published_by_source.setdefault(source_name, {}).setdefault(
-                category, set()
-            ).add(record_identity(item))
-    published_by_category = {
-        category: sum(item.get("category") == category for item in merged)
-        for category in sorted(CONTENT_CATEGORIES)
-    }
-    for metric in source_metrics:
-        category_ids = metric_category_ids.get(id(metric), {})
-        approved_ids = metric_approved_ids.get(id(metric), {})
-        for category, counts in metric["category_metrics"].items():
-            counts["unique_records"] = len(category_ids.get(category, set()))
-            counts["published_records"] = len(
-                approved_ids.get(category, set()) & merged_identities
-            )
-
-    source_category_summaries: dict[str, dict] = {}
-    category_summaries = {}
-    for category in sorted(CONTENT_CATEGORIES):
-        source_rows = {}
-        category_collected = 0
-        category_approved = 0
-        category_discarded = 0
-        for source_name in dict.fromkeys(row["source"] for row in source_metrics):
-            rows = [row for row in source_metrics if row["source"] == source_name]
-            buckets = [
-                row["category_metrics"].get(category, {})
-                for row in rows
-            ]
-            raw_collected = sum(
-                row["category_raw_results"].get(category, 0)
-                for row in rows
-            )
-            collected = sum(bucket.get("collected_candidates", 0) for bucket in buckets)
-            approved = sum(bucket.get("approved_candidates", 0) for bucket in buckets)
-            discarded = sum(bucket.get("discarded_candidates", 0) for bucket in buckets)
-            identities = set().union(*(
-                metric_category_ids.get(id(row), {}).get(category, set())
-                for row in rows
-            ))
-            approved_identities = set().union(*(
-                metric_approved_ids.get(id(row), {}).get(category, set())
-                for row in rows
-            ))
-            if raw_collected or collected or approved or discarded:
-                source_rows[source_name] = {
-                    "raw_records_collected": raw_collected,
-                    "valid_candidates": collected,
-                    "unique_after_deduplication": len(identities),
-                    "new_records": len(
-                        newly_published_by_source.get(source_name, {}).get(category, set())
-                    ),
-                    "duplicates": sum(
-                        metric_duplicate_counts.get(id(row), {}).get(category, 0)
-                        for row in rows
-                    ),
-                    "approved_by_relevance": approved,
-                    "discarded_by_relevance": discarded,
-                    "published_records": len(approved_identities & merged_identities),
-                    "discard_reasons": {
-                        reason: sum(row["discard_reasons"].get(reason, 0) for row in rows)
-                        for reason in dict.fromkeys(
-                            reason
-                            for row in rows
-                            for reason in row["discard_reasons"]
-                        )
-                    },
-                    "decision_reasons": {
-                        reason: sum(row["decision_reasons"].get(reason, 0) for row in rows)
-                        for reason in dict.fromkeys(
-                            reason
-                            for row in rows
-                            for reason in row["decision_reasons"]
-                        )
-                    },
-                }
-                source_category_summaries.setdefault(source_name, {})[category] = source_rows[source_name]
-            category_collected += collected
-            category_approved += approved
-            category_discarded += discarded
-        category_summaries[category] = {
-            "raw_records_collected": sum(
-                metric["category_raw_results"].get(category, 0)
-                for metric in source_metrics
-            ),
-            "valid_candidates": category_collected,
-            "unique_after_deduplication": len(category_candidate_ids.get(category, set())),
-            "approved_by_relevance": category_approved,
-            "discarded_by_relevance": category_discarded,
-            "published_records": published_by_category[category],
-            "sources": source_rows,
-        }
-
-    previous_source_status = old_data.get("source_status", {})
-    if not isinstance(previous_source_status, dict):
-        previous_source_status = {}
-    current_source_status = {
-        source_name: dict(status)
-        for source_name, status in previous_source_status.items()
-        if isinstance(source_name, str) and isinstance(status, dict)
-    }
-    for source_name in dict.fromkeys(row["source"] for row in source_metrics):
-        rows = [row for row in source_metrics if row["source"] == source_name]
-        successful = any(
-            row["request_status"] == "success"
-            or (row["request_status"] == "partial" and row["pages_consulted"] > 0)
-            for row in rows
-        )
-        prior = previous_source_status.get(source_name, {})
-        if not isinstance(prior, dict):
-            prior = {}
-        current_source_status[source_name] = {
-            "last_attempt_at": now,
-            "last_successful_at": now if successful else prior.get("last_successful_at"),
-            "status": (
-                "failed" if all(row["collection_status"] == "failed" for row in rows)
-                else "partial" if any(row["collection_status"] != "complete" for row in rows)
-                else "complete"
-            ),
-            "errors": list(dict.fromkeys(
-                error for row in rows for error in row["errors"]
-            )),
-        }
 
     data_written = False
     if run_status != "failed" or previous:
@@ -2487,8 +2100,6 @@ def run(mode: str) -> str:
             "generated_at": now if changed or not previous else previous.get("generated_at", now),
             "last_checked_at": now,
             "collection_status": run_status,
-            "collection_scope": mode,
-            "source_status": current_source_status,
             "items": merged,
         }
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -2506,8 +2117,6 @@ def run(mode: str) -> str:
             "generated_at": "",
             "last_checked_at": now,
             "collection_status": "failed",
-            "collection_scope": mode,
-            "source_status": current_source_status,
             "items": [],
         }
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -2610,7 +2219,6 @@ def run(mode: str) -> str:
                     for reason in metric["discard_reasons"]
                 )
             },
-            "category_summaries": category_summaries,
         },
         "source_summaries": {
             source_name: {
@@ -2651,34 +2259,6 @@ def run(mode: str) -> str:
                     for reason in dict.fromkeys(
                         row["interruption_reason"] for row in source_rows
                         if row["interruption_reason"]
-                    )
-                },
-                "last_successful_at": current_source_status[source_name]["last_successful_at"],
-                "urls": list(dict.fromkeys(
-                    row["query"]
-                    for row in source_rows
-                    if row["query"].startswith(("http://", "https://"))
-                )),
-                "new_records": sum(
-                    sum(len(identities) for identities in categories.values())
-                    for source, categories in newly_published_by_source.items()
-                    if source == source_name
-                ),
-                "category_metrics": source_category_summaries.get(source_name, {}),
-                "discard_reasons": {
-                    reason: sum(row["discard_reasons"].get(reason, 0) for row in source_rows)
-                    for reason in dict.fromkeys(
-                        reason
-                        for row in source_rows
-                        for reason in row["discard_reasons"]
-                    )
-                },
-                "decision_reasons": {
-                    reason: sum(row["decision_reasons"].get(reason, 0) for row in source_rows)
-                    for reason in dict.fromkeys(
-                        reason
-                        for row in source_rows
-                        for reason in row["decision_reasons"]
                     )
                 },
             }
