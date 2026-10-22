@@ -101,6 +101,16 @@
         };
     }
 
+    function renderLayerList() {
+        if (!elements.layerList) {
+            return;
+        }
+        elements.layerList.replaceChildren();
+        states.forEach(function (state) {
+            addLayerControls(state);
+        });
+    }
+
     function loadScriptData(definition) {
         return new Promise(function (resolve, reject) {
             var script = document.createElement('script');
@@ -291,7 +301,9 @@
             if (state.zoneStyles) {
                 state.zoneStyles.forEach(function (zone) {
                     zone.color = color.value;
-                    zone.colorInput.value = color.value;
+                    if (zone.colorInput) {
+                        zone.colorInput.value = color.value;
+                    }
                 });
             }
             refreshLayer(state);
@@ -323,8 +335,12 @@
             if (state.zoneStyles) {
                 state.zoneStyles.forEach(function (zone) {
                     zone.opacity = state.opacity;
-                    zone.opacityInput.value = opacity.value;
-                    zone.opacityValue.textContent = opacity.value + '%';
+                    if (zone.opacityInput) {
+                        zone.opacityInput.value = opacity.value;
+                    }
+                    if (zone.opacityValue) {
+                        zone.opacityValue.textContent = opacity.value + '%';
+                    }
                 });
             }
             opacityValue.textContent = opacity.value + '%';
@@ -393,6 +409,7 @@
             opacity.max = '100';
             opacity.value = String(Math.round(zone.opacity * 100));
             zone.opacityInput = opacity;
+            zone.opacityValue = opacityValue;
             opacity.disabled = !state.layer;
             opacityValue.className = 'layer-opacity-value';
             opacityValue.textContent = opacity.value + '%';
@@ -788,8 +805,8 @@
                         ), { animate: false });
                     }
                 }
-                addLayerControls(state);
             });
+            renderLayerList();
             if (boundaryState && boundaryState.layer && boundaryState.layer.getBounds().isValid()) {
                 if (boundaryState.visible) {
                     boundaryState.layer.bringToFront();
@@ -949,7 +966,7 @@
             }
             states.push(state);
             addStateToMap(state);
-            addLayerControls(state);
+            renderLayerList();
             map.fitBounds(state.layer.getBounds(), { padding: [24, 24], maxZoom: 15 });
             elements.importStatus.textContent = file.name + ' importado localmente (' + data.features.length + ' feição(ões)).';
             updateMapComposition();
@@ -1593,7 +1610,7 @@
                 try {
                     canvas.toDataURL('image/png');
                 } catch (error) {
-                    throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não será substituído silenciosamente.');
+                    throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não pôde ser carregado.');
                 }
                 elements.mapStatus.textContent = 'Codificando a imagem final…';
                 return canvas;
@@ -1807,7 +1824,7 @@
                     try {
                         canvas.toDataURL('image/png');
                     } catch (error) {
-                        throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não será substituído silenciosamente.');
+                        throw new Error('Uma imagem externa (mapa principal ou satélite da localização) bloqueou a exportação por CORS. Verifique a conexão e tente novamente; o satélite não pôde ser carregado.');
                     }
                     elements.mapStatus.textContent = 'Codificando a imagem final…';
                     return canvas;
