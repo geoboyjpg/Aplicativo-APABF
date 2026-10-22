@@ -53,11 +53,14 @@
         var badges = document.createElement('div');
         badges.className = 'news-badges';
         badges.appendChild(textElement('span', 'news-badge', categoryLabels[item.category] || 'Publicação'));
-        var isHigh = item.relevance && item.relevance.level === 'alta';
+
+        var relevance = item.relevance && item.relevance.level ? item.relevance.level : 'baixa';
+        var relevanceLabel = relevance === 'alta' ? 'alta' : relevance === 'media' ? 'média' : 'baixa';
+        var relevanceClass = relevance === 'alta' ? 'relevance-high' : relevance === 'media' ? 'relevance-medium' : 'relevance-low';
         badges.appendChild(textElement(
             'span',
-            'news-badge ' + (isHigh ? 'relevance-high' : 'relevance-medium'),
-            'Relevância ' + (isHigh ? 'alta' : 'média') + ' · ' + item.relevance.score
+            'news-badge ' + relevanceClass,
+            'Relevância ' + relevanceLabel + ' · ' + (item.relevance && item.relevance.score ? item.relevance.score : 0)
         ));
         card.appendChild(badges);
 
@@ -188,8 +191,7 @@
                 throw new Error('Formato de dados inválido');
             }
             items = data.items.filter(function (item) {
-                return item.relevance
-                    && (item.relevance.level === 'alta' || item.relevance.level === 'media');
+                return item && typeof item === 'object';
             });
             updatedElement.textContent = data.generated_at
                 ? 'Última atualização: ' + formatDate(data.generated_at)
