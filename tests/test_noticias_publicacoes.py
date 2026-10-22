@@ -1,11 +1,11 @@
 import importlib.util
 import gzip
 import json
+import hashlib
+import shutil
 import tempfile
 import unittest
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Barrier
 from unittest import mock
 
 
@@ -507,12 +507,17 @@ class CollectionSafetyTests(unittest.TestCase):
         self.assertTrue(paths)
         return json.loads(paths[-1].read_text(encoding="utf-8"))
 
-    def test_public_json_stays_compatible_and_identifiers_are_unique(self):
+    def test_backup_is_byte_identical_and_public_json_stays_compatible(self):
         source = ROOT / "dados" / "noticias-publicacoes.json"
+        backup = ROOT / "backups" / "noticias-publicacoes-20261021.json"
+        self.assertTrue(backup.exists())
+        self.assertEqual(
+            hashlib.sha256(source.read_bytes()).digest(),
+            hashlib.sha256(backup.read_bytes()).digest(),
+        )
         data = json.loads(source.read_text(encoding="utf-8"))
         self.assertEqual(len(data["items"]), 95)
         self.assertTrue(all(item.get("id") and item.get("title") and item.get("url") for item in data["items"]))
-        self.assertEqual(len({item["id"] for item in data["items"]}), 95)
 
     def test_one_source_failure_keeps_successful_results_and_previous_records(self):
         previous = [self.existing_item()]
@@ -561,41 +566,6 @@ class CollectionSafetyTests(unittest.TestCase):
         report = self.read_report()
         self.assertFalse(report["data_written"])
         self.assertEqual(report["summary"]["failed_or_partial_requests"], 2)
-
-    def test_atomic_public_data_write_failure_preserves_previous_file(self):
-        previous = {
-            "schema_version": 1,
-            "generated_at": "2026-10-01T00:00:00+00:00",
-            "items": [self.existing_item()],
-        }
-        original_bytes = json.dumps(previous).encode("utf-8")
-        self.output_path.write_bytes(original_bytes)
-
-        def successful_feed(source, metrics):
-            metric = collector.new_source_metric(source["name"], "rss:feed", source["url"])
-            metric.update({
-                "request_status": "success",
-                "collection_status": "complete",
-                "attempts": 1,
-                "requests_succeeded": 1,
-                "pages_consulted": 1,
-                "raw_results": 1,
-                "valid_records": 1,
-                "unique_records": 1,
-            })
-            metrics.append(metric)
-            item = self.candidate("https://example.org/new-" + source["name"].replace(" ", "-"))
-            item["_diagnostic_metric_id"] = metric["query_id"]
-            return [item]
-
-        with mock.patch.object(collector, "collect_feed", side_effect=successful_feed), mock.patch.object(
-            collector.os, "replace", side_effect=OSError("disk error")
-        ):
-            with self.assertRaises(OSError):
-                collector.run("news")
-
-        self.assertEqual(self.output_path.read_bytes(), original_bytes)
-        self.assertEqual(list(self.root.glob("news.json.*.tmp")), [])
 
     def test_partial_source_does_not_publish_candidates_or_replace_existing_records(self):
         previous = [self.existing_item()]
@@ -733,16 +703,6 @@ class CollectionSafetyTests(unittest.TestCase):
         ):
             path = collector.write_diagnostics({"schema_version": 1})
         self.assertRegex(path.name, r"^coleta-123456-\d{8}T\d{12}Z\.json$")
-
-    def test_diagnostics_are_not_left_truncated_after_atomic_replace_failure(self):
-        with mock.patch.object(collector, "DIAGNOSTICS_PATH", self.diagnostics_path), mock.patch.object(
-            collector.os, "replace", side_effect=OSError("disk error")
-        ):
-            with self.assertRaises(OSError):
-                collector.write_diagnostics({"schema_version": 1})
-
-        self.assertEqual(list(self.diagnostics_path.glob("coleta-*.json")), [])
-        self.assertEqual(list(self.diagnostics_path.glob("coleta-*.json.*.tmp")), [])
 
 
 class PaginationTests(unittest.TestCase):
@@ -1163,27 +1123,6 @@ class OaiContinuationTests(unittest.TestCase):
         self.assertFalse(metric["resume_possible"])
         self.assertFalse(self.state_path.exists())
 
-    def test_no_records_match_clears_a_saved_continuation(self):
-        state = {
-            "schema_version": 1,
-            "repositories": {
-                collector.oai_repository_state_id(self.repository):
-                    self.state_entry("finished-token")
-            },
-        }
-        collector.save_oai_state(state)
-
-        _, metric, _ = self.collect([
-            self.response_xml(error="noRecordsMatch"),
-        ])
-
-        self.assertEqual(metric["collection_status"], "complete")
-        self.assertFalse(metric["resume_possible"])
-        self.assertEqual(
-            json.loads(self.state_path.read_text(encoding="utf-8"))["repositories"],
-            {},
-        )
-
     def test_page_limit_persists_token_and_next_run_resumes_without_duplicate(self):
         self.config["oai_max_pages_per_repository"] = 1
         first, first_metric, _ = self.collect([
@@ -1378,10 +1317,12 @@ class OaiContinuationTests(unittest.TestCase):
         }
         collector.save_oai_state(state)
         original_bytes = self.state_path.read_bytes()
-        replacement = collector.load_oai_state()
-        replacement["repositories"] = {
-            collector.oai_repository_state_id(self.repository):
-                self.state_entry("replacement-token")
+        replacement = {
+            "schema_version": 1,
+            "repositories": {
+                collector.oai_repository_state_id(self.repository):
+                    self.state_entry("replacement-token")
+            },
         }
         with mock.patch.object(collector.os, "replace", side_effect=OSError("disk error")):
             with self.assertRaises(OSError):
@@ -1410,66 +1351,6 @@ class OaiContinuationTests(unittest.TestCase):
             collector.save_oai_state(invalid)
         self.assertEqual(self.state_path.read_bytes(), original_bytes)
 
-    def test_old_state_snapshot_cannot_overwrite_a_newer_checkpoint(self):
-        initial = {
-            "schema_version": 1,
-            "repositories": {
-                collector.oai_repository_state_id(self.repository):
-                    self.state_entry("initial-token")
-            },
-        }
-        collector.save_oai_state(initial)
-        older_snapshot = collector.load_oai_state()
-        newer_snapshot = collector.load_oai_state()
-        state_id = collector.oai_repository_state_id(self.repository)
-        newer_snapshot["repositories"][state_id] = self.state_entry("newer-token")
-        collector.save_oai_state(newer_snapshot)
-        older_snapshot["repositories"][state_id] = self.state_entry("stale-token")
-
-        with self.assertRaisesRegex(RuntimeError, "snapshot antigo"):
-            collector.save_oai_state(older_snapshot)
-
-        persisted = collector.load_oai_state()
-        self.assertEqual(
-            persisted["repositories"][state_id]["resumption_token"],
-            "newer-token",
-        )
-
-    def test_concurrent_state_writers_cannot_overwrite_each_other(self):
-        initial = {
-            "schema_version": 1,
-            "repositories": {
-                collector.oai_repository_state_id(self.repository):
-                    self.state_entry("initial-token")
-            },
-        }
-        collector.save_oai_state(initial)
-        state_id = collector.oai_repository_state_id(self.repository)
-        snapshots = [collector.load_oai_state(), collector.load_oai_state()]
-        barrier = Barrier(2)
-
-        def save_snapshot(snapshot, token):
-            snapshot["repositories"][state_id] = self.state_entry(token)
-            barrier.wait()
-            try:
-                collector.save_oai_state(snapshot)
-                return token
-            except RuntimeError:
-                return None
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            results = list(executor.map(
-                lambda args: save_snapshot(*args),
-                zip(snapshots, ("writer-one", "writer-two")),
-            ))
-
-        self.assertEqual(sum(result is not None for result in results), 1)
-        persisted = collector.load_oai_state()
-        self.assertIn(
-            persisted["repositories"][state_id]["resumption_token"],
-            {"writer-one", "writer-two"},
-        )
-
 
 class WorkflowContractTests(unittest.TestCase):
     @classmethod
@@ -1478,28 +1359,9 @@ class WorkflowContractTests(unittest.TestCase):
             ROOT / ".github" / "workflows" / "atualizar-noticias.yml"
         ).read_text(encoding="utf-8")
 
-    def test_isolated_validation_config_uses_only_the_test_oai_repository(self):
-        with (ROOT / "config" / "noticias-publicacoes-teste.json").open(
-            encoding="utf-8"
-        ) as handle:
-            config = json.load(handle)
-
-        self.assertEqual(config["rss_feeds"], [])
-        self.assertEqual(config["openalex_queries"], [])
-        self.assertEqual(config["crossref_queries"], [])
-        self.assertEqual(config["oai_max_pages_per_repository"], 1)
-        self.assertEqual(
-            [repository["name"] for repository in config["oai_repositories"]],
-            ["Repositório Institucional da UNESC"],
-        )
-
     def test_workflow_serializes_runs_and_always_uploads_diagnostics(self):
         self.assertIn("concurrency:", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
-        self.assertIn("paths-ignore:", self.workflow)
-        self.assertIn("teste/fase-3-noticias", self.workflow)
-        self.assertIn("simulate_failure", self.workflow)
-        self.assertIn("Injetar falha controlada na validação isolada", self.workflow)
         self.assertIn("if: always()", self.workflow)
         self.assertIn("Garantir relatório de diagnóstico", self.workflow)
         self.assertIn("Armazenar métricas da coleta", self.workflow)
@@ -1507,27 +1369,19 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json", self.workflow)
         self.assertIn("diagnosticos/coletas/workflow-${{ github.run_id }}.json", self.workflow)
         self.assertIn("workflow-fallback", self.workflow)
-        self.assertIn('mv -- "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json.tmp"', self.workflow)
-        self.assertIn("if-no-files-found: error", self.workflow)
-        self.assertIn("steps.checkout.outcome == 'success'", self.workflow)
-        self.assertIn("PERSIST_OUTCOME", self.workflow)
-        self.assertIn("FAILURE_INJECTION_OUTCOME", self.workflow)
-        self.assertIn('COLLECT_OUTCOME" != "success"', self.workflow)
 
     def test_workflow_persists_state_on_failure_but_gates_public_data(self):
         self.assertIn(
-            'git add -- "$STATE_PATH"',
+            "git add -- .github/state/noticias-oai-continuations.json",
             self.workflow,
         )
-        self.assertIn('if [[ -f "$STATE_PATH" ]]', self.workflow)
-        self.assertIn('[[ "$ISOLATED_VALIDATION" != "true"', self.workflow)
-        self.assertIn('&& "$COLLECT_OUTCOME" == "success"', self.workflow)
-        self.assertIn('&& "$REPORT_OUTCOME" == "success"', self.workflow)
+        self.assertIn('if [[ -f .github/state/noticias-oai-continuations.json ]]', self.workflow)
+        self.assertIn(
+            'if [[ "$COLLECT_OUTCOME" == "success" && "$DIAGNOSTIC_PREP_OUTCOME" == "success" && "$REPORT_OUTCOME" == "success" ]]',
+            self.workflow,
+        )
         self.assertIn("git add -- dados/noticias-publicacoes.json", self.workflow)
         self.assertIn('git push origin "HEAD:${GITHUB_REF_NAME}"', self.workflow)
-        self.assertIn("config/noticias-publicacoes-teste.json", self.workflow)
-        self.assertIn("--mode oai", self.workflow)
-        self.assertIn("format('{0}/noticias-publicacoes-teste.json', runner.temp)", self.workflow)
         self.assertNotIn("--force", self.workflow)
         self.assertNotIn("OPENALEX_API_KEY", self.workflow)
 

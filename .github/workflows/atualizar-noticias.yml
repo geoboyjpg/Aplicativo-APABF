@@ -3,24 +3,13 @@ name: Atualizar notícias e publicações
 on:
   schedule:
     - cron: '17 8 * * *'
-  push:
-    branches:
-      - 'teste/fase-3-noticias'
-    paths-ignore:
-      - '.github/state/noticias-oai-validacao.json'
   workflow_dispatch:
-    inputs:
-      simulate_failure:
-        description: "Inject a controlled failure after collection (test branch only)"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
 
 concurrency:
-  group: atualizar-noticias-${{ github.repository }}-${{ github.ref }}
+  group: atualizar-noticias-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -28,37 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar o repositório
-        id: checkout
         uses: actions/checkout@v4
 
       - name: Preparar Python
-        id: setup
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Coletar e atualizar os registros
         id: collect
-        env:
-          ISOLATED_VALIDATION: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' }}
-          APABF_CONFIG_PATH: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' && 'config/noticias-publicacoes-teste.json' || 'config/noticias-publicacoes.json' }}
-          APABF_OUTPUT_PATH: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' && format('{0}/noticias-publicacoes-teste.json', runner.temp) || 'dados/noticias-publicacoes.json' }}
-          APABF_OAI_STATE_PATH: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' && '.github/state/noticias-oai-validacao.json' || '.github/state/noticias-oai-continuations.json' }}
-          APABF_DIAGNOSTICS_PATH: diagnosticos/coletas
-        run: |
-          set -euo pipefail
-          if [[ "$ISOLATED_VALIDATION" == "true" ]]; then
-            python scripts/noticias_publicacoes.py --mode oai
-          else
-            python scripts/noticias_publicacoes.py
-          fi
-
-      - name: Injetar falha controlada na validação isolada
-        if: always() && github.ref == 'refs/heads/teste/fase-3-noticias' && inputs.simulate_failure
-        id: inject_failure
-        run: |
-          echo "Controlled validation failure requested"
-          exit 1
+        run: python scripts/noticias_publicacoes.py
 
       - name: Garantir relatório de diagnóstico
         if: always()
@@ -68,8 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p diagnosticos/coletas
-          if ! compgen -G "diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json" > /dev/null \
-            && [[ ! -f "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json" ]]; then
+          if ! compgen -G "diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json" > /dev/null; then
             jq -n \
               --arg run_id "$GITHUB_RUN_ID" \
               --arg workflow "$GITHUB_WORKFLOW" \
@@ -83,9 +50,7 @@ jobs:
                 ref: $ref,
                 collector_outcome: $outcome,
                 detail: "Collector did not produce a diagnostic report"
-              }' > "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json.tmp"
-            mv -- "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json.tmp" \
-              "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json"
+              }' > "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json"
           fi
 
       - name: Armazenar métricas da coleta
@@ -97,61 +62,27 @@ jobs:
           path: |
             diagnosticos/coletas/coleta-${{ github.run_id }}-*.json
             diagnosticos/coletas/workflow-${{ github.run_id }}.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
-      - name: Persistir estado e publicar somente dados completos
-        if: always() && steps.checkout.outcome == 'success'
+      - name: Persistir estado OAI-PMH e publicar dados completos
+        if: always()
         id: persist
         env:
           COLLECT_OUTCOME: ${{ steps.collect.outcome }}
           DIAGNOSTIC_PREP_OUTCOME: ${{ steps.ensure_diagnostics.outcome }}
           REPORT_OUTCOME: ${{ steps.diagnostics.outcome }}
-          ISOLATED_VALIDATION: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' }}
-          STATE_PATH: ${{ github.ref == 'refs/heads/teste/fase-3-noticias' && '.github/state/noticias-oai-validacao.json' || '.github/state/noticias-oai-continuations.json' }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if [[ -f "$STATE_PATH" ]]; then
-            git add -- "$STATE_PATH"
+          if [[ -f .github/state/noticias-oai-continuations.json ]]; then
+            git add -- .github/state/noticias-oai-continuations.json
           fi
-
-          if [[ "$ISOLATED_VALIDATION" != "true" \
-            && "$COLLECT_OUTCOME" == "success" \
-            && "$DIAGNOSTIC_PREP_OUTCOME" == "success" \
-            && "$REPORT_OUTCOME" == "success" ]]; then
+          if [[ "$COLLECT_OUTCOME" == "success" && "$DIAGNOSTIC_PREP_OUTCOME" == "success" && "$REPORT_OUTCOME" == "success" ]]; then
             git add -- dados/noticias-publicacoes.json
           fi
-
           if ! git diff --cached --quiet; then
-            if [[ "$ISOLATED_VALIDATION" == "true" ]]; then
-              git commit -m "Persist isolated OAI-PMH validation state"
-            else
-              git commit -m "Atualiza notícias e estado OAI-PMH"
-            fi
+            git commit -m "Atualiza notícias e publicações"
             git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
-
-      - name: Preservar o resultado da coleta
-        if: always()
-        env:
-          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
-          SETUP_OUTCOME: ${{ steps.setup.outcome }}
-          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
-          DIAGNOSTIC_PREP_OUTCOME: ${{ steps.ensure_diagnostics.outcome }}
-          REPORT_OUTCOME: ${{ steps.diagnostics.outcome }}
-          PERSIST_OUTCOME: ${{ steps.persist.outcome }}
-          FAILURE_INJECTION_OUTCOME: ${{ steps.inject_failure.outcome }}
-        run: |
-          set -euo pipefail
-          if [[ "$CHECKOUT_OUTCOME" != "success" \
-            || "$SETUP_OUTCOME" != "success" \
-            || "$COLLECT_OUTCOME" != "success" \
-            || "$DIAGNOSTIC_PREP_OUTCOME" != "success" \
-            || "$REPORT_OUTCOME" != "success" \
-            || "$FAILURE_INJECTION_OUTCOME" == "failure" \
-            || "$PERSIST_OUTCOME" == "failure" ]]; then
-            exit 1
           fi

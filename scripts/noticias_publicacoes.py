@@ -14,7 +14,6 @@ import os
 import re
 import sys
 import tempfile
-import threading
 import time
 import unicodedata
 import urllib.error
@@ -22,26 +21,15 @@ import urllib.parse
 import urllib.request
 import zlib
 import xml.etree.ElementTree as ET
-from contextlib import contextmanager
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH = Path(os.environ.get(
-    "APABF_CONFIG_PATH", ROOT / "config" / "noticias-publicacoes.json"
-))
-OUTPUT_PATH = Path(os.environ.get(
-    "APABF_OUTPUT_PATH", ROOT / "dados" / "noticias-publicacoes.json"
-))
-DIAGNOSTICS_PATH = Path(os.environ.get(
-    "APABF_DIAGNOSTICS_PATH", ROOT / "diagnosticos" / "coletas"
-))
-OAI_STATE_PATH = Path(os.environ.get(
-    "APABF_OAI_STATE_PATH",
-    ROOT / ".github" / "state" / "noticias-oai-continuations.json",
-))
-OAI_STATE_THREAD_LOCK = threading.Lock()
+CONFIG_PATH = ROOT / "config" / "noticias-publicacoes.json"
+OUTPUT_PATH = ROOT / "dados" / "noticias-publicacoes.json"
+DIAGNOSTICS_PATH = ROOT / "diagnosticos" / "coletas"
+OAI_STATE_PATH = ROOT / ".github" / "state" / "noticias-oai-continuations.json"
 USER_AGENT = "APABF-Publicacoes/1.0 (GitHub Actions; metadata-only collector)"
 TRACKING_PARAMS = {
     "fbclid", "gclid", "mc_cid", "mc_eid", "ref", "ref_src",
@@ -1301,76 +1289,11 @@ def oai_from_date(config: dict, old_data: dict | None, repository: dict) -> str:
     return (today - dt.timedelta(days=config["oai_initial_lookback_days"])).isoformat()
 
 
-@contextmanager
-def oai_state_lock():
-    lock_path = OAI_STATE_PATH.with_name(OAI_STATE_PATH.name + ".lock")
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with OAI_STATE_THREAD_LOCK, lock_path.open("a+b") as handle:
-        if os.name == "nt":
-            import msvcrt
-
-            handle.seek(0, os.SEEK_END)
-            if handle.tell() == 0:
-                handle.write(b"\0")
-                handle.flush()
-            handle.seek(0)
-            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
-            try:
-                yield
-            finally:
-                handle.seek(0)
-                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-        else:
-            import fcntl
-
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-            try:
-                yield
-            finally:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-
-
-def atomic_write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            newline="\n",
-            dir=path.parent,
-            prefix=path.name + ".",
-            suffix=".tmp",
-            delete=False,
-        ) as handle:
-            temporary_path = Path(handle.name)
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_path, path)
-        if hasattr(os, "O_DIRECTORY"):
-            directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
-            try:
-                os.fsync(directory_fd)
-            finally:
-                os.close(directory_fd)
-    finally:
-        if temporary_path is not None:
-            temporary_path.unlink(missing_ok=True)
-
-
 def load_oai_state() -> dict:
     if not OAI_STATE_PATH.exists():
-        return {
-            "schema_version": 1,
-            "updated_at": utc_now(),
-            "repositories": {},
-            "_revision": None,
-        }
+        return {"schema_version": 1, "updated_at": utc_now(), "repositories": {}}
     try:
-        raw_state = OAI_STATE_PATH.read_bytes()
-        revision = hashlib.sha256(raw_state).hexdigest()
-        state = json.loads(raw_state.decode("utf-8"))
+        state = json.loads(OAI_STATE_PATH.read_text(encoding="utf-8"))
         if (
             isinstance(state, dict)
             and state.get("schema_version") == 1
@@ -1387,17 +1310,11 @@ def load_oai_state() -> dict:
                 "schema_version": 1,
                 "updated_at": state.get("updated_at", utc_now()),
                 "repositories": valid_repositories,
-                "_revision": revision,
             }
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    except (OSError, json.JSONDecodeError):
         pass
     log("Estado OAI-PMH inválido; será reconstruído sem tokens anteriores")
-    return {
-        "schema_version": 1,
-        "updated_at": utc_now(),
-        "repositories": {},
-        "_revision": revision if "revision" in locals() else None,
-    }
+    return {"schema_version": 1, "updated_at": utc_now(), "repositories": {}}
 
 
 def valid_oai_state_entry(state_id: str, entry: object) -> bool:
@@ -1436,9 +1353,8 @@ def save_oai_state(state: dict) -> None:
     A crash before replacement keeps the previous snapshot; a crash after a
     response but before its checkpoint may refetch that page. The workflow
     serializes runs and persists checkpoints after both complete and failed
-    collections. A revision check under a process lock rejects stale writers.
-    A runner lost before its final push can still lose its latest local
-    checkpoint, so a later collection must safely restart and deduplicate.
+    collections. A runner lost before its final push can still lose its latest
+    local checkpoint, so a later collection must safely restart and deduplicate.
     """
     if (
         not isinstance(state, dict)
@@ -1452,30 +1368,30 @@ def save_oai_state(state: dict) -> None:
         raise ValueError("estado OAI-PMH inválido; arquivo anterior preservado")
     if not state["repositories"] and not OAI_STATE_PATH.exists():
         return
-    with oai_state_lock():
-        current_revision = (
-            hashlib.sha256(OAI_STATE_PATH.read_bytes()).hexdigest()
-            if OAI_STATE_PATH.exists()
-            else None
-        )
-        if state.get("_revision") != current_revision:
-            raise RuntimeError(
-                "estado OAI-PMH foi atualizado por outra execução; "
-                "o snapshot antigo não será gravado"
-            )
-        updated_at = utc_now()
-        serialized = json.dumps(
-            {
-                "schema_version": 1,
-                "updated_at": updated_at,
-                "repositories": state["repositories"],
-            },
-            ensure_ascii=False,
-            indent=2,
-        ) + "\n"
-        atomic_write_text(OAI_STATE_PATH, serialized)
-        state["updated_at"] = updated_at
-        state["_revision"] = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    state = {
+        "schema_version": 1,
+        "updated_at": utc_now(),
+        "repositories": state["repositories"],
+    }
+    OAI_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=OAI_STATE_PATH.parent,
+            prefix=OAI_STATE_PATH.name + ".",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            handle.write(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, OAI_STATE_PATH)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
 
 def oai_repository_state_id(repository: dict) -> str:
@@ -1585,7 +1501,6 @@ def collect_oai(
                         metric["pages_consulted"] = pages
                         complete = True
                         url = ""
-                        repository_states.pop(state_id, None)
                         break
                     if (
                         error.attrib.get("code") == "badResumptionToken"
@@ -1849,9 +1764,9 @@ def write_diagnostics(report: dict, prefix: str = "coleta") -> Path:
     workflow_run = os.environ.get("GITHUB_RUN_ID", "").strip()
     run_segment = f"-{workflow_run}" if workflow_run else ""
     path = DIAGNOSTICS_PATH / f"{prefix}{run_segment}-{timestamp}.json"
-    atomic_write_text(
-        path,
+    path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
     return path
 
@@ -1981,7 +1896,6 @@ def run(mode: str) -> str:
             ("OpenAlex", lambda metrics: collect_openalex(config, key or None, metrics)),
             ("Crossref", lambda metrics: collect_crossref(config, metrics)),
         ])
-    if mode in {"all", "academic", "oai"}:
         for repository in config["oai_repositories"]:
             sources.append((
                 repository["name"],
@@ -2104,7 +2018,9 @@ def run(mode: str) -> str:
         parsed = json.loads(serialized)
         if parsed.get("schema_version") != 1 or not isinstance(parsed.get("items"), list):
             raise RuntimeError("validação do JSON gerado falhou")
-        atomic_write_text(OUTPUT_PATH, serialized)
+        temporary_path = OUTPUT_PATH.with_suffix(".json.tmp")
+        temporary_path.write_text(serialized, encoding="utf-8")
+        temporary_path.replace(OUTPUT_PATH)
         data_written = True
 
     report = {
@@ -2228,7 +2144,7 @@ def run(mode: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("all", "news", "academic", "oai"), default="all")
+    parser.add_argument("--mode", choices=("all", "news", "academic"), default="all")
     parser.add_argument(
         "--evaluate-existing",
         action="store_true",
