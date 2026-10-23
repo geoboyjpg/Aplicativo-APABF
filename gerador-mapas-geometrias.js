@@ -232,6 +232,20 @@
         return String(properties.name || state.originalName || '').trim();
     }
 
+    function geometrySymbolType(geometry) {
+        var type = String(geometry || '').toLowerCase();
+        if (type.indexOf('point') !== -1) {
+            return 'point';
+        }
+        if (type.indexOf('line') !== -1) {
+            return 'line';
+        }
+        if (type.indexOf('polygon') !== -1) {
+            return 'polygon';
+        }
+        return '';
+    }
+
     return {
         parseAxis: parseAxis,
         geographicCoordinates: geographicCoordinates,
@@ -241,6 +255,7 @@
         loadLayersIndependently: loadLayersIndependently,
         exportTileZoom: exportTileZoom,
         mercatorMetersPerPixel: mercatorMetersPerPixel,
-        manualPointLabel: manualPointLabel
+        manualPointLabel: manualPointLabel,
+        geometrySymbolType: geometrySymbolType
     };
 }));

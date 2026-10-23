@@ -147,8 +147,9 @@ test('print composition retains top/left coordinate labels and anchors map furni
     assert.match(frame, /leftCoordinate\.lat/);
     assert.doesNotMatch(frame, /bottomCoordinate|rightCoordinate/);
     assert.match(frame, /context\.strokeStyle = '#000'/);
-    assert.match(implementation, /frame\.x \+ frame\.width \* 0\.71,[\s\S]*?frame\.y \+ frame\.height - frame\.height \* 0\.04 - 2\.4 \* scaleFactor/);
-    assert.match(implementation, /frame\.x \+ frame\.width - frame\.width \* 0\.022 - northArrowSize \* 0\.5/);
+    assert.match(implementation, /frame\.x \+ frame\.width \* 0\.68,[\s\S]*?frame\.y \+ frame\.height - 13 \* scaleFactor/);
+    assert.match(implementation, /frame\.x \+ frame\.width - 10 \* scaleFactor/);
+    assert.match(implementation, /northX - 5 \* scaleFactor,[\s\S]*?drawNorthArrow\(context, northX, northY, 5\.8 \* scaleFactor\)/);
     assert.match(implementation, /context\.rotate\(-Math\.PI \/ 2\)/);
     assert.match(implementation, /renderLegendCanvas\(context,[\s\S]*?legendMaxHeight/);
     assert.match(implementation, /mercatorMetersPerPixel\([\s\S]*?renderScaleBar/);
@@ -192,29 +193,38 @@ test('map preview restores frame-relative furniture and gives the inset its own 
     assert.match(inset, /id="overview-scale"/);
     assert.match(styles, /\.overview-frame\s*\{[^}]*position:\s*relative/s);
     assert.match(implementation, /function updateOverviewScale\(\)[\s\S]*?var metersPerPixel = metersAcross/);
-    assert.match(overviewRenderer, /drawNorthArrow\([\s\S]*?renderScaleBar\(/);
-    assert.match(overviewRenderer, /x \+ width \* 0\.04,[\s\S]*?'left',\s*scaleFactor,\s*2 \* scaleFactor,\s*0\.3 \* scaleFactor/);
+    assert.match(overviewRenderer, /drawNorthArrow\(context, x \+ width - arrowSize, y \+ arrowSize \* 1\.3, arrowSize\)/);
+    assert.match(overviewRenderer, /var scalePadding = Math\.min\(width, height\) \* 0\.055/);
+    assert.match(overviewRenderer, /renderScaleBar\([\s\S]*?x \+ scalePadding \* 1\.8,[\s\S]*?y \+ height - scalePadding \* 1\.8,/);
     assert.match(overviewRenderer, /GeradorGeometrias\.mercatorMetersPerPixel/);
     assert.match(overviewRenderer, /overviewMap\.getBounds\(\)/);
     assert.match(overviewRenderer, /exportTileZoom\(overviewMap\.getZoom\(\), overviewScale, 23\)/);
     assert.match(implementation, /scaleDistance\(metersPerPixel \* size\.x \* 0\.24\)/);
     assert.match(implementation, /scaleDistance\(metersPerPixel \* mapWidth \* 0\.24\)/);
-    assert.match(implementation, /var labelX = labelAlignment === 'left' \? x : x \+ width \/ 2/);
-    assert.match(implementation, /strokeText\(label, labelX, labelY\)/);
-    assert.doesNotMatch(implementation, /strokeText\('0', x,/);
-    assert.match(implementation, /strokeText\('▲', x, y - size\)/);
-    assert.match(implementation, /font = 'bold ' \+ \(size \* 0\.6\) \+ 'px Arial'/);
+    assert.match(implementation, /strokeText\('0', x, y - 2 \* scaleFactor\)/);
+    assert.match(implementation, /context\.translate\(x, y\)/);
+    assert.match(implementation, /context\.moveTo\(0, -size\)/);
 });
 
-test('manual point label keeps its source name and matching halo in preview and export only for manual points', function () {
+test('manual point label keeps its source name without the unwanted outline', function () {
     const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
     const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
 
     assert.match(implementation, /GeradorGeometrias\.manualPointLabel\(state, feature\)/);
     assert.match(implementation, /layer\.bindTooltip\(label,[\s\S]*?permanent:\s*true[\s\S]*?className:\s*'manual-feature-label'/);
-    assert.match(styles, /\.leaflet-tooltip\.manual-feature-label\s*\{[^}]*color:\s*#263238[^}]*-webkit-text-stroke:\s*0\.35px #fff/s);
-    assert.match(implementation, /context\.strokeText\(label, point\.x \+ 8 \* outputRatio, point\.y\)/);
+    const manualLabelStyles = styles.slice(
+        styles.indexOf('.leaflet-tooltip.manual-feature-label'),
+        styles.indexOf('.leaflet-tooltip.manual-feature-label::before')
+    );
+    const manualLabelRender = implementation.slice(
+        implementation.indexOf('function drawLayerFeatures'),
+        implementation.indexOf('function renderScaleBar')
+    );
+    assert.match(manualLabelStyles, /color:\s*#263238/);
+    assert.doesNotMatch(manualLabelStyles, /text-stroke|paint-order|text-shadow/);
+    assert.match(manualLabelRender, /context\.fillText\(label, point\.x \+ 8 \* outputRatio, point\.y\)/);
+    assert.doesNotMatch(manualLabelRender, /strokeText\(label/);
     assert.match(implementation, /state\.data\.features\[0\]\.properties\.name = elements\.geometryName\.value/);
     const pointState = { manual: true, originalName: 'Marco costeiro' };
     assert.equal(geometry.manualPointLabel(pointState, {
@@ -231,6 +241,26 @@ test('manual point label keeps its source name and matching halo in preview and 
             geometry: { type: type, coordinates: [] }
         }), '');
     });
+});
+
+test('legend symbol classification is shared by preview and export', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const canvasLegend = implementation.slice(
+        implementation.indexOf('function renderLegendCanvas'),
+        implementation.indexOf('function renderPortraitPanel')
+    );
+
+    assert.equal(geometry.geometrySymbolType('Point'), 'point');
+    assert.equal(geometry.geometrySymbolType('MultiPoint'), 'point');
+    assert.equal(geometry.geometrySymbolType('LineString'), 'line');
+    assert.equal(geometry.geometrySymbolType('MultiLineString'), 'line');
+    assert.equal(geometry.geometrySymbolType('Polygon'), 'polygon');
+    assert.equal(geometry.geometrySymbolType('MultiPolygon'), 'polygon');
+    assert.match(implementation, /geometrySymbolType\(state\.definition\.geometry\) \|\| 'polygon'/);
+    assert.match(implementation, /geometrySymbolType\(type\) \|\| 'polygon'/);
+    assert.match(canvasLegend, /entry\.geometry === 'point'/);
+    assert.match(canvasLegend, /entry\.geometry === 'line'/);
 });
 
 test('legend outlines remain geometry-specific and print strokes stay proportional to preview', function () {
@@ -255,13 +285,16 @@ test('title background follows wrapped text in preview and exported layouts', fu
     assert.match(implementation, /drawTitleBlock\([\s\S]*?elements\.title\.value\.trim\(\) \|\| 'Mapa sem título'/);
 });
 
-test('imports selected KML/KMZ files without replacing layer state or the sidebar', function () {
+test('file import stays anchored to its visible control and preserves existing layers', function () {
     const page = fs.readFileSync(path.join(ROOT, 'gerador-mapas.html'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
     const geometry = fs.readFileSync(path.join(ROOT, 'gerador-mapas-geometrias.js'), 'utf8');
     assert.match(page, /id="file-import"[^>]*multiple/);
-    assert.match(page, /id="import-files" class="import-label" type="button"/);
-    assert.match(page, /id="file-import"[^>]*tabindex="-1"[^>]*aria-hidden="true"/);
+    assert.match(page, /<label id="import-files" class="import-label">[\s\S]*?<input id="file-import" class="import-file-input" type="file"/);
+    assert.match(styles, /\.import-file-input\s*\{[^}]*position:\s*absolute[^}]*inset:\s*0[^}]*opacity:\s*0/s);
+    assert.doesNotMatch(page, /id="file-import"[^>]*(?:tabindex="-1"|aria-hidden="true"|visually-hidden)/);
+    assert.doesNotMatch(implementation, /fileImport\.click\(\)|openImportPicker|restoreImportPanelScroll|fileImport\.addEventListener\('cancel'/);
     assert.match(implementation, /mergeLayerStates\(loadedStates, states\)/);
     assert.match(geometry, /function mergeLayerStates\(loadedStates, existingStates\)/);
     assert.match(implementation, /function addLayerControls\(state\)[\s\S]*?elements\.layerList\.appendChild\(item\)/);
@@ -269,17 +302,33 @@ test('imports selected KML/KMZ files without replacing layer state or the sideba
     assert.match(implementation, /window\.JSZip\.loadAsync\(buffer\)/);
     assert.match(implementation, /candidates\[0\]\.async\('text'\)/);
     assert.match(implementation, /id: 'importado-' \+ Date\.now\(\) \+ '-' \+ \(\+\+manualSequence\)/);
-    assert.match(implementation, /importButton\.addEventListener\('click', openImportPicker\)/);
-    assert.match(implementation, /fileImport\.addEventListener\('cancel', restoreImportPanelScroll\)/);
     assert.match(implementation, /fileImport\.addEventListener\('change', processSelectedFiles\)/);
     assert.match(implementation, /files\.reduce\(function \(queue, file\)/);
     assert.match(implementation, /states\.filter\(function \(candidate\) \{ return candidate !== state; \}\)/);
     const importBody = implementation.slice(
         implementation.indexOf('function importLocalFile'),
-        implementation.indexOf('function restoreImportPanelScroll')
+        implementation.indexOf('function processSelectedFiles')
     );
     assert.ok(importBody.indexOf('readKmlFile(file)') < importBody.indexOf('states.push(state)'));
     assert.match(importBody, /if \(state\.item\) \{\s*state\.item\.remove\(\)/);
+});
+
+test('the APABF boundary stays above official fills in preview and export', function () {
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const layerOrder = implementation.slice(
+        implementation.indexOf('function layerDisplayRank'),
+        implementation.indexOf('function updateMapComposition')
+    );
+    const drawing = implementation.slice(
+        implementation.indexOf('function drawLayerFeatures'),
+        implementation.indexOf('function renderScaleBar')
+    );
+
+    assert.match(layerOrder, /state\.id === 'limite-apabf'\)\s*\{\s*return 1/);
+    assert.match(layerOrder, /state\.id\.indexOf\('importado-'\) === 0 \? 2 : 0/);
+    assert.match(layerOrder, /state\.layer\.bringToFront\(\)/);
+    assert.match(drawing, /sortLayerStates\(states\.filter/);
+    assert.match(implementation, /function updateMapComposition\(\)\s*\{\s*if \(map\) \{\s*updateMapLayerOrder\(\)/);
 });
 
 test('concurrent catalog completion preserves imported and manually created layer objects', function () {

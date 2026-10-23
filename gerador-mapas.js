@@ -17,7 +17,6 @@
     var geometryType = 'Point';
     var previewGeometryLayer;
     var editingState;
-    var importScrollTop = 0;
 
     var elements = {
         layerList: document.getElementById('layer-list'),
@@ -26,8 +25,6 @@
         catalogStatus: document.getElementById('catalog-status'),
         importStatus: document.getElementById('import-status'),
         fileImport: document.getElementById('file-import'),
-        importButton: document.getElementById('import-files'),
-        configScroll: document.querySelector('.config-scroll'),
         basemap: document.getElementById('basemap'),
         title: document.getElementById('map-title'),
         author: document.getElementById('author'),
@@ -661,13 +658,8 @@
     }
 
     function symbolClass(geometry) {
-        if (/point/i.test(geometry)) {
-            return 'is-point';
-        }
-        if (/line/i.test(geometry)) {
-            return 'is-line';
-        }
-        return '';
+        var symbolType = window.GeradorGeometrias.geometrySymbolType(geometry);
+        return symbolType ? 'is-' + symbolType : '';
     }
 
     function legendEntries(state) {
@@ -676,7 +668,7 @@
                 return {
                     label: zone.displayLabel || zone.name,
                     color: zone.color,
-                    geometry: state.definition.geometry,
+                    geometry: window.GeradorGeometrias.geometrySymbolType(state.definition.geometry) || 'polygon',
                     opacity: zone.opacity
                 };
             });
@@ -697,7 +689,7 @@
                     return {
                         label: state.legendLabel + ' — ' + label,
                         color: state.color,
-                        geometry: type,
+                        geometry: window.GeradorGeometrias.geometrySymbolType(type) || 'polygon',
                         opacity: /polygon/i.test(type) ? polygonOpacity : state.opacity
                     };
                 });
@@ -705,7 +697,7 @@
             return [{
                 label: state.legendLabel,
                 color: state.color,
-                geometry: state.definition.geometry,
+                geometry: window.GeradorGeometrias.geometrySymbolType(state.definition.geometry) || 'polygon',
                 opacity: /polygon/i.test(state.definition.geometry) ? polygonOpacity : state.opacity
             }];
         }
@@ -720,7 +712,7 @@
                 values.push({
                     label: label,
                     color: paletteColor(state, feature, index),
-                    geometry: state.definition.geometry,
+                    geometry: window.GeradorGeometrias.geometrySymbolType(state.definition.geometry) || 'polygon',
                     opacity: polygonOpacity
                 });
             }
@@ -927,7 +919,31 @@
             barPixels + 'px"><span></span><span></span></span>';
     }
 
+    function layerDisplayRank(state) {
+        if (state.id === 'limite-apabf') {
+            return 1;
+        }
+        return state.id.indexOf('importado-') === 0 ? 2 : 0;
+    }
+
+    function sortLayerStates(layerStates) {
+        return layerStates.slice().sort(function (left, right) {
+            return layerDisplayRank(left) - layerDisplayRank(right);
+        });
+    }
+
+    function updateMapLayerOrder() {
+        sortLayerStates(states.filter(function (state) {
+            return state.visible && state.layer && map.hasLayer(state.layer);
+        })).forEach(function (state) {
+            state.layer.bringToFront();
+        });
+    }
+
     function updateMapComposition() {
+        if (map) {
+            updateMapLayerOrder();
+        }
         var activeStates = states.filter(function (state) {
             return state.visible && state.layer;
         });
@@ -1262,6 +1278,11 @@
                 }
                 addLayerControls(state);
                 updateLayerOrderControls();
+                var layerBounds = state.layer.getBounds();
+                if (layerBounds.isValid()) {
+                    map.fitBounds(layerBounds, { padding: [24, 24], maxZoom: 15 });
+                }
+                updateMapComposition();
             } catch (error) {
                 if (state.layer && map.hasLayer(state.layer)) {
                     map.removeLayer(state.layer);
@@ -1270,14 +1291,11 @@
                     state.item.remove();
                 }
                 states = states.filter(function (candidate) { return candidate !== state; });
+                updateLayerOrderControls();
+                updateMapComposition();
                 throw error;
             }
-            var layerBounds = state.layer.getBounds();
-            if (layerBounds.isValid()) {
-                map.fitBounds(layerBounds, { padding: [24, 24], maxZoom: 15 });
-            }
             elements.importStatus.textContent = file.name + ' importado localmente (' + data.features.length + ' feição(ões)).';
-            updateMapComposition();
             return true;
         }).catch(function (error) {
             elements.importStatus.textContent = 'Importação não concluída: ' + error.message;
@@ -1286,27 +1304,14 @@
         });
     }
 
-    function restoreImportPanelScroll() {
-        window.requestAnimationFrame(function () {
-            elements.configScroll.scrollTop = importScrollTop;
-            elements.importButton.focus({ preventScroll: true });
-        });
-    }
-
     function processSelectedFiles() {
         var files = Array.prototype.slice.call(elements.fileImport.files || []);
         elements.fileImport.value = '';
-        restoreImportPanelScroll();
         return files.reduce(function (queue, file) {
             return queue.then(function () {
                 return importLocalFile(file);
             });
         }, Promise.resolve());
-    }
-
-    function openImportPicker() {
-        importScrollTop = elements.configScroll.scrollTop;
-        elements.fileImport.click();
     }
 
     function mercatorProject(longitude, latitude, zoom) {
@@ -1484,7 +1489,7 @@
     }
 
     function drawLayerFeatures(context, projection, outputRatio) {
-        states.filter(function (state) { return state.visible && state.data && state.layer; })
+        sortLayerStates(states.filter(function (state) { return state.visible && state.data && state.layer; }))
             .forEach(function (state) {
                 state.data.features.forEach(function (feature, index) {
                     var zoneStyle = getZoneStyle(state, feature);
@@ -1512,10 +1517,6 @@
                         context.font = '600 ' + (12 * outputRatio) + 'px Arial';
                         context.textAlign = 'left';
                         context.textBaseline = 'middle';
-                        context.lineJoin = 'round';
-                        context.lineWidth = Math.max(1, 3 * outputRatio);
-                        context.strokeStyle = '#fff';
-                        context.strokeText(label, point.x + 8 * outputRatio, point.y);
                         context.fillStyle = '#263238';
                         context.fillText(label, point.x + 8 * outputRatio, point.y);
                         context.restore();
@@ -1524,10 +1525,10 @@
             });
     }
 
-    function renderScaleBar(context, x, y, mapWidth, metersPerPixel, scaleFactor, labelAlignment, barHeight, labelFontSize, labelGap) {
+    function renderScaleBar(context, x, y, mapWidth, metersPerPixel, scaleFactor) {
         var distance = scaleDistance(metersPerPixel * mapWidth * 0.24);
         var width = distance / metersPerPixel;
-        var height = Number.isFinite(barHeight) ? barHeight : 3.2 * scaleFactor;
+        var height = 3.2 * scaleFactor;
         context.fillStyle = '#111';
         context.fillRect(x, y, width / 2, height);
         context.fillStyle = '#fff';
@@ -1536,35 +1537,53 @@
         context.lineWidth = Math.max(1, scaleFactor);
         context.strokeRect(x, y, width, height);
         context.fillStyle = '#111';
-        context.textAlign = labelAlignment === 'left' ? 'left' : 'center';
-        context.font = 'bold ' + (Number.isFinite(labelFontSize) ? labelFontSize : 3.2 * scaleFactor) + 'px Arial';
+        context.textAlign = 'center';
+        context.font = 'bold ' + (3.2 * scaleFactor) + 'px Arial';
         var label = distance >= 1000
             ? (distance / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
             : Math.round(distance) + ' m';
         context.lineJoin = 'round';
         context.lineWidth = Math.max(1.5, scaleFactor * 0.9);
         context.strokeStyle = '#fff';
-        var labelX = labelAlignment === 'left' ? x : x + width / 2;
-        var labelY = y - (Number.isFinite(labelGap) ? labelGap : 2 * scaleFactor);
-        context.strokeText(label, labelX, labelY);
-        context.fillText(label, labelX, labelY);
+        context.strokeText('0', x, y - 2 * scaleFactor);
+        context.strokeText(label, x + width, y - 2 * scaleFactor);
+        context.fillText('0', x, y - 2 * scaleFactor);
+        context.fillText(label, x + width, y - 2 * scaleFactor);
     }
 
     function drawNorthArrow(context, x, y, size) {
         context.save();
-        context.textAlign = 'center';
-        context.textBaseline = 'top';
-        context.font = 'bold ' + size + 'px Arial';
-        context.lineJoin = 'round';
-        context.lineWidth = Math.max(1.2, size * 0.045);
-        context.strokeStyle = '#fff';
-        context.strokeText('▲', x, y - size);
+        context.translate(x, y);
         context.fillStyle = '#111';
-        context.fillText('▲', x, y - size);
-        context.font = 'bold ' + (size * 0.6) + 'px Arial';
-        context.lineWidth = Math.max(1, size * 0.022);
-        context.strokeText('N', x, y);
-        context.fillText('N', x, y);
+        context.strokeStyle = '#111';
+        context.lineWidth = Math.max(2, size * 0.05);
+        context.beginPath();
+        context.moveTo(0, -size);
+        context.lineTo(size * 0.24, size * 0.25);
+        context.lineTo(0, size * 0.08);
+        context.lineTo(-size * 0.24, size * 0.25);
+        context.closePath();
+        context.strokeStyle = '#fff';
+        context.lineWidth = Math.max(2, size * 0.13);
+        context.stroke();
+        context.strokeStyle = '#111';
+        context.lineWidth = Math.max(2, size * 0.05);
+        context.fill();
+        context.fillStyle = '#fff';
+        context.beginPath();
+        context.moveTo(0, -size * 0.65);
+        context.lineTo(0, size * 0.05);
+        context.lineTo(-size * 0.11, size * 0.13);
+        context.closePath();
+        context.fill();
+        context.font = 'bold ' + (size * 0.42) + 'px Arial';
+        context.textAlign = 'center';
+        context.fillStyle = '#111';
+        context.lineJoin = 'round';
+        context.lineWidth = Math.max(1.5, size * 0.07);
+        context.strokeStyle = '#fff';
+        context.strokeText('N', 0, size * 0.72);
+        context.fillText('N', 0, size * 0.72);
         context.restore();
     }
 
@@ -1748,29 +1767,21 @@
                     context.strokeRect(clippedLeft, clippedTop, clippedRight - clippedLeft, clippedBottom - clippedTop);
                 }
                 var arrowSize = Math.min(width, height) * 0.09;
-                drawNorthArrow(
-                    context,
-                    x + width - width * 0.022 - arrowSize * 0.5,
-                    y + height * 0.025 + arrowSize,
-                    arrowSize
-                );
+                drawNorthArrow(context, x + width - arrowSize, y + arrowSize * 1.3, arrowSize);
                 var centerLatitude = (viewBounds.north + viewBounds.south) / 2;
                 var metersPerPixel = window.GeradorGeometrias.mercatorMetersPerPixel(
                     centerLatitude,
                     zoom,
                     fit
                 );
+                var scalePadding = Math.min(width, height) * 0.055;
                 renderScaleBar(
                     context,
-                    x + width * 0.04,
-                    y + height - height * 0.03 - scaleFactor,
+                    x + scalePadding * 1.8,
+                    y + height - scalePadding * 1.8,
                     width,
                     metersPerPixel,
-                    scaleFactor,
-                    'left',
-                    scaleFactor,
-                    2 * scaleFactor,
-                    0.3 * scaleFactor
+                    scaleFactor
                 );
             })
             .finally(function () {
@@ -2103,20 +2114,20 @@
                 );
                 renderScaleBar(
                     context,
-                    frame.x + frame.width * 0.71,
-                    frame.y + frame.height - frame.height * 0.04 - 2.4 * scaleFactor,
+                    frame.x + frame.width * 0.68,
+                    frame.y + frame.height - 13 * scaleFactor,
                     frame.width,
                     metersPerPixel,
-                    scaleFactor,
-                    'center',
-                    2.4 * scaleFactor,
-                    3.2 * scaleFactor,
-                    0.8 * scaleFactor
+                    scaleFactor
                 );
-                var northArrowSize = 5.8 * scaleFactor;
-                var northX = frame.x + frame.width - frame.width * 0.022 - northArrowSize * 0.5;
-                var northY = frame.y + frame.height * 0.025 + northArrowSize;
-                drawNorthArrow(context, northX, northY, northArrowSize);
+                var northX = frame.x + frame.width - 10 * scaleFactor;
+                var northY = frame.y + 14 * scaleFactor;
+                context.fillStyle = '#ffffff';
+                context.fillRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
+                context.strokeStyle = '#c5cccc';
+                context.lineWidth = Math.max(1, 0.25 * scaleFactor);
+                context.strokeRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
+                drawNorthArrow(context, northX, northY, 5.8 * scaleFactor);
 
                 if (portrait) {
                     return renderPortraitPanel(context, canvas, frame, mapBounds, scaleFactor, rightMargin);
@@ -2701,9 +2712,7 @@
             }, 60);
         });
         elements.legendLimit.addEventListener('change', updateMapComposition);
-        elements.importButton.addEventListener('click', openImportPicker);
         elements.fileImport.addEventListener('change', processSelectedFiles);
-        elements.fileImport.addEventListener('cancel', restoreImportPanelScroll);
         elements.exportButton.addEventListener('click', exportMap);
         elements.layerSearch.addEventListener('input', updateLayerSearch);
         elements.clearLayerSearch.addEventListener('click', function () {
