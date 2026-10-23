@@ -79,8 +79,8 @@ def new_source_metric(
         "accepted": 0,
         "review": 0,
         "discarded": 0,
-        "legacy_accepted": 0,
-        "legacy_discarded": 0,
+        "relevance_accepted": 0,
+        "relevance_discarded": 0,
         "duplicates": 0,
         "transient_failures": 0,
         "permanent_failures": 0,
@@ -356,6 +356,7 @@ def make_item(
     doi: str = "",
     keywords: list[str] | None = None,
     authors: list[str] | None = None,
+    journal: str = "",
 ) -> dict | None:
     title = clean_text(title, 300)
     url = normalize_url(url)
@@ -370,6 +371,7 @@ def make_item(
         "category": category or source.get("category", "academico"),
         "keywords": sorted({clean_text(term, 80) for term in (keywords or []) if clean_text(term, 80)})[:12],
         "authors": sorted({clean_text(author, 120) for author in (authors or []) if clean_text(author, 120)})[:20],
+        "journal": clean_text(journal, 180),
         "locations": [],
         "relevance": {"level": "baixa", "score": 0, "reason": []},
         "collected_at": "",
@@ -484,7 +486,10 @@ def remove_phrases(content: str, phrases: list[str]) -> str:
 def classify(item: dict, config: dict) -> bool:
     title = normalized_text(item["title"])
     summary = normalized_text(item["summary"])
-    content = f"{title} {summary}"
+    keywords = " ".join(str(value) for value in item.get("keywords", []) if value)
+    journal = str(item.get("journal") or "")
+    saved_locations = " ".join(str(value) for value in item.get("locations", []) if value)
+    content = normalized_text(f"{title} {summary} {keywords} {journal} {saved_locations}")
     points = config["scoring"]
     territorial = config.get("territorial", {})
     territorial_points = territorial.get("scoring", {})
@@ -605,18 +610,61 @@ def classify(item: dict, config: dict) -> bool:
         score += points["explicitly_other_region"]
         reasons.append("contexto explicitamente de outra região: " + ", ".join(other_regions[:2]))
 
+    non_environmental_contexts = matching_terms(
+        config.get("classification_validation", {}).get("non_environmental_contexts", []),
+        content,
+    )
+    remaining_after_noise = remove_phrases(content, non_environmental_contexts)
+    clear_environmental_evidence = matching_terms(
+        territorial.get("environmental_terms", [])
+        + config.get("contextual_publication_topics", []),
+        remaining_after_noise,
+    )
+    if non_environmental_contexts and not clear_environmental_evidence:
+        score = min(score, points["medium_threshold"] - 1)
+        reasons.append(
+            "contexto não ambiental desconsiderado: "
+            + ", ".join(non_environmental_contexts[:2])
+        )
+
+    contextual_topics = matching_terms(
+        config.get("contextual_publication_topics", []), topic_content
+    )
+    contextual_regions = matching_terms(
+        config.get("contextual_region_terms", []), content
+    )
+    academic_source = item.get("source", {}).get("type") in {
+        "academica", "repositorio", "institucional"
+    }
+    complementary = bool(
+        academic_source
+        and contextual_topics
+        and not other_regions
+        and not has_geographic_evidence
+        and (contextual_regions or matching_terms(
+            config.get("distinctive_context_species", []), topic_content
+        ))
+    )
+    if complementary:
+        score = max(score, points.get("complementary_threshold", 3))
+        reasons.append(
+            "contexto científico complementar: "
+            + ", ".join((contextual_topics + contextual_regions)[:3])
+        )
+
     item["locations"] = sorted(set(locations))
     item["territorial_matches"] = territorial_matches
     item["relevance"] = {
         "level": (
             "alta" if score >= points["high_threshold"]
             else "media" if score >= points["medium_threshold"]
+            else "complementar" if complementary
             else "baixa"
         ),
         "score": score,
         "reason": reasons,
     }
-    return score >= points["medium_threshold"]
+    return score >= points["medium_threshold"] or complementary
 
 
 def assess_candidate(item: dict, config: dict) -> dict:
@@ -630,6 +678,7 @@ def assess_candidate(item: dict, config: dict) -> dict:
         "title": title,
         "summary": summary,
         "keywords": keyword_text,
+        "journal": str(item.get("journal") or ""),
     }
     content = normalized_text(" ".join(content_fields.values()))
     validation = config.get("classification_validation", {})
@@ -641,6 +690,7 @@ def assess_candidate(item: dict, config: dict) -> dict:
         config.get("territorial", {}).get("environmental_terms", [])
         + config.get("ecosystems_and_species", [])
         + config.get("themes", [])
+        + config.get("contextual_publication_topics", [])
     ))
     title_terms = matching_terms(legacy_terms, normalized_text(title))
     summary_terms = matching_terms(legacy_terms, normalized_text(summary))
@@ -678,6 +728,11 @@ def assess_candidate(item: dict, config: dict) -> dict:
         else "incerta" if ambiguous_hits or uncertain_topic_evidence
         else "nao_evidenciada"
     )
+    contextual_publication_hits = matching_terms(
+        config.get("contextual_publication_topics", []), content
+    )
+    if contextual_publication_hits and not positive_topics:
+        thematic_status = "pertinente"
 
     unit_hits = matching_terms(
         config.get("unit_terms", []) + validation.get("unit_aliases", []),
@@ -782,6 +837,7 @@ def assess_candidate(item: dict, config: dict) -> dict:
         },
         "topics": {
             "concrete_evidence": list(dict.fromkeys(all_topic_evidence)),
+            "contextual_publication_terms": contextual_publication_hits,
             "ambiguous_activity_terms": ambiguous_hits,
             "positive": positive_topics,
             "uncertain": uncertain_topic_evidence,
@@ -958,6 +1014,7 @@ def collect_openalex(
                         for entry in work.get("keywords", [])
                         if isinstance(entry, dict)
                     ]
+                    primary_source = (location.get("source") or {})
                     item = make_item(
                         work.get("title", ""),
                         abstract_from_openalex(work),
@@ -971,6 +1028,7 @@ def collect_openalex(
                             for authorship in work.get("authorships", [])
                             if isinstance(authorship, dict)
                         ],
+                        journal=primary_source.get("display_name", ""),
                     )
                     if not item:
                         metric["discard_reasons"]["missing_title_or_valid_url"] = (
@@ -990,6 +1048,11 @@ def collect_openalex(
                     has_more = False
                 elif not results or len(results) < int(params["per_page"]):
                     has_more = False
+                    if total_announced is not None and metric["results_retrieved"] < total_announced:
+                        metric["interruption_reason"] = "short_page_before_announced_total"
+                        metric["resume_status"] = "restart_required"
+                        metric["request_status"] = "partial"
+                        metric["collection_status"] = "partial"
                 else:
                     has_more = total_announced is None or metric["results_retrieved"] < total_announced
                 if has_more and pages < max_pages and metric["results_retrieved"] < max_results:
@@ -1061,7 +1124,7 @@ def collect_crossref(
         params = {
             "query.bibliographic": query,
             "rows": str(page_limit),
-            "select": "DOI,title,URL,published,published-print,published-online,created,abstract,subject,type",
+            "select": "DOI,title,URL,published,published-print,published-online,created,abstract,subject,type,author,container-title",
             "cursor": "*",
         }
         seen: set[str] = set()
@@ -1122,6 +1185,7 @@ def collect_crossref(
                         keywords=keywords,
                         doi=doi,
                         authors=authors,
+                        journal=(record.get("container-title") or [""])[0],
                     )
                     if not item:
                         metric["discard_reasons"]["missing_title_or_valid_url"] = (
@@ -1147,12 +1211,21 @@ def collect_crossref(
                     )
                 ):
                     has_more = False
+                    if total_announced is not None and metric["results_retrieved"] < total_announced:
+                        metric["interruption_reason"] = "short_page_before_announced_total"
+                        metric["resume_status"] = "restart_required"
+                        metric["request_status"] = "partial"
+                        metric["collection_status"] = "partial"
                 elif isinstance(next_cursor, str) and next_cursor and next_cursor != previous_cursor:
                     previous_cursor = next_cursor
                     params["cursor"] = next_cursor
                     has_more = total_announced is None or metric["results_retrieved"] < total_announced
                 elif not isinstance(next_cursor, str) or not next_cursor:
                     has_more = False
+                    metric["interruption_reason"] = "missing_cursor_before_announced_total"
+                    metric["resume_status"] = "restart_required"
+                    metric["request_status"] = "partial"
+                    metric["collection_status"] = "partial"
                 elif next_cursor == previous_cursor:
                     metric["interruption_reason"] = "repeated_cursor"
                     has_more = True
@@ -1733,6 +1806,15 @@ def merge_items(
                 for field, value in public.items():
                     if value not in (None, "", [], {}):
                         combined[field] = value
+                for field in ("authors", "keywords", "locations"):
+                    combined[field] = list(dict.fromkeys(
+                        (old.get(field) or []) + (public.get(field) or [])
+                    ))
+                if len(public.get("summary") or "") < len(old.get("summary") or ""):
+                    combined["summary"] = old.get("summary", "")
+                if (old.get("relevance", {}).get("score", 0)
+                        > public.get("relevance", {}).get("score", 0)):
+                    combined["relevance"] = old["relevance"]
                 combined["id"] = old.get("id", public["id"])
                 combined["source"] = old.get("source", public.get("source", {}))
                 combined["sources"] = sources
@@ -1881,6 +1963,8 @@ def run(mode: str) -> str:
     previous = load_previous()
     old_data = previous or {}
     new_items: list[dict] = []
+    publishable_items: list[dict] = []
+    partial_candidates = 0
     source_metrics: list[dict] = []
 
     sources: list[tuple[str, object]] = []
@@ -1930,10 +2014,14 @@ def run(mode: str) -> str:
                     item["_contextual_evaluation"] = evaluation
                 if classify(item, config):
                     if metric is not None:
-                        metric["legacy_accepted"] += 1
+                        metric["relevance_accepted"] += 1
                     new_items.append(item)
+                    if metric is None or metric["pages_consulted"] > 0:
+                        publishable_items.append(item)
+                    else:
+                        partial_candidates += 1
                 elif metric is not None:
-                    metric["legacy_discarded"] += 1
+                    metric["relevance_discarded"] += 1
                     reasons = item.get("relevance", {}).get("reason", [])
                     reason = "; ".join(reasons) or "abaixo do limiar atual de relevância"
                     metric["discard_reasons"][reason] = (
@@ -1984,14 +2072,14 @@ def run(mode: str) -> str:
         run_status = "partial" if failed_metrics else "complete"
         merged, duplicate_count, added_count = merge_items(
             original_items,
-            new_items,
+            publishable_items,
             now,
-            preserve_existing_duplicates=run_status != "complete",
+            preserve_existing_duplicates=False,
         )
         seen_keys: set[str] = set()
         metric_by_id = {metric["query_id"]: metric for metric in source_metrics}
-        new_item_ids = {id(item) for item in new_items}
-        for candidate in [*original_items, *new_items]:
+        new_item_ids = {id(item) for item in publishable_items}
+        for candidate in [*original_items, *publishable_items]:
             keys = dedup_keys(candidate)
             if any(key in seen_keys for key in keys) and id(candidate) in new_item_ids:
                 metric = metric_by_id.get(candidate.get("_diagnostic_metric_id"))
@@ -2000,17 +2088,18 @@ def run(mode: str) -> str:
             seen_keys.update(keys)
         changed = items_changed(original_items, merged)
 
-    candidate_new_records = added_count
-    if run_status != "complete":
-        merged = original_items
-        added_count = 0
-        changed = False
+    if run_status == "complete":
+        for item in merged:
+            classify(item, config)
+        changed = items_changed(original_items, merged)
 
     data_written = False
-    if run_status == "complete" and (changed or not previous):
+    if run_status != "failed" or previous:
         output = {
             "schema_version": 1,
             "generated_at": now if changed or not previous else previous.get("generated_at", now),
+            "last_checked_at": now,
+            "collection_status": run_status,
             "items": merged,
         }
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -2022,6 +2111,23 @@ def run(mode: str) -> str:
         temporary_path.write_text(serialized, encoding="utf-8")
         temporary_path.replace(OUTPUT_PATH)
         data_written = True
+    elif run_status == "failed":
+        output = {
+            "schema_version": 1,
+            "generated_at": "",
+            "last_checked_at": now,
+            "collection_status": "failed",
+            "items": [],
+        }
+        OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        serialized = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
+        parsed = json.loads(serialized)
+        if parsed.get("schema_version") != 1 or not isinstance(parsed.get("items"), list):
+            raise RuntimeError("validação do JSON de falha gerado falhou")
+        temporary_path = OUTPUT_PATH.with_suffix(".json.tmp")
+        temporary_path.write_text(serialized, encoding="utf-8")
+        temporary_path.replace(OUTPUT_PATH)
+        data_written = True
 
     report = {
         "schema_version": 1,
@@ -2029,7 +2135,7 @@ def run(mode: str) -> str:
         "mode": mode,
         "status": run_status,
         "data_written": data_written,
-        "classification_mode": "legacy-publication-filter; contextual assessment is diagnostic only",
+        "classification_mode": "multi-evidence contextual relevance; complete-query results publish independently",
         "summary": {
             "source_requests": len(source_metrics),
             "successful_requests": len(successful_metrics),
@@ -2070,19 +2176,49 @@ def run(mode: str) -> str:
             "accepted": sum(metric["accepted"] for metric in source_metrics),
             "review": sum(metric["review"] for metric in source_metrics),
             "discarded": sum(metric["discarded"] for metric in source_metrics),
-            "published_by_legacy_filter": sum(
-                metric["legacy_accepted"] for metric in source_metrics
+            "accepted_by_relevance_filter": sum(
+                metric["relevance_accepted"] for metric in source_metrics
             ),
-            "rejected_by_legacy_filter": sum(
-                metric["legacy_discarded"] for metric in source_metrics
+            "rejected_by_relevance_filter": sum(
+                metric["relevance_discarded"] for metric in source_metrics
             ),
             "duplicates": duplicate_count,
             "new_records": added_count,
             "candidate_records_not_published": (
-                candidate_new_records if run_status == "partial" else 0
+                partial_candidates
             ),
             "preserved_previous_records": len(original_items),
             "published_records": len(merged),
+            "frontend_eligible_records": sum(
+                item.get("relevance", {}).get("level") in {"alta", "media", "complementar"}
+                for item in merged
+            ),
+            "not_displayed_by_relevance": sum(
+                item.get("relevance", {}).get("level") not in {"alta", "media", "complementar"}
+                for item in merged
+            ),
+            "relevance_distribution": {
+                level: sum(
+                    item.get("relevance", {}).get("level") == level
+                    for item in merged
+                )
+                for level in ("alta", "media", "complementar", "baixa")
+            },
+            "complementary_relevance": sum(
+                item.get("relevance", {}).get("level") == "complementar"
+                for item in merged
+            ),
+            "discard_reasons": {
+                reason: sum(
+                    metric["discard_reasons"].get(reason, 0)
+                    for metric in source_metrics
+                )
+                for reason in dict.fromkeys(
+                    reason
+                    for metric in source_metrics
+                    for reason in metric["discard_reasons"]
+                )
+            },
         },
         "source_summaries": {
             source_name: {

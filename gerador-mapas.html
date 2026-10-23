@@ -12,10 +12,27 @@
         <script defer src="Zoneamento%20APABF/js/leaflet.js"></script>
         <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
         <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
         <script defer src="catalogo-gerador-mapas.js"></script>
+        <script defer src="gerador-mapas-geometrias.js"></script>
+        <script defer src="gerador-mapas-acesso.js"></script>
         <script defer src="gerador-mapas.js"></script>
     </head>
     <body>
+        <main id="generator-access" class="access-gate">
+            <form id="generator-access-form" class="access-card">
+                <a class="access-back-link" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Início</a>
+                <div class="access-brand" aria-hidden="true"><i class="fas fa-map"></i></div>
+                <h1>Acesso ao Gerador de Mapas</h1>
+                <p>Informe a senha para abrir as ferramentas de composição cartográfica.</p>
+                <label class="field-label" for="generator-password">Senha de acesso</label>
+                <input id="generator-password" type="password" autocomplete="current-password" required>
+                <p id="generator-access-error" class="access-error" role="alert" aria-live="assertive" hidden></p>
+                <button class="access-submit" type="submit">Acessar</button>
+                <p class="access-limitation">Esta barreira é apenas visual. Como o aplicativo é publicado como site estático, ela não protege o código nem os dados; conteúdo que exija confidencialidade precisa de autenticação no servidor ou controle de acesso na hospedagem.</p>
+            </form>
+        </main>
+
         <header class="generator-header">
             <a class="back-link" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Início</a>
             <div class="header-title">
@@ -34,11 +51,24 @@
                     <section class="config-section">
                     <h2><i class="fas fa-layer-group" aria-hidden="true"></i> Camadas</h2>
                     <p id="catalog-status" class="status-message" role="status" aria-live="polite">Carregando dados geográficos…</p>
+                    <div class="layer-search">
+                        <label class="field-label" for="layer-search">Pesquisar camadas</label>
+                        <div class="layer-search-control">
+                            <input id="layer-search" type="search" placeholder="Nome da camada ou feição" autocomplete="off">
+                            <button id="clear-layer-search" type="button" aria-label="Limpar pesquisa de camadas" title="Limpar pesquisa"><i class="fas fa-times" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
                     <div id="layer-list" class="layer-list"></div>
-                    <label class="import-label" for="file-import">
-                        <i class="fas fa-file-upload" aria-hidden="true"></i> Importar KML ou KMZ
+                    <div class="geometry-tools">
+                        <button id="add-point" class="secondary-button" type="button"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Adicionar ponto</button>
+                        <button id="add-polygon" class="secondary-button" type="button"><i class="fas fa-draw-polygon" aria-hidden="true"></i> Adicionar polígono</button>
+                    </div>
+                    <p class="hint">Geometrias manuais ficam nesta sessão e são incluídas nas exportações do mapa em PDF ou PNG.</p>
+                    <label id="import-files" class="import-label">
+                        <i class="fas fa-file-upload" aria-hidden="true"></i>
+                        <span>Importar KML ou KMZ</span>
+                        <input id="file-import" class="import-file-input" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple>
                     </label>
-                    <input id="file-import" class="visually-hidden" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz">
                     <p id="import-status" class="hint" role="status" aria-live="polite">Os arquivos são processados neste navegador.</p>
                     </section>
 
@@ -135,7 +165,11 @@
                             <p id="preview-date"></p>
                         </section>
                         <section class="overview-section">
-                            <div class="overview-frame"><div id="overview-map" aria-label="Localização da extensão principal no limite da APABF"></div></div>
+                            <div class="overview-frame">
+                                <div id="overview-map" aria-label="Localização da extensão principal no limite da APABF"></div>
+                                <div class="overview-north-arrow" aria-label="Norte"><span>▲</span><small>N</small></div>
+                                <div id="overview-scale" class="overview-scale" aria-label="Escala gráfica da miniatura"></div>
+                            </div>
                             <div class="preview-logos">
                                 <img src="logos/APA%20da%20Baleia%20Franca.png" alt="APA da Baleia Franca">
                                 <img src="logos/icmbio%20horizontal%401000x-8.png" alt="ICMBio">
@@ -146,6 +180,55 @@
                 <p class="disclaimer">Composição cartográfica elaborada pelo usuário. Os logotipos identificam fontes institucionais e não significam aprovação oficial.</p>
             </section>
         </main>
+
+        <dialog id="geometry-dialog" class="geometry-dialog" aria-labelledby="geometry-dialog-title">
+            <form id="geometry-form" method="dialog" novalidate>
+                <div class="geometry-dialog-header">
+                    <h2 id="geometry-dialog-title">Adicionar geometria</h2>
+                    <button id="close-geometry-dialog" class="icon-button" type="button" aria-label="Fechar"><i class="fas fa-times" aria-hidden="true"></i></button>
+                </div>
+                <label class="field-label" for="geometry-crs">Sistema de coordenadas de entrada</label>
+                <select id="geometry-crs">
+                    <option value="EPSG:4674">SIRGAS 2000 geográfico — EPSG:4674</option>
+                    <option value="EPSG:4326">WGS 84 geográfico — EPSG:4326</option>
+                    <option value="UTM">SIRGAS 2000 / UTM</option>
+                </select>
+                <label id="coordinate-format-label" class="field-label" for="coordinate-format">Formato das coordenadas</label>
+                <select id="coordinate-format">
+                    <option value="decimal">Graus decimais</option>
+                    <option value="dms">Graus, minutos e segundos</option>
+                </select>
+                <div id="utm-options" class="field-row" hidden>
+                    <div>
+                        <label class="field-label" for="utm-zone">Zona UTM</label>
+                        <select id="utm-zone"></select>
+                    </div>
+                    <div>
+                        <label class="field-label" for="utm-hemisphere">Hemisfério</label>
+                        <select id="utm-hemisphere">
+                            <option value="south">Sul</option>
+                            <option value="north">Norte</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="point-coordinate-fields" class="coordinate-fields"></div>
+                <div id="polygon-editor" hidden>
+                    <div class="polygon-editor-heading">
+                        <h3>Vértices na ordem do contorno</h3>
+                        <button id="add-vertex" class="secondary-button compact-button" type="button"><i class="fas fa-plus" aria-hidden="true"></i> Vértice</button>
+                    </div>
+                    <div id="polygon-vertices" class="polygon-vertices"></div>
+                </div>
+                <label class="field-label" for="geometry-name">Nome</label>
+                <input id="geometry-name" type="text" maxlength="70" placeholder="Nome para identificar a geometria">
+                <p id="geometry-crs-note" class="hint">A geometria será convertida para SIRGAS 2000 / EPSG:4674; o CRS de entrada será registrado na camada.</p>
+                <p id="geometry-error" class="geometry-error" role="alert" aria-live="assertive"></p>
+                <div class="geometry-dialog-actions">
+                    <button id="cancel-geometry" class="secondary-button" type="button">Cancelar</button>
+                    <button id="confirm-geometry" class="export-button" type="submit">Criar geometria</button>
+                </div>
+            </form>
+        </dialog>
 
         <div id="export-status" class="toast" role="status" aria-live="polite"></div>
         <nav class="nav-bar" aria-label="Navegação principal"></nav>

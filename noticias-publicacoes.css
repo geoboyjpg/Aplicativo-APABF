@@ -170,6 +170,13 @@ body {
     line-height: 1.55;
 }
 
+.news-card-authors {
+    margin: 0 0 12px;
+    color: #526b6d;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
 .news-card-meta {
     display: flex;
     flex-wrap: wrap;
@@ -210,6 +217,11 @@ body {
 .news-badge.relevance-medium {
     color: #76520e;
     background: #fbf0d5;
+}
+
+.news-badge.relevance-complementary {
+    color: #405b75;
+    background: #e3edf7;
 }
 
 .news-reason {
