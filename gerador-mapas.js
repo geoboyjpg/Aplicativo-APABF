@@ -17,6 +17,7 @@
     var geometryType = 'Point';
     var previewGeometryLayer;
     var editingState;
+    var importScrollTop = 0;
 
     var elements = {
         layerList: document.getElementById('layer-list'),
@@ -25,6 +26,8 @@
         catalogStatus: document.getElementById('catalog-status'),
         importStatus: document.getElementById('import-status'),
         fileImport: document.getElementById('file-import'),
+        importButton: document.getElementById('import-files'),
+        configScroll: document.querySelector('.config-scroll'),
         basemap: document.getElementById('basemap'),
         title: document.getElementById('map-title'),
         author: document.getElementById('author'),
@@ -280,7 +283,7 @@
                 });
             },
             onEachFeature: function (feature, layer) {
-                var label = manualPointLabel(state, feature);
+                var label = window.GeradorGeometrias.manualPointLabel(state, feature);
                 if (label) {
                     layer.bindTooltip(label, {
                         permanent: true,
@@ -293,14 +296,6 @@
                 }
             }
         });
-    }
-
-    function manualPointLabel(state, feature) {
-        if (!state.manual || !feature || !feature.geometry || feature.geometry.type !== 'Point') {
-            return '';
-        }
-        var properties = feature.properties || {};
-        return String(properties.name || state.originalName || '').trim();
     }
 
     function addStateToMap(state) {
@@ -869,9 +864,9 @@
         var bounds = map.getBounds();
         var size = map.getSize();
         var centerLat = bounds.getCenter().lat * Math.PI / 180;
-        var metersAcross = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
+        var metersAcross = (bounds.getEast() - bounds.getWest()) * 111319.49079327358 * Math.cos(centerLat);
         var metersPerPixel = metersAcross / Math.max(size.x, 1);
-        var scaleMeters = scaleDistance(metersPerPixel * Math.min(100, size.x * 0.25));
+        var scaleMeters = scaleDistance(metersPerPixel * size.x * 0.24);
         var barPixels = scaleMeters / metersPerPixel;
         var label = scaleMeters >= 1000
             ? (scaleMeters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
@@ -920,9 +915,9 @@
         var bounds = overviewMap.getBounds();
         var size = overviewMap.getSize();
         var centerLat = bounds.getCenter().lat * Math.PI / 180;
-        var metersAcross = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
+        var metersAcross = (bounds.getEast() - bounds.getWest()) * 111319.49079327358 * Math.cos(centerLat);
         var metersPerPixel = metersAcross / Math.max(size.x, 1);
-        var scaleMeters = scaleDistance(metersPerPixel * Math.min(38, size.x * 0.28));
+        var scaleMeters = scaleDistance(metersPerPixel * size.x * 0.24);
         var barPixels = scaleMeters / metersPerPixel;
         var label = scaleMeters >= 1000
             ? (scaleMeters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
@@ -1229,10 +1224,10 @@
 
     function importLocalFile(file) {
         if (!file) {
-            return;
+            return Promise.resolve(false);
         }
         elements.importStatus.textContent = 'Lendo ' + file.name + ' localmente…';
-        readKmlFile(file).then(function (data) {
+        return readKmlFile(file).then(function (data) {
             var definition = {
                 id: 'importado-' + Date.now() + '-' + (++manualSequence),
                 name: file.name.replace(/\.(kml|kmz)$/i, ''),
@@ -1259,18 +1254,59 @@
             if (!state.bounds) {
                 throw new Error('Não foram encontradas coordenadas utilizáveis no arquivo.');
             }
+            state.layer = createLeafletLayer(state);
             states.push(state);
-            addStateToMap(state);
-            addLayerControls(state);
-            map.fitBounds(state.layer.getBounds(), { padding: [24, 24], maxZoom: 15 });
+            try {
+                if (state.visible) {
+                    state.layer.addTo(map);
+                }
+                addLayerControls(state);
+                updateLayerOrderControls();
+            } catch (error) {
+                if (state.layer && map.hasLayer(state.layer)) {
+                    map.removeLayer(state.layer);
+                }
+                if (state.item) {
+                    state.item.remove();
+                }
+                states = states.filter(function (candidate) { return candidate !== state; });
+                throw error;
+            }
+            var layerBounds = state.layer.getBounds();
+            if (layerBounds.isValid()) {
+                map.fitBounds(layerBounds, { padding: [24, 24], maxZoom: 15 });
+            }
             elements.importStatus.textContent = file.name + ' importado localmente (' + data.features.length + ' feição(ões)).';
             updateMapComposition();
+            return true;
         }).catch(function (error) {
             elements.importStatus.textContent = 'Importação não concluída: ' + error.message;
             showToast('Não foi possível importar o arquivo: ' + error.message, true);
-        }).finally(function () {
-            elements.fileImport.value = '';
+            return false;
         });
+    }
+
+    function restoreImportPanelScroll() {
+        window.requestAnimationFrame(function () {
+            elements.configScroll.scrollTop = importScrollTop;
+            elements.importButton.focus({ preventScroll: true });
+        });
+    }
+
+    function processSelectedFiles() {
+        var files = Array.prototype.slice.call(elements.fileImport.files || []);
+        elements.fileImport.value = '';
+        restoreImportPanelScroll();
+        return files.reduce(function (queue, file) {
+            return queue.then(function () {
+                return importLocalFile(file);
+            });
+        }, Promise.resolve());
+    }
+
+    function openImportPicker() {
+        importScrollTop = elements.configScroll.scrollTop;
+        elements.fileImport.click();
     }
 
     function mercatorProject(longitude, latitude, zoom) {
@@ -1469,7 +1505,7 @@
                         4.5 * outputRatio,
                         zoneStyle ? state.opacity : undefined
                     );
-                    var label = manualPointLabel(state, feature);
+                    var label = window.GeradorGeometrias.manualPointLabel(state, feature);
                     if (label) {
                         var point = projection(feature.geometry.coordinates[0], feature.geometry.coordinates[1]);
                         context.save();
@@ -1488,10 +1524,10 @@
             });
     }
 
-    function renderScaleBar(context, x, y, mapWidth, metersPerPixel, scaleFactor) {
+    function renderScaleBar(context, x, y, mapWidth, metersPerPixel, scaleFactor, labelAlignment, barHeight, labelFontSize, labelGap) {
         var distance = scaleDistance(metersPerPixel * mapWidth * 0.24);
         var width = distance / metersPerPixel;
-        var height = 3.2 * scaleFactor;
+        var height = Number.isFinite(barHeight) ? barHeight : 3.2 * scaleFactor;
         context.fillStyle = '#111';
         context.fillRect(x, y, width / 2, height);
         context.fillStyle = '#fff';
@@ -1500,53 +1536,35 @@
         context.lineWidth = Math.max(1, scaleFactor);
         context.strokeRect(x, y, width, height);
         context.fillStyle = '#111';
-        context.textAlign = 'center';
-        context.font = 'bold ' + (3.2 * scaleFactor) + 'px Arial';
+        context.textAlign = labelAlignment === 'left' ? 'left' : 'center';
+        context.font = 'bold ' + (Number.isFinite(labelFontSize) ? labelFontSize : 3.2 * scaleFactor) + 'px Arial';
         var label = distance >= 1000
             ? (distance / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'
             : Math.round(distance) + ' m';
         context.lineJoin = 'round';
         context.lineWidth = Math.max(1.5, scaleFactor * 0.9);
         context.strokeStyle = '#fff';
-        context.strokeText('0', x, y - 2 * scaleFactor);
-        context.strokeText(label, x + width, y - 2 * scaleFactor);
-        context.fillText('0', x, y - 2 * scaleFactor);
-        context.fillText(label, x + width, y - 2 * scaleFactor);
+        var labelX = labelAlignment === 'left' ? x : x + width / 2;
+        var labelY = y - (Number.isFinite(labelGap) ? labelGap : 2 * scaleFactor);
+        context.strokeText(label, labelX, labelY);
+        context.fillText(label, labelX, labelY);
     }
 
     function drawNorthArrow(context, x, y, size) {
         context.save();
-        context.translate(x, y);
-        context.fillStyle = '#111';
-        context.strokeStyle = '#111';
-        context.lineWidth = Math.max(2, size * 0.05);
-        context.beginPath();
-        context.moveTo(0, -size);
-        context.lineTo(size * 0.24, size * 0.25);
-        context.lineTo(0, size * 0.08);
-        context.lineTo(-size * 0.24, size * 0.25);
-        context.closePath();
-        context.strokeStyle = '#fff';
-        context.lineWidth = Math.max(2, size * 0.13);
-        context.stroke();
-        context.strokeStyle = '#111';
-        context.lineWidth = Math.max(2, size * 0.05);
-        context.fill();
-        context.fillStyle = '#fff';
-        context.beginPath();
-        context.moveTo(0, -size * 0.65);
-        context.lineTo(0, size * 0.05);
-        context.lineTo(-size * 0.11, size * 0.13);
-        context.closePath();
-        context.fill();
-        context.font = 'bold ' + (size * 0.42) + 'px Arial';
         context.textAlign = 'center';
-        context.fillStyle = '#111';
+        context.textBaseline = 'top';
+        context.font = 'bold ' + size + 'px Arial';
         context.lineJoin = 'round';
-        context.lineWidth = Math.max(1.5, size * 0.07);
+        context.lineWidth = Math.max(1.2, size * 0.045);
         context.strokeStyle = '#fff';
-        context.strokeText('N', 0, size * 0.72);
-        context.fillText('N', 0, size * 0.72);
+        context.strokeText('▲', x, y - size);
+        context.fillStyle = '#111';
+        context.fillText('▲', x, y - size);
+        context.font = 'bold ' + (size * 0.6) + 'px Arial';
+        context.lineWidth = Math.max(1, size * 0.022);
+        context.strokeText('N', x, y);
+        context.fillText('N', x, y);
         context.restore();
     }
 
@@ -1674,8 +1692,23 @@
             return Promise.resolve();
         }
 
-        var viewBounds = overviewBounds || getOverviewBounds(boundaryState.bounds);
-        var zoom = 8;
+        var visibleBounds = overviewMap && overviewMap.getBounds().isValid()
+            ? overviewMap.getBounds()
+            : null;
+        var viewBounds = visibleBounds
+            ? {
+                west: visibleBounds.getWest(),
+                south: visibleBounds.getSouth(),
+                east: visibleBounds.getEast(),
+                north: visibleBounds.getNorth()
+            }
+            : (overviewBounds || getOverviewBounds(boundaryState.bounds));
+        var overviewScale = overviewMap
+            ? Math.max(width / Math.max(overviewMap.getSize().x, 1), height / Math.max(overviewMap.getSize().y, 1))
+            : 1;
+        var zoom = overviewMap
+            ? window.GeradorGeometrias.exportTileZoom(overviewMap.getZoom(), overviewScale, 23)
+            : 8;
         var projected = projectBounds(viewBounds, zoom);
         var padding = Math.min(width, height) * 0.03;
         var fit = Math.min((width - padding * 2) / (projected.maxX - projected.minX), (height - padding * 2) / (projected.maxY - projected.minY));
@@ -1715,18 +1748,29 @@
                     context.strokeRect(clippedLeft, clippedTop, clippedRight - clippedLeft, clippedBottom - clippedTop);
                 }
                 var arrowSize = Math.min(width, height) * 0.09;
-                drawNorthArrow(context, x + width - arrowSize, y + arrowSize * 1.3, arrowSize);
-                var centerLatitude = (viewBounds.north + viewBounds.south) / 2 * Math.PI / 180;
-                var metersPerPixel = 156543.03392 * Math.cos(centerLatitude) /
-                    (Math.pow(2, zoom) * fit);
-                var scalePadding = Math.min(width, height) * 0.055;
+                drawNorthArrow(
+                    context,
+                    x + width - width * 0.022 - arrowSize * 0.5,
+                    y + height * 0.025 + arrowSize,
+                    arrowSize
+                );
+                var centerLatitude = (viewBounds.north + viewBounds.south) / 2;
+                var metersPerPixel = window.GeradorGeometrias.mercatorMetersPerPixel(
+                    centerLatitude,
+                    zoom,
+                    fit
+                );
                 renderScaleBar(
                     context,
-                    x + scalePadding * 1.8,
-                    y + height - scalePadding * 1.8,
+                    x + width * 0.04,
+                    y + height - height * 0.03 - scaleFactor,
                     width,
                     metersPerPixel,
-                    scaleFactor
+                    scaleFactor,
+                    'left',
+                    scaleFactor,
+                    2 * scaleFactor,
+                    0.3 * scaleFactor
                 );
             })
             .finally(function () {
@@ -1998,8 +2042,6 @@
             east: bounds.getEast(),
             north: bounds.getNorth()
         };
-        var zoom = Math.max(3, Math.min(17, Math.floor(map.getZoom())));
-        var projectedBounds = projectBounds(mapBounds, zoom);
         var outer = 5 * scaleFactor;
         var frameX = 16 * scaleFactor;
         var frameY = 14 * scaleFactor;
@@ -2012,6 +2054,9 @@
             width: portrait ? width - frameX - rightMargin : availableWidth * 0.61,
             height: portrait ? 150 * scaleFactor : height - frameY - 14 * scaleFactor
         };
+        var outputRatio = frame.width / Math.max(1, map.getSize().x);
+        var zoom = window.GeradorGeometrias.exportTileZoom(map.getZoom(), outputRatio, 23);
+        var projectedBounds = projectBounds(mapBounds, zoom);
         var fit = Math.min(frame.width / (projectedBounds.maxX - projectedBounds.minX), frame.height / (projectedBounds.maxY - projectedBounds.minY));
         var usedWidth = (projectedBounds.maxX - projectedBounds.minX) * fit;
         var usedHeight = (projectedBounds.maxY - projectedBounds.minY) * fit;
@@ -2042,7 +2087,7 @@
         return renderTileBackground(context, elements.basemap.value, zoom, projectedBounds, fit, offsetX, offsetY)
             .then(function () {
                 elements.mapStatus.textContent = 'Desenhando ' + states.filter(function (state) { return state.visible && state.layer; }).length + ' camadas vetoriais…';
-                drawLayerFeatures(context, projection, frame.width / Math.max(1, map.getSize().x));
+                drawLayerFeatures(context, projection, outputRatio);
                 elements.mapStatus.textContent = 'Finalizando legenda e elementos cartográficos…';
                 context.restore();
                 context.strokeStyle = '#242424';
@@ -2050,18 +2095,28 @@
                 context.strokeRect(frame.x, frame.y, frame.width, frame.height);
                 drawCoordinateFrame(context, frame, projection, inverseProjection, scaleFactor);
 
-                var centerLat = bounds.getCenter().lat * Math.PI / 180;
-                var groundWidth = (bounds.getEast() - bounds.getWest()) * 111320 * Math.cos(centerLat);
-                var metersPerPixel = groundWidth / Math.max(1, (projectedBounds.maxX - projectedBounds.minX) * fit);
-                renderScaleBar(context, frame.x + frame.width * 0.72, frame.y + frame.height - 9 * scaleFactor, frame.width, metersPerPixel, scaleFactor);
-                var northX = frame.x + frame.width - 12 * scaleFactor;
-                var northY = frame.y + 13 * scaleFactor;
-                context.fillStyle = '#ffffff';
-                context.fillRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
-                context.strokeStyle = '#c5cccc';
-                context.lineWidth = Math.max(1, 0.25 * scaleFactor);
-                context.strokeRect(northX - 5 * scaleFactor, northY - 8 * scaleFactor, 10 * scaleFactor, 17 * scaleFactor);
-                drawNorthArrow(context, northX, northY, 5.8 * scaleFactor);
+                var centerLatitude = bounds.getCenter().lat;
+                var metersPerPixel = window.GeradorGeometrias.mercatorMetersPerPixel(
+                    centerLatitude,
+                    zoom,
+                    fit
+                );
+                renderScaleBar(
+                    context,
+                    frame.x + frame.width * 0.71,
+                    frame.y + frame.height - frame.height * 0.04 - 2.4 * scaleFactor,
+                    frame.width,
+                    metersPerPixel,
+                    scaleFactor,
+                    'center',
+                    2.4 * scaleFactor,
+                    3.2 * scaleFactor,
+                    0.8 * scaleFactor
+                );
+                var northArrowSize = 5.8 * scaleFactor;
+                var northX = frame.x + frame.width - frame.width * 0.022 - northArrowSize * 0.5;
+                var northY = frame.y + frame.height * 0.025 + northArrowSize;
+                drawNorthArrow(context, northX, northY, northArrowSize);
 
                 if (portrait) {
                     return renderPortraitPanel(context, canvas, frame, mapBounds, scaleFactor, rightMargin);
@@ -2646,9 +2701,9 @@
             }, 60);
         });
         elements.legendLimit.addEventListener('change', updateMapComposition);
-        elements.fileImport.addEventListener('change', function () {
-            Array.prototype.forEach.call(elements.fileImport.files || [], importLocalFile);
-        });
+        elements.importButton.addEventListener('click', openImportPicker);
+        elements.fileImport.addEventListener('change', processSelectedFiles);
+        elements.fileImport.addEventListener('cancel', restoreImportPanelScroll);
         elements.exportButton.addEventListener('click', exportMap);
         elements.layerSearch.addEventListener('input', updateLayerSearch);
         elements.clearLayerSearch.addEventListener('click', function () {

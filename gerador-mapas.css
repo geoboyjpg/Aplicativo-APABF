@@ -651,6 +651,7 @@ body {
 
 .import-label {
     display: flex;
+    width: 100%;
     min-height: 40px;
     align-items: center;
     justify-content: center;
@@ -660,9 +661,16 @@ body {
     font-size: 0.85rem;
     font-weight: 700;
     background: var(--map-teal);
+    border: 0;
     border-radius: 7px;
     cursor: pointer;
+    font-family: inherit;
     transition: background 0.15s ease;
+}
+
+.import-label:focus-visible {
+    outline: 3px solid #81c9bb;
+    outline-offset: 2px;
 }
 
 .import-label:hover {

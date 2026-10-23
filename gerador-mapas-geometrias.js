@@ -205,12 +205,42 @@
         }));
     }
 
+    function exportTileZoom(mapZoom, outputScale, maximumZoom) {
+        if (!Number.isFinite(mapZoom) || !Number.isFinite(outputScale) || outputScale <= 0 ||
+            !Number.isInteger(maximumZoom) || maximumZoom < 0) {
+            throw new Error('Parâmetros inválidos para selecionar a resolução do mapa-base.');
+        }
+        var requestedZoom = Math.ceil(mapZoom + Math.log2(Math.max(1, outputScale)));
+        return Math.min(maximumZoom, Math.max(0, requestedZoom));
+    }
+
+    function mercatorMetersPerPixel(latitude, zoom, pixelScale) {
+        if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 ||
+            !Number.isFinite(zoom) || !Number.isFinite(pixelScale) || pixelScale <= 0) {
+            throw new Error('Parâmetros inválidos para calcular a escala do mapa-base.');
+        }
+        return 156543.03392804097 * Math.cos(latitude * Math.PI / 180) /
+            (Math.pow(2, zoom) * pixelScale);
+    }
+
+    function manualPointLabel(state, feature) {
+        if (!state || !state.manual || !feature || !feature.geometry ||
+            feature.geometry.type !== 'Point') {
+            return '';
+        }
+        var properties = feature.properties || {};
+        return String(properties.name || state.originalName || '').trim();
+    }
+
     return {
         parseAxis: parseAxis,
         geographicCoordinates: geographicCoordinates,
         toSIRGAS2000: toSIRGAS2000,
         closeAndValidatePolygon: closeAndValidatePolygon,
         mergeLayerStates: mergeLayerStates,
-        loadLayersIndependently: loadLayersIndependently
+        loadLayersIndependently: loadLayersIndependently,
+        exportTileZoom: exportTileZoom,
+        mercatorMetersPerPixel: mercatorMetersPerPixel,
+        manualPointLabel: manualPointLabel
     };
 }));

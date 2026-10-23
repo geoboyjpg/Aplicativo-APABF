@@ -49,10 +49,10 @@
                         <button id="add-polygon" class="secondary-button" type="button"><i class="fas fa-draw-polygon" aria-hidden="true"></i> Adicionar polígono</button>
                     </div>
                     <p class="hint">Geometrias manuais ficam nesta sessão e são incluídas nas exportações do mapa em PDF ou PNG.</p>
-                    <label class="import-label" for="file-import">
+                    <button id="import-files" class="import-label" type="button">
                         <i class="fas fa-file-upload" aria-hidden="true"></i> Importar KML ou KMZ
-                    </label>
-                    <input id="file-import" class="visually-hidden" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple>
+                    </button>
+                    <input id="file-import" class="visually-hidden" type="file" tabindex="-1" aria-hidden="true" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple>
                     <p id="import-status" class="hint" role="status" aria-live="polite">Os arquivos são processados neste navegador.</p>
                     </section>
 

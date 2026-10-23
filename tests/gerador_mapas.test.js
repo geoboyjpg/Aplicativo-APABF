@@ -147,12 +147,32 @@ test('print composition retains top/left coordinate labels and anchors map furni
     assert.match(frame, /leftCoordinate\.lat/);
     assert.doesNotMatch(frame, /bottomCoordinate|rightCoordinate/);
     assert.match(frame, /context\.strokeStyle = '#000'/);
-    assert.match(implementation, /frame\.x \+ frame\.width \* 0\.72,[\s\S]*?frame\.y \+ frame\.height - 9 \* scaleFactor/);
-    assert.match(implementation, /frame\.x \+ frame\.width - 12 \* scaleFactor/);
+    assert.match(implementation, /frame\.x \+ frame\.width \* 0\.71,[\s\S]*?frame\.y \+ frame\.height - frame\.height \* 0\.04 - 2\.4 \* scaleFactor/);
+    assert.match(implementation, /frame\.x \+ frame\.width - frame\.width \* 0\.022 - northArrowSize \* 0\.5/);
     assert.match(implementation, /context\.rotate\(-Math\.PI \/ 2\)/);
     assert.match(implementation, /renderLegendCanvas\(context,[\s\S]*?legendMaxHeight/);
-    assert.match(implementation, /metersPerPixel = groundWidth[\s\S]*?renderScaleBar/);
+    assert.match(implementation, /mercatorMetersPerPixel\([\s\S]*?renderScaleBar/);
+    assert.match(implementation, /exportTileZoom\(map\.getZoom\(\), outputRatio, 23\)/);
     assert.match(styles, /\.map-latitudes span\s*\{[^}]*rotate\(-90deg\)/s);
+});
+
+test('export requests proportionally sharper aligned imagery tiles and keeps 300 dpi page dimensions', function () {
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
+    const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    assert.equal(geometry.exportTileZoom(9.8, 1, 23), 10);
+    assert.equal(geometry.exportTileZoom(9.8, 2, 23), 11);
+    assert.equal(geometry.exportTileZoom(9.8, 4.1, 23), 12);
+    assert.equal(geometry.exportTileZoom(19, 8, 23), 22);
+    assert.equal(geometry.exportTileZoom(19, 32, 23), 23);
+    assert.equal(geometry.mercatorMetersPerPixel(0, 10, 1),
+        156543.03392804097 / 1024);
+    assert.ok(geometry.mercatorMetersPerPixel(60, 10, 1) <
+        geometry.mercatorMetersPerPixel(0, 10, 1));
+    assert.match(implementation, /orientation === 'portrait' \? 2480 : 3508/);
+    assert.match(implementation, /orientation === 'portrait' \? 3508 : 2480/);
+    assert.match(implementation, /width \/ \(orientation === 'portrait' \? 210 : 297\)/);
+    assert.match(implementation, /var projectedBounds = projectBounds\(mapBounds, zoom\)/);
+    assert.match(implementation, /var projection = function \(longitude, latitude\)[\s\S]*?zoom\)/);
 });
 
 test('map preview restores frame-relative furniture and gives the inset its own scale and north arrow', function () {
@@ -172,19 +192,45 @@ test('map preview restores frame-relative furniture and gives the inset its own 
     assert.match(inset, /id="overview-scale"/);
     assert.match(styles, /\.overview-frame\s*\{[^}]*position:\s*relative/s);
     assert.match(implementation, /function updateOverviewScale\(\)[\s\S]*?var metersPerPixel = metersAcross/);
-    assert.match(overviewRenderer, /drawNorthArrow\(context,[\s\S]*?renderScaleBar\(/);
-    assert.match(overviewRenderer, /var metersPerPixel = 156543\.03392/);
+    assert.match(overviewRenderer, /drawNorthArrow\([\s\S]*?renderScaleBar\(/);
+    assert.match(overviewRenderer, /x \+ width \* 0\.04,[\s\S]*?'left',\s*scaleFactor,\s*2 \* scaleFactor,\s*0\.3 \* scaleFactor/);
+    assert.match(overviewRenderer, /GeradorGeometrias\.mercatorMetersPerPixel/);
+    assert.match(overviewRenderer, /overviewMap\.getBounds\(\)/);
+    assert.match(overviewRenderer, /exportTileZoom\(overviewMap\.getZoom\(\), overviewScale, 23\)/);
+    assert.match(implementation, /scaleDistance\(metersPerPixel \* size\.x \* 0\.24\)/);
+    assert.match(implementation, /scaleDistance\(metersPerPixel \* mapWidth \* 0\.24\)/);
+    assert.match(implementation, /var labelX = labelAlignment === 'left' \? x : x \+ width \/ 2/);
+    assert.match(implementation, /strokeText\(label, labelX, labelY\)/);
+    assert.doesNotMatch(implementation, /strokeText\('0', x,/);
+    assert.match(implementation, /strokeText\('▲', x, y - size\)/);
+    assert.match(implementation, /font = 'bold ' \+ \(size \* 0\.6\) \+ 'px Arial'/);
 });
 
 test('manual point label keeps its source name and matching halo in preview and export only for manual points', function () {
     const styles = fs.readFileSync(path.join(ROOT, 'gerador-mapas.css'), 'utf8');
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
+    const geometry = require(path.join(ROOT, 'gerador-mapas-geometrias.js'));
 
-    assert.match(implementation, /function manualPointLabel\(state, feature\)[\s\S]*?if \(!state\.manual[\s\S]*?feature\.geometry\.type !== 'Point'/);
+    assert.match(implementation, /GeradorGeometrias\.manualPointLabel\(state, feature\)/);
     assert.match(implementation, /layer\.bindTooltip\(label,[\s\S]*?permanent:\s*true[\s\S]*?className:\s*'manual-feature-label'/);
     assert.match(styles, /\.leaflet-tooltip\.manual-feature-label\s*\{[^}]*color:\s*#263238[^}]*-webkit-text-stroke:\s*0\.35px #fff/s);
     assert.match(implementation, /context\.strokeText\(label, point\.x \+ 8 \* outputRatio, point\.y\)/);
     assert.match(implementation, /state\.data\.features\[0\]\.properties\.name = elements\.geometryName\.value/);
+    const pointState = { manual: true, originalName: 'Marco costeiro' };
+    assert.equal(geometry.manualPointLabel(pointState, {
+        properties: { name: 'Marco costeiro' },
+        geometry: { type: 'Point', coordinates: [-48.7, -28.2] }
+    }), 'Marco costeiro');
+    assert.equal(geometry.manualPointLabel({ manual: false, originalName: 'Ponto original' }, {
+        properties: { name: 'Ponto original' },
+        geometry: { type: 'Point', coordinates: [-48.7, -28.2] }
+    }), '');
+    ['LineString', 'Polygon', 'MultiPoint'].forEach(function (type) {
+        assert.equal(geometry.manualPointLabel(pointState, {
+            properties: { name: 'Rótulo que não é de ponto' },
+            geometry: { type: type, coordinates: [] }
+        }), '');
+    });
 });
 
 test('legend outlines remain geometry-specific and print strokes stay proportional to preview', function () {
@@ -214,6 +260,8 @@ test('imports selected KML/KMZ files without replacing layer state or the sideba
     const implementation = fs.readFileSync(path.join(ROOT, 'gerador-mapas.js'), 'utf8');
     const geometry = fs.readFileSync(path.join(ROOT, 'gerador-mapas-geometrias.js'), 'utf8');
     assert.match(page, /id="file-import"[^>]*multiple/);
+    assert.match(page, /id="import-files" class="import-label" type="button"/);
+    assert.match(page, /id="file-import"[^>]*tabindex="-1"[^>]*aria-hidden="true"/);
     assert.match(implementation, /mergeLayerStates\(loadedStates, states\)/);
     assert.match(geometry, /function mergeLayerStates\(loadedStates, existingStates\)/);
     assert.match(implementation, /function addLayerControls\(state\)[\s\S]*?elements\.layerList\.appendChild\(item\)/);
@@ -221,6 +269,17 @@ test('imports selected KML/KMZ files without replacing layer state or the sideba
     assert.match(implementation, /window\.JSZip\.loadAsync\(buffer\)/);
     assert.match(implementation, /candidates\[0\]\.async\('text'\)/);
     assert.match(implementation, /id: 'importado-' \+ Date\.now\(\) \+ '-' \+ \(\+\+manualSequence\)/);
+    assert.match(implementation, /importButton\.addEventListener\('click', openImportPicker\)/);
+    assert.match(implementation, /fileImport\.addEventListener\('cancel', restoreImportPanelScroll\)/);
+    assert.match(implementation, /fileImport\.addEventListener\('change', processSelectedFiles\)/);
+    assert.match(implementation, /files\.reduce\(function \(queue, file\)/);
+    assert.match(implementation, /states\.filter\(function \(candidate\) \{ return candidate !== state; \}\)/);
+    const importBody = implementation.slice(
+        implementation.indexOf('function importLocalFile'),
+        implementation.indexOf('function restoreImportPanelScroll')
+    );
+    assert.ok(importBody.indexOf('readKmlFile(file)') < importBody.indexOf('states.push(state)'));
+    assert.match(importBody, /if \(state\.item\) \{\s*state\.item\.remove\(\)/);
 });
 
 test('concurrent catalog completion preserves imported and manually created layer objects', function () {
