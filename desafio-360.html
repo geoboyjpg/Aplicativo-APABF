@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#092f3b">
     <title>Desafio 360° da APABF</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link id="leaflet-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <link rel="stylesheet" href="nav.css">
     <link rel="stylesheet" href="desafio-360.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20NQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" defer></script>
     <script src="dados/desafio-360-locais.js" defer></script>
     <script src="scripts/desafio-360.js" defer></script>
@@ -68,6 +67,9 @@
                         <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar e ajustar seu palpite"></div>
                     </div>
                     <p id="map-status" class="map-status" role="status" aria-live="polite">Marque no mapa o local onde acredita que a paisagem está.</p>
+                    <button id="retry-map-button" class="secondary-button retry-map-button" type="button" hidden>
+                        <i class="fas fa-redo" aria-hidden="true"></i> Tentar carregar mapa novamente
+                    </button>
                     <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
                     <p id="new-location-hint" class="new-location-hint">Confirme o palpite para registrar a rodada e liberar outro cenário.</p>
                 </aside>

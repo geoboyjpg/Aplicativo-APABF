@@ -15,6 +15,8 @@ function criarAmbiente(opcoes = {}) {
     const eventosPanorama = [];
     const marcadores = [];
     const mapas = [];
+    const scriptsMapa = [];
+    const camadasTiles = [];
     const armazenamento = new Map();
     let primeiraFalha = false;
 
@@ -74,6 +76,11 @@ function criarAmbiente(opcoes = {}) {
         },
         createTextNode(text) {
             return { textContent: text };
+        },
+        head: {
+            appendChild(script) {
+                scriptsMapa.push(script);
+            }
         }
     };
 
@@ -98,17 +105,24 @@ function criarAmbiente(opcoes = {}) {
     }
 
     function criarCamada() {
+        const listeners = {};
         return {
             addTo(map) { map.addLayer(this); return this; },
             bindTooltip() { return this; },
-            on() { return this; },
+            on(tipo, callback) { listeners[tipo] = callback; return this; },
+            emit(tipo, evento) { if (listeners[tipo]) listeners[tipo](evento); },
+            redraw() { this.redrawCount = (this.redrawCount || 0) + 1; return this; },
             setLatLng(ponto) { this.latlng = ponto; return this; }
         };
     }
 
     const L = {
         map: criarMapa,
-        tileLayer() { return criarCamada(); },
+        tileLayer(url, options) {
+            const camada = criarCamada();
+            camadasTiles.push({ url, options, camada });
+            return camada;
+        },
         marker(ponto) {
             const marcador = criarCamada();
             marcador.latlng = ponto;
@@ -120,7 +134,7 @@ function criarAmbiente(opcoes = {}) {
     };
 
     const window = {
-        L,
+        L: opcoes.leafletIndisponivel ? undefined : L,
         sessionStorage: {
             getItem(chave) { return armazenamento.get(chave) || null; },
             setItem(chave, valor) { armazenamento.set(chave, valor); }
@@ -154,7 +168,7 @@ function criarAmbiente(opcoes = {}) {
     vm.runInContext(fs.readFileSync(path.join(ROOT, 'dados', 'desafio-360-locais.js'), 'utf8'), context);
     const locais = context.window.APABF_DESAFIO_360_LOCAIS;
     vm.runInContext(fs.readFileSync(path.join(ROOT, 'scripts', 'desafio-360.js'), 'utf8'), context);
-    return { elementos, eventosPanorama, marcadores, mapas, locais };
+    return { elementos, eventosPanorama, marcadores, mapas, locais, scriptsMapa, camadasTiles, window, L };
 }
 
 test('all local panorama records point to existing files and unique valid locations', function () {
@@ -262,4 +276,54 @@ test('three confirmed rounds retain their scores and produce the final summary',
     assert.equal(jogo.elementos.get('final-panel').hidden, false);
     assert.equal(jogo.elementos.get('final-score').textContent, '15.000 / 15.000 pontos');
     assert.equal(jogo.elementos.get('round-summary').children.length, 3);
+});
+
+test('Leaflet CDN fallback loads the map without restarting the current game', async function () {
+    const jogo = criarAmbiente({ leafletIndisponivel: true });
+
+    assert.equal(jogo.scriptsMapa.length, 1);
+    assert.match(jogo.scriptsMapa[0].src, /cdn\.jsdelivr\.net\/npm\/leaflet@1\.9\.4/);
+    jogo.scriptsMapa[0].onerror();
+    assert.equal(jogo.scriptsMapa.length, 2);
+    assert.match(jogo.scriptsMapa[1].src, /unpkg\.com\/leaflet@1\.9\.4/);
+    assert.match(jogo.elementos.get('leaflet-stylesheet').href, /unpkg\.com\/leaflet@1\.9\.4/);
+    jogo.window.L = jogo.L;
+    jogo.scriptsMapa[1].onload();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(jogo.mapas.length, 1);
+    assert.equal(jogo.camadasTiles[0].url, 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    assert.match(jogo.camadasTiles[0].options.attribution, /OpenStreetMap/);
+    assert.equal(jogo.eventosPanorama.length, 1);
+    const mapa = jogo.mapas[0];
+    const camada = [...mapa.layers][0];
+    camada.emit('tileerror');
+    assert.equal(jogo.elementos.get('retry-map-button').hidden, false);
+    jogo.elementos.get('retry-map-button').click();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(jogo.mapas.length, 1);
+    assert.equal(camada.redrawCount, 1);
+    assert.equal(jogo.eventosPanorama.length, 1);
+});
+
+test('map retry recovers after both CDNs fail without discarding the panorama round', async function () {
+    const jogo = criarAmbiente({ leafletIndisponivel: true });
+
+    jogo.scriptsMapa[0].onerror();
+    jogo.scriptsMapa[1].onerror();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(jogo.elementos.get('retry-map-button').hidden, false);
+    assert.equal(jogo.eventosPanorama.length, 1);
+
+    jogo.elementos.get('retry-map-button').click();
+    assert.equal(jogo.scriptsMapa.length, 3);
+    jogo.window.L = jogo.L;
+    jogo.scriptsMapa[2].onload();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(jogo.mapas.length, 1);
+    assert.equal(jogo.eventosPanorama.length, 1);
+    assert.equal(jogo.elementos.get('round-title').textContent, 'Desafio 1 de 3');
 });

@@ -297,6 +297,11 @@
     margin: 9px 0 0;
 }
 
+.retry-map-button {
+    width: 100%;
+    margin: 4px 0;
+}
+
 .primary-button,
 .secondary-button {
     display: inline-flex;

@@ -20,6 +20,9 @@
         panorama: null,
         panoramaPronto: false,
         panoramaComErro: false,
+        carregamentoLeaflet: null,
+        tilesCarregados: false,
+        tilesComErro: false,
         tokenPanorama: 0,
         mapaResultado: null
     };
@@ -34,6 +37,7 @@
     var botaoNovaLocalizacao = document.getElementById('new-location-button');
     var botaoConfirmar = document.getElementById('confirm-button');
     var statusMapa = document.getElementById('map-status');
+    var botaoTentarMapa = document.getElementById('retry-map-button');
     var statusPanorama = document.getElementById('panorama-status');
     var acoesErroPanorama = document.getElementById('panorama-error-actions');
     var painelResultado = document.getElementById('result-panel');
@@ -62,6 +66,57 @@
     function setStatus(element, texto, erro) {
         element.textContent = texto;
         element.classList.toggle('is-error', Boolean(erro));
+    }
+
+    function carregarLeaflet() {
+        if (window.L) {
+            return Promise.resolve();
+        }
+        if (estado.carregamentoLeaflet) {
+            return estado.carregamentoLeaflet;
+        }
+
+        var urls = [
+            'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+        ];
+        estado.carregamentoLeaflet = new Promise(function (resolve, reject) {
+            function carregarProximaUrl(indice, erroAnterior) {
+                if (window.L) {
+                    resolve();
+                    return;
+                }
+                if (indice >= urls.length) {
+                    estado.carregamentoLeaflet = null;
+                    reject(erroAnterior || new Error('Leaflet não ficou disponível após carregar os CDNs.'));
+                    return;
+                }
+
+                if (indice > 0) {
+                    var folhaLeaflet = document.getElementById('leaflet-stylesheet');
+                    if (folhaLeaflet) {
+                        folhaLeaflet.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    }
+                }
+                var script = document.createElement('script');
+                script.src = urls[indice];
+                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                script.crossOrigin = 'anonymous';
+                script.onload = function () {
+                    if (window.L) {
+                        resolve();
+                    } else {
+                        carregarProximaUrl(indice + 1, new Error('O script carregou, mas não registrou window.L.'));
+                    }
+                };
+                script.onerror = function () {
+                    carregarProximaUrl(indice + 1, new Error('Falha ao carregar Leaflet de ' + urls[indice]));
+                };
+                document.head.appendChild(script);
+            }
+            carregarProximaUrl(0);
+        });
+        return estado.carregamentoLeaflet;
     }
 
     function eCenarioValido(local) {
@@ -272,7 +327,12 @@
                 return item;
             })
         );
-        setStatus(statusMapa, 'Marque no mapa o local onde acredita que a paisagem está.');
+        if (estado.mapa) {
+            setStatus(statusMapa, 'Marque no mapa o local onde acredita que a paisagem está.');
+        } else {
+            setStatus(statusMapa, 'Mapa indisponível. Tente carregar o mapa novamente para marcar o palpite.', true);
+            botaoTentarMapa.hidden = false;
+        }
         if (estado.mapa) {
             estado.mapa.invalidateSize();
         }
@@ -281,39 +341,106 @@
     }
 
     function inicializarMapa() {
+        if (estado.mapa) {
+            return true;
+        }
         if (!window.L) {
-            setStatus(statusMapa, 'Não foi possível carregar o mapa. Verifique a conexão e recarregue a página.', true);
+            setStatus(statusMapa, 'A biblioteca Leaflet ainda não está disponível.', true);
             botaoConfirmar.disabled = true;
             return false;
         }
-        estado.mapa = L.map(mapaElement, { scrollWheelZoom: true }).setView([-28.235, -48.668], 10);
-        estado.camadaBaseMapa = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(estado.mapa);
-        estado.mapa.on('click', function (evento) {
-            if (estado.resultados.length > estado.rodada || estado.panoramaComErro) {
-                return;
+        try {
+            var mapa = window.L.map(mapaElement, { scrollWheelZoom: true }).setView([-28.235, -48.668], 10);
+            var camada = window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            estado.tilesCarregados = false;
+            estado.tilesComErro = false;
+            camada.on('tileload', function () {
+                estado.tilesCarregados = true;
+                botaoTentarMapa.hidden = true;
+                if (estado.tilesComErro) {
+                    setStatus(statusMapa, 'O mapa está funcionando; alguns blocos cartográficos não carregaram.');
+                }
+            });
+            camada.on('tileerror', function () {
+                estado.tilesComErro = true;
+                if (!estado.tilesCarregados) {
+                    setStatus(statusMapa, 'O mapa foi criado, mas os blocos cartográficos não responderam. Você ainda pode tentar marcar o local.', true);
+                    botaoTentarMapa.hidden = false;
+                }
+            });
+            estado.mapa = mapa;
+            estado.camadaBaseMapa = camada.addTo(mapa);
+        } catch (erro) {
+            console.error('[Desafio 360] Não foi possível inicializar o mapa Leaflet.', erro);
+            if (typeof mapa !== 'undefined') {
+                mapa.remove();
             }
-            estado.palpite = { lat: evento.latlng.lat, lng: evento.latlng.lng };
-            if (!estado.marcadorPalpite) {
-                estado.marcadorPalpite = L.marker(evento.latlng, { draggable: true }).addTo(estado.mapa);
-                estado.marcadorPalpite.on('dragend', function (dragEvento) {
-                    var ponto = dragEvento.target.getLatLng();
-                    estado.palpite = { lat: ponto.lat, lng: ponto.lng };
-                });
-            } else {
-                estado.marcadorPalpite.setLatLng(evento.latlng);
-            }
-            botaoConfirmar.disabled = false;
-            setStatus(statusMapa, 'Palpite marcado. Clique novamente ou arraste o marcador para ajustar.');
-        });
-        setStatus(statusMapa, 'Marque no mapa o local onde acredita que a paisagem está.');
+            estado.mapa = null;
+            estado.camadaBaseMapa = null;
+            botaoTentarMapa.hidden = false;
+            setStatus(statusMapa, 'Não foi possível criar o mapa. Tente carregar novamente; o panorama continua disponível.', true);
+            return false;
+        }
+        try {
+            estado.mapa.on('click', function (evento) {
+                if (estado.resultados.length > estado.rodada || estado.panoramaComErro) {
+                    return;
+                }
+                estado.palpite = { lat: evento.latlng.lat, lng: evento.latlng.lng };
+                if (!estado.marcadorPalpite) {
+                    estado.marcadorPalpite = window.L.marker(evento.latlng, { draggable: true }).addTo(estado.mapa);
+                    estado.marcadorPalpite.on('dragend', function (dragEvento) {
+                        var ponto = dragEvento.target.getLatLng();
+                        estado.palpite = { lat: ponto.lat, lng: ponto.lng };
+                    });
+                } else {
+                    estado.marcadorPalpite.setLatLng(evento.latlng);
+                }
+                botaoConfirmar.disabled = false;
+                setStatus(statusMapa, 'Palpite marcado. Clique novamente ou arraste o marcador para ajustar.');
+            });
+        } catch (erro) {
+            console.error('[Desafio 360] Não foi possível conectar os controles ao mapa Leaflet.', erro);
+            estado.mapa.remove();
+            estado.mapa = null;
+            estado.camadaBaseMapa = null;
+            botaoTentarMapa.hidden = false;
+            setStatus(statusMapa, 'Não foi possível preparar os controles do mapa. Tente carregar novamente.', true);
+            return false;
+        }
         return true;
     }
 
+    function tentarCarregarMapa() {
+        botaoTentarMapa.disabled = true;
+        setStatus(statusMapa, 'Carregando biblioteca e mapa…');
+        carregarLeaflet().then(function () {
+            if (!estado.mapa && !inicializarMapa()) {
+                botaoTentarMapa.disabled = false;
+                return;
+            }
+            botaoTentarMapa.disabled = false;
+            if (estado.camadaBaseMapa) {
+                estado.camadaBaseMapa.redraw();
+            }
+            estado.mapa.invalidateSize();
+            if (!estado.tilesCarregados) {
+                botaoTentarMapa.hidden = false;
+                setStatus(statusMapa, 'Mapa criado. A camada cartográfica está sendo atualizada; se os blocos não aparecerem, você pode tentar novamente.');
+            }
+        }).catch(function (erro) {
+            console.error('[Desafio 360] Não foi possível carregar a biblioteca Leaflet.', erro);
+            botaoTentarMapa.hidden = false;
+            botaoTentarMapa.disabled = false;
+            setStatus(statusMapa, 'A biblioteca do mapa não carregou. Tente novamente; o panorama continua disponível.', true);
+        });
+    }
+
     function criarMarcadorResultado(coordenadas, cor, rotulo, mapa) {
-        return L.circleMarker(coordenadas, {
+        return window.L.circleMarker(coordenadas, {
             radius: 9,
             color: '#ffffff',
             weight: 3,
@@ -381,8 +508,8 @@
         mapaResultadoElement.setAttribute('aria-label', 'Mapa comparando o palpite e o local correto');
         painelResultado.appendChild(mapaResultadoElement);
 
-        estado.mapaResultado = L.map(mapaResultadoElement, { scrollWheelZoom: true, zoomControl: true });
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        estado.mapaResultado = window.L.map(mapaResultadoElement, { scrollWheelZoom: true, zoomControl: true });
+        window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(estado.mapaResultado);
@@ -390,7 +517,7 @@
         var palpite = [resultado.palpite.lat, resultado.palpite.lng];
         criarMarcadorResultado(palpite, '#d97706', 'Seu palpite', estado.mapaResultado);
         criarMarcadorResultado(correto, '#125f5f', 'Local correto', estado.mapaResultado);
-        L.polyline([palpite, correto], { color: '#092f3b', weight: 3, dashArray: '7 7' }).addTo(estado.mapaResultado);
+        window.L.polyline([palpite, correto], { color: '#092f3b', weight: 3, dashArray: '7 7' }).addTo(estado.mapaResultado);
         estado.mapaResultado.fitBounds([palpite, correto], { padding: [35, 35], maxZoom: 14 });
 
         var detalhes = document.createElement('div');
@@ -579,13 +706,31 @@
         final.hidden = true;
         botaoConfirmar.hidden = false;
         botaoNovaLocalizacao.disabled = true;
-        if (!estado.mapa && !inicializarMapa()) {
-            mostrarFallbackPanorama('O mapa não está disponível. Confira a conexão e tente recarregar a página.');
-            setStatus(statusPanorama, 'Não foi possível iniciar o desafio sem o mapa.', true);
+        if (window.L) {
+            if (!estado.mapa && !inicializarMapa()) {
+                escolherLocal(true);
+                return;
+            }
+            botaoTentarMapa.hidden = true;
+            escolherLocal(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
-        escolherLocal(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setStatus(statusMapa, 'Carregando biblioteca do mapa…');
+        carregarLeaflet().then(function () {
+            if (!estado.mapa && !inicializarMapa()) {
+                escolherLocal(true);
+                return;
+            }
+            botaoTentarMapa.hidden = true;
+            escolherLocal(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }).catch(function (erro) {
+            console.error('[Desafio 360] Falha ao carregar a biblioteca Leaflet.', erro);
+            botaoTentarMapa.hidden = false;
+            setStatus(statusMapa, 'A biblioteca do mapa não carregou. Tente novamente; o panorama continua disponível.', true);
+            escolherLocal(true);
+        });
     }
 
     estado.candidatos = lugares.filter(eCenarioValido);
@@ -599,6 +744,7 @@
     document.getElementById('close-map-button').addEventListener('click', fecharMapaAmpliado);
     dialogoMapa.addEventListener('close', aoFecharMapaAmpliado);
     document.getElementById('restart-button').addEventListener('click', iniciarSessao);
+    botaoTentarMapa.addEventListener('click', tentarCarregarMapa);
 
     document.getElementById('round-progress').replaceChildren.apply(
         document.getElementById('round-progress'),
