@@ -10,59 +10,75 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <link rel="stylesheet" href="nav.css">
     <link rel="stylesheet" href="desafio-360.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20NQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" defer></script>
     <script src="dados/desafio-360-locais.js" defer></script>
     <script src="scripts/desafio-360.js" defer></script>
 </head>
 <body class="challenge-page">
     <main class="challenge-shell">
-        <a class="challenge-back" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar ao aplicativo</a>
-        <section id="intro-panel" class="intro-panel">
-            <span class="eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Experiência educativa</span>
-            <h1>Desafio 360° da APABF</h1>
-            <p class="intro-subtitle">Explore a paisagem. Descubra o território. Conheça a nossa história.</p>
-            <p>Explore um panorama local em 360° e outras paisagens de referência; marque no mapa onde acredita que cada cenário está. Ao final de cada rodada, descubra o local, sua distância e informações documentadas sobre o território.</p>
-            <div class="intro-bottom">
-                <span><i class="fas fa-map-marked-alt" aria-hidden="true"></i> 3 desafios</span>
-                <button id="start-button" class="primary-button" type="button">Começar desafio <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+        <header class="challenge-header">
+            <a class="challenge-back" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar ao aplicativo</a>
+            <div class="challenge-heading">
+                <span class="eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Experiência educativa</span>
+                <h1>Desafio 360° da APABF</h1>
+                <p>Explore a paisagem. Descubra o território. Conheça a nossa história.</p>
             </div>
-        </section>
+        </header>
 
-        <section id="game-panel" class="game-panel" hidden aria-live="polite">
+        <section id="game-panel" class="game-panel" aria-live="polite">
             <header class="round-heading">
                 <div>
-                    <span class="eyebrow">Desafio de exploração</span>
-                    <h1 id="round-title">Desafio 1 de 3</h1>
+                    <span class="eyebrow">Explore e localize</span>
+                    <h2 id="round-title">Preparando cenário…</h2>
                 </div>
-                <div class="round-progress" id="round-progress" aria-label="Progresso"></div>
+                <div class="round-actions">
+                    <div class="round-progress" id="round-progress" aria-label="Progresso da partida"></div>
+                    <button id="new-location-button" class="secondary-button new-location-button" type="button" disabled>
+                        <i class="fas fa-random" aria-hidden="true"></i> Nova localização
+                    </button>
+                </div>
             </header>
-            <div class="game-grid">
+
+            <div class="game-layout">
                 <section class="panorama-card" aria-labelledby="panorama-title">
                     <div class="section-heading">
-                        <h2 id="panorama-title"><i class="fas fa-binoculars" aria-hidden="true"></i> Observe a paisagem</h2>
-                        <a id="open-panorama-link" class="small-link" target="_blank" rel="noopener noreferrer">Abrir no Google Maps <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>
+                        <h3 id="panorama-title"><i class="fas fa-binoculars" aria-hidden="true"></i> Observe a paisagem</h3>
                     </div>
-                    <div id="panorama" class="panorama-view" role="region" aria-label="Visualizador de panorama da paisagem"></div>
-                    <p id="panorama-status" class="panorama-status" role="status">Carregando panorama…</p>
-                    <p class="panorama-hint"><i class="fas fa-hand-pointer" aria-hidden="true"></i> Arraste para olhar ao redor; use os controles do panorama para aproximar.</p>
-                </section>
-                <section class="map-card" aria-labelledby="map-title">
-                    <div class="section-heading">
-                        <h2 id="map-title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Onde estamos?</h2>
-                        <span class="map-instruction">Toque ou clique para marcar seu palpite</span>
+                    <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem"></div>
+                    <p id="panorama-status" class="panorama-status" role="status" aria-live="polite">Carregando fotografia…</p>
+                    <div id="panorama-error-actions" class="panorama-error-actions" hidden>
+                        <button id="retry-panorama-button" class="secondary-button" type="button"><i class="fas fa-redo" aria-hidden="true"></i> Tentar novamente</button>
+                        <button id="error-new-location-button" class="secondary-button" type="button"><i class="fas fa-random" aria-hidden="true"></i> Sortear outro cenário</button>
                     </div>
-                    <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar sua resposta"></div>
-                    <p id="map-status" class="map-status" role="status">Carregando mapa…</p>
-                    <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar localização</button>
+                    <p class="panorama-hint"><i class="fas fa-hand-pointer" aria-hidden="true"></i> Arraste para olhar ao redor; use os controles para aproximar.</p>
                 </section>
+
+                <aside class="map-card" aria-labelledby="map-title">
+                    <div class="section-heading map-heading">
+                        <div>
+                            <span class="eyebrow">Seu palpite</span>
+                            <h3 id="map-title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Onde estamos?</h3>
+                        </div>
+                        <button id="expand-map-button" class="map-expand-button" type="button" aria-haspopup="dialog" aria-controls="map-dialog" aria-expanded="false">
+                            <i class="fas fa-expand-alt" aria-hidden="true"></i> Ampliar mapa
+                        </button>
+                    </div>
+                    <div id="map-inline-slot" class="map-inline-slot">
+                        <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar e ajustar seu palpite"></div>
+                    </div>
+                    <p id="map-status" class="map-status" role="status" aria-live="polite">Marque no mapa o local onde acredita que a paisagem está.</p>
+                    <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
+                    <p id="new-location-hint" class="new-location-hint">Confirme o palpite para registrar a rodada e liberar outro cenário.</p>
+                </aside>
             </div>
+
             <section id="result-panel" class="result-panel" hidden aria-live="polite"></section>
         </section>
 
         <section id="final-panel" class="final-panel" hidden aria-live="polite">
             <span class="eyebrow"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Jornada concluída</span>
-            <h1>Você explorou a região!</h1>
+            <h2>Você explorou a região!</h2>
             <p id="final-score" class="final-score"></p>
             <p id="final-distance" class="final-distance"></p>
             <div id="round-summary" class="round-summary"></div>
@@ -72,6 +88,21 @@
             </div>
         </section>
     </main>
+
+    <dialog id="map-dialog" class="map-dialog" aria-labelledby="map-dialog-title">
+        <div class="map-dialog-header">
+            <div>
+                <span class="eyebrow">Ajuste seu palpite</span>
+                <h2 id="map-dialog-title">Mapa ampliado</h2>
+            </div>
+            <button id="close-map-button" class="map-close-button" type="button" aria-label="Reduzir mapa e fechar">
+                <i class="fas fa-compress-alt" aria-hidden="true"></i> Reduzir mapa
+            </button>
+        </div>
+        <div id="map-dialog-slot" class="map-dialog-slot"></div>
+        <p>Toque ou clique para reposicionar o marcador; arraste-o para ajustar com precisão.</p>
+    </dialog>
+
     <nav class="nav-bar" aria-label="Navegação principal"></nav>
     <script src="nav.js" data-base=""></script>
 </body>
