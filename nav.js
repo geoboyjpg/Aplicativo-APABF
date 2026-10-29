@@ -13,8 +13,8 @@
         { href: base + 'index.html', icon: 'fa-home', label: 'Início' },
         { href: base + 'Zoneamento APABF/index.html', icon: 'fa-map', label: 'Mapa' },
         { href: base + 'Fiscalização/index.html', icon: 'fa-shield-alt', label: 'Fiscalização' },
-        { href: base + 'Ocorrencias de Fauna/index.html', icon: 'fa-camera', label: 'Ocorrências' },
-        { href: base + 'Legislação Pesqueira/index.html', icon: 'fa-gavel', label: 'Instrumentos Legais' }
+        { href: base + 'Ocorrencias de Fauna/index.html', icon: 'fa-camera', label: 'Registros' },
+        { href: base + 'Legislação Pesqueira/index.html', icon: 'fa-gavel', label: 'Legislação' }
     ];
 
     existingBar.innerHTML = '';

@@ -53,8 +53,10 @@
         var initialPopup = document.getElementById('popupInicial');
         var initialLocationButton = document.getElementById('btnConsultarLocalizacao');
         var initialLocationStatus = document.getElementById('location-query-status');
+        var centralizeButton = document.getElementById('btnCentralizar');
         var locationMarker = null;
         var locationCircle = null;
+        var locationRequestInProgress = false;
 
         function focusRecord(record) {
             try {
@@ -254,7 +256,7 @@
             global.alert(message);
         }
 
-        function handleLocation(position, source) {
+        function handleLocation(position) {
             var coordinates = position.coords;
             var latlng = global.L.latLng(coordinates.latitude, coordinates.longitude);
             var accuracy = coordinates.accuracy;
@@ -287,35 +289,21 @@
 
             var results = legalLayers.queryLocation(latlng, accuracy);
             legalLayers.activateRecords(results.applicableRecords);
-            if (source === 'welcome') {
-                initialPopup.style.display = 'none';
-                searchInput.value = '';
-                renderRecords(results.applicableRecords);
-                if (results.applicableRecords.length) {
-                    searchStatus.className = 'map-popup__status map-popup__status--success';
-                    searchStatus.textContent = results.applicableRecords.length +
-                        (results.applicableRecords.length === 1
-                            ? ' feição com incidência espacial identificada neste ponto.'
-                            : ' feições com incidência espacial identificadas neste ponto.');
-                } else {
-                    searchStatus.className = 'map-popup__status map-popup__status--warning';
-                    searchStatus.textContent = 'Nenhum instrumento com incidência espacial identificável foi encontrado para o ponto consultado. Isso não significa que a pesca esteja liberada.';
-                }
-                if (results.nearbyLinearRecords.length) {
-                    searchStatus.textContent += ' Há feições lineares próximas dentro da margem de precisão do GPS, mas elas não foram classificadas como aplicáveis.';
-                }
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('active');
-                document.getElementById('map').style.filter = 'grayscale(35%) brightness(0.92)';
-                document.querySelectorAll('.tab-button').forEach(function (tab) {
-                    tab.classList.toggle('active', tab.dataset.tab === 'instrumentos');
-                    tab.setAttribute('aria-selected', tab.dataset.tab === 'instrumentos' ? 'true' : 'false');
-                });
-                document.querySelectorAll('.tab-content').forEach(function (content) {
-                    content.classList.toggle('active', content.id === 'tab-instrumentos');
-                });
-                global.map.invalidateSize();
-                return results;
+            initialPopup.style.display = 'none';
+            searchInput.value = '';
+            renderRecords(results.applicableRecords);
+            if (results.applicableRecords.length) {
+                searchStatus.className = 'map-popup__status map-popup__status--success';
+                searchStatus.textContent = results.applicableRecords.length +
+                    (results.applicableRecords.length === 1
+                        ? ' feição com incidência espacial identificada neste ponto.'
+                        : ' feições com incidência espacial identificadas neste ponto.');
+            } else {
+                searchStatus.className = 'map-popup__status map-popup__status--warning';
+                searchStatus.textContent = 'Nenhum instrumento com incidência espacial identificável foi encontrado para o ponto consultado. Isso não significa que a pesca esteja liberada.';
+            }
+            if (results.nearbyLinearRecords.length) {
+                searchStatus.textContent += ' Há feições lineares próximas dentro da margem de precisão do GPS, mas elas não foram classificadas como aplicáveis.';
             }
 
             global.L.popup({
@@ -341,8 +329,13 @@
             return 'Não foi possível obter sua localização. Verifique as configurações de localização do dispositivo e tente novamente.';
         }
 
-        function requestCurrentLocation(button, source) {
-            setLocationButton(button, true);
+        function requestCurrentLocation(source) {
+            if (locationRequestInProgress) {
+                return;
+            }
+            locationRequestInProgress = true;
+            setLocationButton(initialLocationButton, true);
+            setLocationButton(centralizeButton, true);
             if (source === 'welcome') {
                 initialLocationStatus.classList.remove('map-popup__status--error');
                 initialLocationStatus.classList.add('map-popup__status', 'map-popup__status--info');
@@ -353,7 +346,9 @@
 
             var geolocation = global.navigator && global.navigator.geolocation;
             if (!geolocation || typeof geolocation.getCurrentPosition !== 'function') {
-                setLocationButton(button, false);
+                locationRequestInProgress = false;
+                setLocationButton(initialLocationButton, false);
+                setLocationButton(centralizeButton, false);
                 showLocationError(source, global.isSecureContext === false
                     ? 'A localização exige uma conexão segura. Abra o aplicativo usando HTTPS e tente novamente.'
                     : 'Este navegador não disponibiliza a localização. Verifique se o acesso está habilitado e tente novamente.');
@@ -363,7 +358,7 @@
             try {
                 geolocation.getCurrentPosition(function (position) {
                     try {
-                        handleLocation(position, source);
+                        handleLocation(position);
                         if (source === 'welcome') {
                             searchInput.focus();
                         }
@@ -371,10 +366,14 @@
                         console.error('Não foi possível consultar os instrumentos nesta localização:', error);
                         showLocationError(source, 'A localização foi obtida, mas não foi possível consultar as feições legais. Tente novamente.');
                     } finally {
-                        setLocationButton(button, false);
+                        locationRequestInProgress = false;
+                        setLocationButton(initialLocationButton, false);
+                        setLocationButton(centralizeButton, false);
                     }
                 }, function (error) {
-                    setLocationButton(button, false);
+                    locationRequestInProgress = false;
+                    setLocationButton(initialLocationButton, false);
+                    setLocationButton(centralizeButton, false);
                     showLocationError(source, geolocationErrorMessage(error));
                 }, {
                     enableHighAccuracy: true,
@@ -382,7 +381,9 @@
                     timeout: 10000
                 });
             } catch (error) {
-                setLocationButton(button, false);
+                locationRequestInProgress = false;
+                setLocationButton(initialLocationButton, false);
+                setLocationButton(centralizeButton, false);
                 showLocationError(source, geolocationErrorMessage(error));
             }
         }
@@ -424,7 +425,7 @@
         });
 
         document.getElementById('btnCentralizar').addEventListener('click', function () {
-            requestCurrentLocation(this, 'map');
+            requestCurrentLocation('map');
         });
         initialLocationButton.addEventListener('click', function () {
             initialLocationStatus.textContent = '';
@@ -433,7 +434,7 @@
                 'map-popup__status--info',
                 'map-popup__status--error'
             );
-            requestCurrentLocation(this, 'welcome');
+            requestCurrentLocation('welcome');
         });
 
         popupAjuda.addEventListener('click', function (event) {

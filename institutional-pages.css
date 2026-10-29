@@ -1,0 +1,239 @@
+.institutional-page {
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    overflow-x: clip;
+    min-width: 320px;
+    min-height: 100vh;
+    height: auto;
+    color: #203638;
+    font-family: Arial, sans-serif;
+    background:
+        radial-gradient(ellipse at 12% 4%, rgba(183, 224, 214, 0.34), transparent 34rem),
+        #edf4f2;
+}
+
+.institutional-page .page-container {
+    box-sizing: border-box;
+    min-width: 0;
+    width: auto;
+    max-width: 1120px;
+    min-height: 100vh;
+    margin: 0 auto;
+    align-items: stretch;
+    padding: 26px clamp(16px, 4vw, 48px) 42px;
+}
+
+.institutional-page .page-container > .back-btn {
+    position: static;
+    align-self: flex-start;
+    margin: 0 0 18px;
+    padding: 10px 15px;
+    color: #125f5f;
+    background: #ffffff;
+    border: 1px solid #d5e5e1;
+    border-radius: 999px;
+    box-shadow: 0 3px 12px rgba(9, 47, 59, 0.08);
+}
+
+.institutional-page .page-container > .back-btn:hover,
+.institutional-page .page-container > .back-btn:focus-visible {
+    color: #ffffff;
+    background: #125f5f;
+}
+
+.institutional-page .page-title {
+    box-sizing: border-box;
+    min-width: 0;
+    display: flex;
+    width: auto;
+    min-height: 240px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 24px;
+    padding: 40px clamp(20px, 5vw, 64px);
+    color: #ffffff;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    background:
+        radial-gradient(circle at 85% 20%, rgba(185, 236, 227, 0.22), transparent 15rem),
+        linear-gradient(125deg, #092f3b, #125f5f);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(9, 47, 59, 0.18);
+}
+
+.institutional-page--apa .page-title {
+    background-image:
+        linear-gradient(110deg, rgba(9, 47, 59, 0.83), rgba(18, 95, 95, 0.34)),
+        url("fotos/otimizadas/Barra%20de%20Ibiraquera.webp");
+    background-position: center, center 54%;
+    background-size: cover;
+}
+
+.institutional-page--baleia .page-title {
+    background-image:
+        linear-gradient(110deg, rgba(9, 47, 59, 0.78), rgba(18, 95, 95, 0.32)),
+        url("fotos/otimizadas/Baleias%20Siri%C3%BA.webp");
+    background-position: center, center 54%;
+    background-size: cover;
+}
+
+.institutional-page .content-card {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 960px;
+    margin: 0 auto 24px;
+    padding: clamp(24px, 4vw, 48px);
+    color: #263b3d;
+    background: #ffffff;
+    border: 1px solid #dce9e6;
+    border-radius: 18px;
+    box-shadow: 0 8px 26px rgba(9, 47, 59, 0.08);
+}
+
+.institutional-page .content-card h2 {
+    margin: 32px 0 18px;
+    padding: 0 0 12px 15px;
+    color: #092f3b;
+    font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+    line-height: 1.3;
+    text-align: left;
+    border: 0;
+    border-bottom: 1px solid #dbe8e4;
+    border-left: 4px solid #125f5f;
+}
+
+.institutional-page .content-card h2:first-child {
+    margin-top: 0;
+}
+
+.institutional-page .content-card h3 {
+    margin: 30px 0 12px;
+    padding: 0 0 8px;
+    color: #125f5f;
+    font-size: clamp(1.05rem, 2vw, 1.2rem);
+    line-height: 1.4;
+    border: 0;
+    border-bottom: 1px solid #e1ece9;
+}
+
+.institutional-page .content-card p,
+.institutional-page .content-card ul {
+    color: #35494a;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.institutional-page .content-card p {
+    margin: 0 0 16px;
+    text-align: left;
+}
+
+.institutional-page .content-card ul {
+    margin: 14px 0 20px;
+    padding: 14px 22px 14px 42px;
+    background: #f1f7f5;
+    border-left: 3px solid #9bc9bf;
+    border-radius: 0 12px 12px 0;
+}
+
+.institutional-page .content-card li {
+    margin: 0 0 7px;
+    padding-left: 3px;
+}
+
+.institutional-page .content-card li:last-child {
+    margin-bottom: 0;
+}
+
+.institutional-page .content-card li::marker {
+    color: #125f5f;
+}
+
+.institutional-page .content-card strong {
+    color: #164f53;
+}
+
+.institutional-page .content-card a {
+    color: #12647a;
+    font-weight: 600;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+}
+
+.institutional-page .content-card a:hover,
+.institutional-page .content-card a:focus-visible {
+    color: #092f3b;
+}
+
+.institutional-page .trails-cta-wrap {
+    margin-top: 24px;
+}
+
+.institutional-page .trails-cta {
+    color: #ffffff;
+    background: linear-gradient(135deg, #125f5f, #0d4f55);
+    border: 0;
+}
+
+.institutional-page .trails-cta:hover {
+    color: #ffffff;
+    background: #092f3b;
+}
+
+@media (max-width: 600px) {
+    .institutional-page .page-container {
+        width: auto;
+        max-width: 100%;
+        margin: 0;
+        padding: 14px 0 28px;
+    }
+
+    .institutional-page .page-container > .back-btn {
+        margin-left: 14px;
+    }
+
+    .institutional-page .page-title {
+        width: calc(100% - 28px);
+        max-width: calc(100% - 28px);
+        min-height: 190px;
+        margin: 0 auto 16px;
+        border-radius: 16px;
+    }
+
+    .institutional-page .content-card {
+        width: calc(100% - 28px);
+        max-width: calc(100% - 28px);
+        margin-right: auto;
+        margin-left: auto;
+        padding: 22px 18px;
+        border-radius: 15px;
+    }
+
+    .institutional-page .content-card h2 {
+        margin-top: 26px;
+    }
+
+    .institutional-page .content-card p,
+    .institutional-page .content-card ul {
+        font-size: 0.96rem;
+        line-height: 1.7;
+    }
+
+    .institutional-page .content-card ul {
+        padding: 13px 15px 13px 34px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .institutional-page *,
+    .institutional-page *::before,
+    .institutional-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

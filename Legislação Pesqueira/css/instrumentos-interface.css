@@ -255,6 +255,69 @@
     font-weight: 600;
 }
 
+.environmental-legislation {
+    margin-top: 24px;
+}
+
+.environmental-legislation > p {
+    margin: 0 0 12px;
+    color: #495057;
+}
+
+.environmental-legislation-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 10px 0;
+    padding: 14px;
+    color: #253433;
+    background: #f4f8f7;
+    border: 1px solid #d5e4e1;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.environmental-legislation-card:hover,
+.environmental-legislation-card:focus-visible {
+    background: #eaf3f1;
+    border-color: #78aaa1;
+}
+
+.environmental-legislation-card:focus-visible {
+    outline: 2px solid #125f5f;
+    outline-offset: 2px;
+}
+
+.environmental-legislation-icon {
+    flex: 0 0 auto;
+    color: #125f5f;
+    font-size: 20px;
+}
+
+.environmental-legislation-content {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+}
+
+.environmental-legislation-content strong {
+    color: #125f5f;
+    overflow-wrap: anywhere;
+}
+
+.environmental-legislation-content span {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.environmental-legislation-external {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: #0876a5;
+    font-size: 13px;
+}
+
 .sidebar-overlay {
     position: fixed;
     z-index: 1000;

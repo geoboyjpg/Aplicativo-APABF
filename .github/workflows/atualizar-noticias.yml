@@ -2,123 +2,87 @@ name: Atualizar notícias e publicações
 
 on:
   schedule:
-    - cron: "20 12 * * *"
+    - cron: '17 8 * * *'
   workflow_dispatch:
-  push:
-    paths:
-      - "scripts/noticias_publicacoes.py"
-      - "config/noticias-publicacoes.json"
-      - "noticias-publicacoes.js"
-      - ".github/workflows/atualizar-noticias.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: atualizar-noticias-${{ github.ref }}
+  group: atualizar-noticias-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
-  collect:
+  atualizar:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar repositório
-        id: checkout
+      - name: Baixar o repositório
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.x'
 
-      - name: Coletar conteúdo
+      - name: Coletar e atualizar os registros
         id: collect
-        continue-on-error: true
-        run: python scripts/noticias_publicacoes.py --mode all
+        run: python scripts/noticias_publicacoes.py
 
-      - name: Preparar estado do relatório
-        id: report
+      - name: Garantir relatório de diagnóstico
         if: always()
-        shell: bash
-        run: |
-          python - <<'PY'
-          import glob
-          import json
-          import os
-          from pathlib import Path
-
-          run_id = os.environ["GITHUB_RUN_ID"]
-          reports = sorted(glob.glob(f"diagnosticos/coletas/coleta-{run_id}-*.json"))
-          report = {}
-          if reports:
-              try:
-                  report = json.loads(Path(reports[-1]).read_text(encoding="utf-8"))
-              except (OSError, json.JSONDecodeError):
-                  report = {}
-          status = report.get("status", "failed")
-          data_written = bool(report.get("data_written"))
-          Path(f"diagnosticos/coletas/workflow-{run_id}.json").write_text(
-              json.dumps({
-                  "run_id": run_id,
-                  "status": status,
-                  "data_written": data_written,
-                  "collector_outcome": os.environ.get("COLLECT_OUTCOME", "unknown"),
-              }, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"status={status}\n")
-              output.write(f"data_written={str(data_written).lower()}\n")
-          PY
+        id: ensure_diagnostics
         env:
           COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p diagnosticos/coletas
+          if ! compgen -G "diagnosticos/coletas/coleta-${GITHUB_RUN_ID}-*.json" > /dev/null; then
+            jq -n \
+              --arg run_id "$GITHUB_RUN_ID" \
+              --arg workflow "$GITHUB_WORKFLOW" \
+              --arg ref "$GITHUB_REF" \
+              --arg outcome "$COLLECT_OUTCOME" \
+              '{
+                schema_version: 1,
+                kind: "workflow-fallback",
+                run_id: $run_id,
+                workflow: $workflow,
+                ref: $ref,
+                collector_outcome: $outcome,
+                detail: "Collector did not produce a diagnostic report"
+              }' > "diagnosticos/coletas/workflow-${GITHUB_RUN_ID}.json"
+          fi
 
       - name: Armazenar métricas da coleta
-        if: always() && steps.checkout.outcome == 'success'
-        shell: bash
+        if: always()
+        id: diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostico-noticias-${{ github.run_id }}
+          path: |
+            diagnosticos/coletas/coleta-${{ github.run_id }}-*.json
+            diagnosticos/coletas/workflow-${{ github.run_id }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Persistir estado OAI-PMH e publicar dados completos
+        if: always()
+        id: persist
         env:
-          STATUS: ${{ steps.report.outputs.status }}
-          DATA_WRITTEN: ${{ steps.report.outputs.data_written }}
-          BRANCH: ${{ github.ref_name }}
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+          DIAGNOSTIC_PREP_OUTCOME: ${{ steps.ensure_diagnostics.outcome }}
+          REPORT_OUTCOME: ${{ steps.diagnostics.outcome }}
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ -f .github/state/noticias-oai-continuations.json ]]; then
             git add -- .github/state/noticias-oai-continuations.json
           fi
-          if [[ "$DATA_WRITTEN" == "true" && -f dados/noticias-publicacoes.json ]]; then
+          if [[ "$COLLECT_OUTCOME" == "success" && "$DIAGNOSTIC_PREP_OUTCOME" == "success" && "$REPORT_OUTCOME" == "success" ]]; then
             git add -- dados/noticias-publicacoes.json
           fi
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza dados de notícias e publicações"
-            for attempt in 1 2 3; do
-              if git push origin "HEAD:${BRANCH}"; then
-                break
-              fi
-              if [[ "$attempt" -eq 3 ]]; then
-                exit 1
-              fi
-              git pull --rebase origin "$BRANCH"
-            done
+            git commit -m "Atualiza notícias e publicações"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
-          if [[ "$STATUS" != "complete" ]]; then
-            echo "::warning::Coleta ${STATUS}; consulte os artefatos de diagnóstico."
-          fi
-
-      - name: Upload diagnósticos
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: diagnosticos-noticias-${{ github.run_id }}
-          path: |
-            diagnosticos/coletas/coleta-${{ github.run_id }}-*.json
-            diagnosticos/coletas/workflow-${{ github.run_id }}.json
-          if-no-files-found: warn
-
-      - name: Sinalizar coleta incompleta
-        if: always() && steps.report.outputs.status != 'complete'
-        run: |
-          echo "::error::Coleta concluída com estado '${{ steps.report.outputs.status }}'."
-          exit 1

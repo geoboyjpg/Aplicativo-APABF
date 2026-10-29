@@ -138,7 +138,7 @@ test('navigation bar home icon and fauna page links resolve to existing app page
     assert.ok(fs.existsSync(path.join(root, 'Ocorrencias de Fauna', 'index.html')));
 
     const homepageHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-    assert.match(homepageHtml, /href="Ocorrencias de Fauna\/index\.html"[^>]*aria-label="Ocorrências de Fauna"/);
+    assert.match(homepageHtml, /href="Ocorrencias de Fauna\/index\.html"[^>]*aria-label="Registros"/);
 });
 
 test('builds external navigation links using latitude,longitude destination coordinates', function () {

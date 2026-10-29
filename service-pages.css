@@ -1,0 +1,521 @@
+.services-page,
+.authorization-page {
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    min-width: 320px;
+    min-height: 100vh;
+    height: auto;
+    overflow-x: clip;
+    color: #203638;
+    font-family: Arial, sans-serif;
+    background:
+        radial-gradient(ellipse at 12% 4%, rgba(183, 224, 214, 0.34), transparent 34rem),
+        #edf4f2;
+}
+
+.services-page *,
+.services-page *::before,
+.services-page *::after,
+.authorization-page *,
+.authorization-page *::before,
+.authorization-page *::after {
+    box-sizing: border-box;
+}
+
+.services-page .services-container,
+.authorization-page .form-container {
+    width: auto;
+    max-width: 1120px;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 26px clamp(16px, 4vw, 48px) 44px;
+}
+
+.services-page .services-container {
+    padding-bottom: 40px;
+}
+
+.services-page .back-btn,
+.authorization-page .back-btn {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 10px 15px;
+    color: #125f5f;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #d5e5e1;
+    border-radius: 999px;
+    box-shadow: 0 3px 12px rgba(9, 47, 59, 0.08);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.services-page .back-btn:hover,
+.services-page .back-btn:focus-visible,
+.authorization-page .back-btn:hover,
+.authorization-page .back-btn:focus-visible {
+    color: #ffffff;
+    background: #125f5f;
+}
+
+.services-page .back-btn:focus-visible,
+.authorization-page .back-btn:focus-visible,
+.services-page .service-link:focus-visible,
+.authorization-page .submit-btn:focus-visible,
+.authorization-page .file-upload:focus-within {
+    outline: 3px solid #75bcb0;
+    outline-offset: 3px;
+}
+
+.services-page .services-title,
+.authorization-page .form-title {
+    display: flex;
+    min-height: 190px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 24px;
+    padding: 32px clamp(20px, 5vw, 64px);
+    color: #ffffff;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    text-align: center;
+    text-wrap: balance;
+    background:
+        radial-gradient(circle at 85% 20%, rgba(185, 236, 227, 0.22), transparent 15rem),
+        linear-gradient(125deg, #092f3b, #125f5f);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(9, 47, 59, 0.16);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.services-page .services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.services-page .service-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    margin: 0;
+    padding: clamp(20px, 2.5vw, 30px);
+    background: #ffffff;
+    border: 1px solid #dce9e6;
+    border-radius: 16px;
+    box-shadow: 0 7px 22px rgba(9, 47, 59, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.services-page .service-card:hover {
+    box-shadow: 0 12px 28px rgba(9, 47, 59, 0.13);
+    transform: translateY(-3px);
+}
+
+.services-page .service-card h2 {
+    align-items: flex-start;
+    margin: 0 0 14px;
+    color: #092f3b;
+    font-size: clamp(1.13rem, 2vw, 1.35rem);
+    line-height: 1.35;
+}
+
+.services-page .service-card h2 i {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    margin-top: -3px;
+    color: #125f5f;
+    font-size: 1.05rem;
+    background: #e6f3f1;
+    border-radius: 12px;
+}
+
+.services-page .service-card p {
+    margin: 0 0 13px;
+    color: #435658;
+    font-size: 0.96rem;
+    line-height: 1.65;
+}
+
+.services-page .service-card p small {
+    color: #526b6d !important;
+    line-height: 1.6;
+}
+
+.services-page .service-card p small a {
+    color: #12647a !important;
+    text-underline-offset: 3px;
+}
+
+.services-page .service-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 11px 15px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: left;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    background: linear-gradient(135deg, #125f5f, #0d4f55);
+    border-radius: 9px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.services-page .service-link:hover {
+    color: #ffffff;
+    background: #092f3b;
+    transform: translateY(-1px);
+}
+
+.authorization-page .form-container {
+    padding-bottom: 132px;
+}
+
+.authorization-page .form-title {
+    min-height: 170px;
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+}
+
+.authorization-page .form-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(22px, 4vw, 42px);
+    background: #ffffff;
+    border: 1px solid #dce9e6;
+    border-radius: 18px;
+    box-shadow: 0 8px 26px rgba(9, 47, 59, 0.08);
+}
+
+.authorization-page #autorizacaoForm {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 22px;
+}
+
+.authorization-page #autorizacaoForm > h3 {
+    grid-column: 1 / -1;
+    margin: 28px 0 18px !important;
+    padding: 0 0 12px 15px;
+    color: #092f3b !important;
+    font-size: clamp(1.15rem, 2.3vw, 1.4rem);
+    line-height: 1.35;
+    border: 0;
+    border-bottom: 1px solid #dbe8e4;
+    border-left: 4px solid #125f5f;
+}
+
+.authorization-page #autorizacaoForm > h3:first-of-type {
+    margin-top: 0 !important;
+}
+
+.authorization-page .form-group {
+    min-width: 0;
+    margin: 0 0 19px;
+}
+
+.authorization-page .form-group:has(textarea, .file-upload, small) {
+    grid-column: 1 / -1;
+}
+
+.authorization-page .form-group label {
+    margin: 0 0 7px;
+    color: #294345;
+    font-size: 0.93rem;
+    line-height: 1.45;
+}
+
+.authorization-page .form-group small {
+    display: block;
+    margin: 0 0 10px;
+    color: #526b6d !important;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.authorization-page .form-group input:not([type="checkbox"]):not([type="file"]),
+.authorization-page .form-group textarea,
+.authorization-page .form-group select {
+    min-height: 46px;
+    padding: 11px 12px;
+    color: #203638;
+    font: inherit;
+    font-size: 1rem;
+    background: #ffffff;
+    border: 1px solid #c6d7d5;
+    border-radius: 9px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.authorization-page .form-group input::placeholder,
+.authorization-page .form-group textarea::placeholder {
+    color: #75898a;
+    opacity: 1;
+}
+
+.authorization-page .form-group input:focus,
+.authorization-page .form-group textarea:focus,
+.authorization-page .form-group select:focus {
+    outline: 3px solid rgba(18, 95, 95, 0.18);
+    border-color: #125f5f;
+}
+
+.authorization-page .form-group input[readonly] {
+    color: #526b6d;
+    background: #f1f7f5 !important;
+    border-color: #d5e5e1;
+}
+
+.authorization-page .form-group textarea {
+    min-height: 116px;
+    line-height: 1.55;
+}
+
+.authorization-page .checkbox-group {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    background: #f1f7f5;
+    border: 1px solid #d5e5e1;
+    border-radius: 10px;
+}
+
+.authorization-page .checkbox-group input[type="checkbox"] {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    accent-color: #125f5f;
+}
+
+.authorization-page .checkbox-group label {
+    color: #294345;
+    font-size: 0.94rem;
+    line-height: 1.45;
+}
+
+.authorization-page .info-message {
+    grid-column: 1 / -1;
+    color: #164f53;
+    background: #e8f4f1;
+    border-left-color: #125f5f;
+}
+
+.authorization-page .form-group.disabled {
+    opacity: 0.72;
+}
+
+.authorization-page .file-upload {
+    min-height: 124px;
+    padding: 18px;
+    color: #35494a;
+    background: #f7faf9;
+    border: 1px dashed #9bbdb7;
+    border-radius: 12px;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.authorization-page .file-upload:hover {
+    background: #eef6f4;
+    border-color: #125f5f;
+}
+
+.authorization-page .file-upload-text {
+    margin: 0;
+    color: #526b6d;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.authorization-page .file-upload-text > i {
+    color: #125f5f;
+}
+
+.authorization-page .file-upload-text p {
+    margin: 5px 0;
+}
+
+.authorization-page .file-upload-text p[style*="font-size"] {
+    color: #617779 !important;
+    font-size: 0.79rem !important;
+}
+
+.authorization-page .file-list {
+    color: #35494a;
+    line-height: 1.5;
+}
+
+.authorization-page .file-list .file-error {
+    padding: 8px 10px;
+    background: #fff1f0;
+    border-left: 3px solid #b42318;
+    border-radius: 0 7px 7px 0;
+}
+
+.authorization-page .submit-btn {
+    grid-column: 1 / -1;
+    min-height: 52px;
+    margin-top: 6px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #125f5f, #0d4f55);
+    border-radius: 10px;
+    box-shadow: 0 5px 14px rgba(9, 47, 59, 0.14);
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.authorization-page .submit-btn:hover:not(:disabled) {
+    background: #092f3b;
+    box-shadow: 0 8px 18px rgba(9, 47, 59, 0.2);
+    transform: translateY(-1px);
+}
+
+.authorization-page #error-message {
+    grid-column: 1 / -1;
+    color: #721c24;
+    background: #fff1f0 !important;
+    border-color: #e7b9b8 !important;
+    border-left: 4px solid #b42318 !important;
+}
+
+.authorization-page .loading-overlay {
+    padding: 24px;
+    background: rgba(9, 47, 59, 0.78);
+    backdrop-filter: blur(3px);
+}
+
+.authorization-page .loading-spinner {
+    width: 52px;
+    height: 52px;
+    border-top-color: #b9ece3;
+}
+
+.authorization-page .success-overlay {
+    box-sizing: border-box;
+    overflow-y: auto;
+    background: rgba(245, 249, 248, 0.98);
+}
+
+.authorization-page .success-icon {
+    color: #125f5f;
+}
+
+.authorization-page .success-title {
+    color: #092f3b;
+    line-height: 1.25;
+}
+
+.authorization-page .success-description {
+    color: #435658;
+}
+
+.authorization-page .success-overlay .back-btn {
+    color: #ffffff;
+    background: linear-gradient(135deg, #125f5f, #0d4f55);
+}
+
+@media (max-width: 700px) {
+    .services-page .services-container,
+    .authorization-page .form-container {
+        padding: 14px 14px 32px;
+    }
+
+    .services-page .services-title,
+    .authorization-page .form-title {
+        min-height: 150px;
+        margin-bottom: 18px;
+        padding: 26px 20px;
+        border-radius: 16px;
+    }
+
+    .services-page .services-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
+    }
+
+    .services-page .service-card {
+        padding: 20px;
+    }
+
+    .services-page .service-card h2 {
+        font-size: 1.16rem;
+    }
+
+    .services-page .service-link {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .authorization-page .form-container {
+        padding-bottom: 126px;
+    }
+
+    .authorization-page .form-section {
+        padding: 20px 17px;
+        border-radius: 15px;
+    }
+
+    .authorization-page #autorizacaoForm {
+        grid-template-columns: minmax(0, 1fr);
+        column-gap: 0;
+    }
+
+    .authorization-page .form-group,
+    .authorization-page .form-group:has(textarea, .file-upload, small),
+    .authorization-page #autorizacaoForm > h3,
+    .authorization-page .checkbox-group,
+    .authorization-page .info-message,
+    .authorization-page .submit-btn,
+    .authorization-page #error-message {
+        grid-column: 1;
+    }
+
+    .authorization-page .form-group {
+        margin-bottom: 17px;
+    }
+
+    .authorization-page .file-upload {
+        min-height: 112px;
+        padding: 16px 12px;
+    }
+
+    .authorization-page .success-icon {
+        font-size: 64px;
+    }
+
+    .authorization-page .success-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .services-page *,
+    .services-page *::before,
+    .services-page *::after,
+    .authorization-page *,
+    .authorization-page *::before,
+    .authorization-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
