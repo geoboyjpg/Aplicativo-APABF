@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#092f3b">
+    <title>Desafio 360° da APABF</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="desafio-360.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20NQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="config/desafio-360.js" defer></script>
+    <script src="dados/desafio-360-locais.js" defer></script>
+    <script src="scripts/desafio-360.js" defer></script>
+</head>
+<body class="challenge-page">
+    <main class="challenge-shell">
+        <a class="challenge-back" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar ao aplicativo</a>
+        <section id="intro-panel" class="intro-panel">
+            <span class="eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Experiência educativa</span>
+            <h1>Desafio 360° da APABF</h1>
+            <p class="intro-subtitle">Explore a paisagem. Descubra o território. Conheça a nossa história.</p>
+            <p>Observe panoramas 360° da região e marque no mapa onde acredita que cada paisagem está. Ao final de cada rodada, descubra o local, sua distância e informações documentadas sobre o território.</p>
+            <div class="intro-bottom">
+                <span><i class="fas fa-map-marked-alt" aria-hidden="true"></i> 3 desafios</span>
+                <button id="start-button" class="primary-button" type="button">Começar desafio <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+            </div>
+        </section>
+
+        <section id="game-panel" class="game-panel" hidden aria-live="polite">
+            <header class="round-heading">
+                <div>
+                    <span class="eyebrow">Desafio de exploração</span>
+                    <h1 id="round-title">Desafio 1 de 3</h1>
+                </div>
+                <div class="round-progress" id="round-progress" aria-label="Progresso"></div>
+            </header>
+            <div class="game-grid">
+                <section class="panorama-card" aria-labelledby="panorama-title">
+                    <div class="section-heading">
+                        <h2 id="panorama-title"><i class="fas fa-binoculars" aria-hidden="true"></i> Observe a paisagem</h2>
+                        <a id="open-panorama-link" class="small-link" target="_blank" rel="noopener noreferrer">Abrir no Google Maps <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>
+                    </div>
+                    <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo do Google Street View"></div>
+                    <p id="panorama-status" class="panorama-status" role="status">Carregando panorama…</p>
+                    <p class="panorama-hint"><i class="fas fa-hand-pointer" aria-hidden="true"></i> Arraste para olhar ao redor; use os controles do panorama para aproximar.</p>
+                </section>
+                <section class="map-card" aria-labelledby="map-title">
+                    <div class="section-heading">
+                        <h2 id="map-title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Onde estamos?</h2>
+                        <span class="map-instruction">Toque ou clique para marcar seu palpite</span>
+                    </div>
+                    <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar sua resposta"></div>
+                    <p id="map-status" class="map-status" role="status">Carregando mapa…</p>
+                    <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar localização</button>
+                </section>
+            </div>
+            <section id="result-panel" class="result-panel" hidden aria-live="polite"></section>
+        </section>
+
+        <section id="final-panel" class="final-panel" hidden aria-live="polite">
+            <span class="eyebrow"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Jornada concluída</span>
+            <h1>Você explorou a região!</h1>
+            <p id="final-score" class="final-score"></p>
+            <p id="final-distance" class="final-distance"></p>
+            <div id="round-summary" class="round-summary"></div>
+            <div class="final-actions">
+                <button id="restart-button" class="primary-button" type="button"><i class="fas fa-redo" aria-hidden="true"></i> Jogar novamente</button>
+                <a class="secondary-button" href="index.html"><i class="fas fa-home" aria-hidden="true"></i> Página principal</a>
+            </div>
+        </section>
+    </main>
+    <nav class="nav-bar" aria-label="Navegação principal"></nav>
+    <script src="nav.js" data-base=""></script>
+</body>
+</html>
