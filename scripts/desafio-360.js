@@ -2,7 +2,6 @@
     'use strict';
 
     var lugares = window.APABF_DESAFIO_360_LOCAIS;
-    var config = window.APABF_DESAFIO_360_CONFIG || {};
     var maxPontos = 5000;
     // Escala linear: 5.000 pontos no local exato, decrescendo até zero a 20 km.
     var distanciaSemPontos = 20000;
@@ -16,7 +15,6 @@
         linha: null,
         panorama: null,
         camadaBaseMapa: null,
-        googleDisponivel: false,
         erroPanorama: ''
     };
 
@@ -56,72 +54,71 @@
         element.classList.toggle('is-error', Boolean(erro));
     }
 
-    function carregarGoogleMaps() {
-        if (window.google && window.google.maps) {
-            estado.googleDisponivel = true;
-            carregarPanorama();
-            return;
-        }
-        if (!config.googleMapsApiKey) {
-            estado.erroPanorama = 'A API do Google Maps não está configurada. O panorama interativo exige uma chave válida; use “Abrir no Google Maps” como alternativa.';
-            atualizarEstadoPanorama();
-            return;
-        }
-
-        window.apabfGoogleMapsReady = function () {
-            estado.googleDisponivel = true;
-            carregarPanorama();
-        };
-
-        var script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(config.googleMapsApiKey)
-            + '&callback=apabfGoogleMapsReady&v=weekly';
-        script.async = true;
-        script.onerror = function () {
-            estado.erroPanorama = 'Não foi possível carregar a API do Google Maps. Confira a chave, as restrições de domínio, faturamento e conexão. O link externo continua disponível.';
-            atualizarEstadoPanorama();
-        };
-        document.head.appendChild(script);
-    }
-
     function atualizarEstadoPanorama() {
         panoramaElement.innerHTML = '';
-        var mensagem = estado.erroPanorama || 'Panorama não disponível no momento. Você pode abrir o ponto de referência no Google Maps.';
+        var mensagem = estado.erroPanorama || 'Panorama local não cadastrado para este cenário. Abra o link externo para consultar a paisagem.';
         var aviso = document.createElement('div');
         aviso.className = 'panorama-fallback';
-        aviso.innerHTML = '<i class="fas fa-street-view" aria-hidden="true"></i>';
+        aviso.innerHTML = '<i class="fas fa-panorama" aria-hidden="true"></i>';
         var texto = document.createElement('p');
         texto.textContent = mensagem;
         aviso.appendChild(texto);
         panoramaElement.appendChild(aviso);
-        setStatus(statusPanorama, mensagem, true);
+        setStatus(statusPanorama, mensagem, Boolean(estado.erroPanorama));
     }
 
-    function carregarPanorama() {
-        if (!estado.googleDisponivel) {
+    function destruirPanorama() {
+        if (estado.panorama) {
+            estado.panorama.destroy();
+            estado.panorama = null;
+        }
+    }
+
+    function carregarPanorama(lugar) {
+        destruirPanorama();
+        if (!lugar.panoramaPath) {
+            estado.erroPanorama = '';
+            atualizarEstadoPanorama();
             return;
         }
-        var lugar = lugares[estado.rodada];
-        setStatus(statusPanorama, 'Verificando disponibilidade do panorama…');
-        new google.maps.StreetViewService().getPanorama({ pano: lugar.panoramaId }, function (dados, status) {
-            if (status !== google.maps.StreetViewStatus.OK || !dados || !dados.location) {
-                estado.erroPanorama = 'Este panorama não foi localizado pela API do Google Maps. Abra o link de referência para consultá-lo diretamente.';
-                atualizarEstadoPanorama();
-                return;
-            }
-            estado.erroPanorama = '';
-            panoramaElement.innerHTML = '';
-            estado.panorama = new google.maps.StreetViewPanorama(panoramaElement, {
-                pano: dados.location.pano,
-                pov: { heading: lugar.heading, pitch: lugar.pitch },
-                zoom: 0,
-                addressControl: false,
-                fullscreenControl: true,
-                motionTracking: false,
-                enableCloseButton: false
+        if (!window.pannellum) {
+            estado.erroPanorama = 'Não foi possível carregar o visualizador Pannellum. Confira a conexão e abra o mapa externo como alternativa.';
+            atualizarEstadoPanorama();
+            return;
+        }
+        setStatus(statusPanorama, 'Carregando panorama local…');
+        panoramaElement.innerHTML = '';
+        try {
+            estado.panorama = window.pannellum.viewer('panorama', {
+                type: 'equirectangular',
+                panorama: lugar.panoramaPath,
+                autoLoad: true,
+                showControls: true,
+                showZoomCtrl: true,
+                showFullscreenCtrl: true,
+                mouseZoom: true,
+                doubleClickZoom: true,
+                draggable: true,
+                hfov: 100,
+                minHfov: 45,
+                maxHfov: 120,
+                yaw: lugar.panoramaYaw || 0,
+                pitch: lugar.panoramaPitch || 0,
+                minPitch: -90,
+                maxPitch: 90
             });
-            setStatus(statusPanorama, 'Panorama interativo carregado pelo Google Street View.');
-        });
+            estado.panorama.on('load', function () {
+                estado.erroPanorama = '';
+                setStatus(statusPanorama, 'Panorama local interativo carregado. Arraste para explorar e use os controles para aproximar.');
+            });
+            estado.panorama.on('error', function () {
+                estado.erroPanorama = 'Não foi possível carregar esta imagem panorâmica. Verifique o arquivo e o caminho configurado; o link externo continua disponível.';
+                atualizarEstadoPanorama();
+            });
+        } catch (erro) {
+            estado.erroPanorama = 'Não foi possível inicializar o visualizador panorâmico. Confira a imagem e tente novamente.';
+            atualizarEstadoPanorama();
+        }
     }
 
     function inicializarMapa() {
@@ -171,6 +168,7 @@
             return '<span class="' + classe + '" aria-hidden="true"></span>';
         }).join('');
         document.getElementById('open-panorama-link').href = lugar.panoramaUrl;
+        document.getElementById('open-panorama-link').hidden = !lugar.panoramaUrl;
 
         if (estado.mapa) {
             estado.mapa.eachLayer(function (layer) {
@@ -182,12 +180,7 @@
             estado.mapa.invalidateSize();
         }
 
-        if (window.google && window.google.maps) {
-            estado.googleDisponivel = true;
-            carregarPanorama();
-        } else {
-            atualizarEstadoPanorama();
-        }
+        carregarPanorama(lugar);
     }
 
     function criarMarcadorResultado(coordenadas, cor, rotulo, mapa) {
@@ -361,7 +354,6 @@
             inicializarMapa();
         }
         prepararRodada();
-        carregarGoogleMaps();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -371,10 +363,10 @@
         estado.palpite = null;
         estado.resultados = [];
         estado.erroPanorama = '';
+        destruirPanorama();
         final.hidden = true;
         intro.hidden = false;
         jogo.hidden = true;
-        estado.palpite = null;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     confirmar.addEventListener('click', confirmarResposta);

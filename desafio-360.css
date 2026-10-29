@@ -253,13 +253,14 @@
     border-radius: 12px;
 }
 
-.panorama-view::after {
-    position: absolute;
-    inset: auto 0 0;
-    height: 26%;
-    background: linear-gradient(transparent, rgba(9, 47, 59, 0.12));
-    content: "";
-    pointer-events: none;
+.panorama-view .pnlm-container {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.panorama-view .pnlm-controls-container button {
+    color: #092f3b;
 }
 
 .panorama-fallback {
