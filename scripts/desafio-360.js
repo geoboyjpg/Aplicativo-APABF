@@ -319,6 +319,7 @@
         painelResultado.hidden = true;
         painelResultado.replaceChildren();
         palcoPanorama.classList.toggle('is-result', false);
+        document.getElementById('panorama-title').textContent = 'Observe a paisagem';
         botaoConfirmar.hidden = false;
         botaoConfirmar.disabled = !estado.mapa || !estado.panoramaPronto;
         setStatus(statusMapaDialogo, 'Escolha um ponto no mapa para habilitar seu palpite.');
@@ -449,13 +450,16 @@
     }
 
     function criarMarcadorResultado(coordenadas, cor, rotulo, mapa) {
-        return window.L.circleMarker(coordenadas, {
-            radius: 9,
-            color: '#ffffff',
-            weight: 3,
-            fillColor: cor,
-            fillOpacity: 1
-        }).bindTooltip(rotulo).addTo(mapa);
+        var tipo = cor === '#d97706' ? 'guess' : 'correct';
+        var icone = window.L.divIcon({
+            className: 'result-marker-icon',
+            html: '<span class="result-marker result-marker-' + tipo + '"><i class="fas '
+                + (tipo === 'guess' ? 'fa-location-dot' : 'fa-flag-checkered')
+                + '" aria-hidden="true"></i></span>',
+            iconSize: [32, 38],
+            iconAnchor: [16, 38]
+        });
+        return window.L.marker(coordenadas, { icon: icone }).bindTooltip(rotulo).addTo(mapa);
     }
 
     function adicionarReferencia(lista, fonte) {
@@ -486,14 +490,34 @@
         painelResultado.replaceChildren();
         painelResultado.hidden = false;
         palcoPanorama.classList.toggle('is-result', true);
+        document.getElementById('panorama-title').textContent = 'Resultado da rodada';
         botaoConfirmar.hidden = true;
         botaoConfirmar.disabled = true;
         acoesErroPanorama.hidden = true;
         botaoNovaLocalizacao.disabled = false;
 
         var local = resultado.local;
+        var layout = document.createElement('div');
+        layout.className = 'result-layout';
+        var mapaColuna = document.createElement('section');
+        mapaColuna.className = 'result-map-column';
+        mapaColuna.setAttribute('aria-label', 'Mapa da sua resposta');
+        var mapaResultadoElement = document.createElement('div');
+        mapaResultadoElement.className = 'result-map';
+        mapaResultadoElement.setAttribute('role', 'region');
+        mapaResultadoElement.setAttribute('aria-label', 'Mapa comparando o palpite e o local correto');
+        mapaColuna.appendChild(mapaResultadoElement);
+        var legenda = document.createElement('div');
+        legenda.className = 'result-map-legend';
+        legenda.innerHTML = '<span><i class="fas fa-location-dot result-legend-guess" aria-hidden="true"></i> Seu palpite</span>'
+            + '<span><i class="fas fa-flag-checkered result-legend-correct" aria-hidden="true"></i> Local correto</span>';
+        mapaColuna.appendChild(legenda);
+
+        var informacoes = document.createElement('section');
+        informacoes.className = 'result-info';
+        informacoes.setAttribute('aria-label', 'Informações do resultado');
         var cabecalho = document.createElement('div');
-        cabecalho.className = 'result-heading';
+        cabecalho.className = 'result-info-heading';
         var titulo = document.createElement('div');
         var eyebrow = document.createElement('span');
         eyebrow.className = 'eyebrow';
@@ -502,23 +526,34 @@
         nome.textContent = local.nome;
         nome.setAttribute('tabindex', '-1');
         titulo.append(eyebrow, nome);
+        cabecalho.appendChild(titulo);
+        informacoes.appendChild(cabecalho);
+
+        var metricas = document.createElement('div');
+        metricas.className = 'result-metrics';
         var selo = document.createElement('span');
         selo.className = 'score-badge';
         selo.textContent = resultado.pontos.toLocaleString('pt-BR')
             + ' / ' + maxPontos.toLocaleString('pt-BR') + ' pontos';
-        cabecalho.append(titulo, selo);
-        painelResultado.appendChild(cabecalho);
+        var pontuacao = document.createElement('div');
+        pontuacao.className = 'result-metric result-score';
+        var rotuloPontos = document.createElement('span');
+        rotuloPontos.textContent = 'Pontuação da rodada';
+        pontuacao.append(rotuloPontos, selo);
+        var distancia = document.createElement('div');
+        distancia.className = 'result-metric';
+        var rotuloDistancia = document.createElement('span');
+        rotuloDistancia.textContent = 'Distância do palpite';
+        var valorDistancia = document.createElement('strong');
+        valorDistancia.textContent = formatarDistancia(resultado.distancia);
+        distancia.append(rotuloDistancia, valorDistancia);
+        metricas.append(pontuacao, distancia);
+        informacoes.appendChild(metricas);
 
         var resumo = document.createElement('p');
-        resumo.textContent = 'Distância do palpite: ' + formatarDistancia(resultado.distancia)
-            + ' · Localização correta: ' + local.latitude + ', ' + local.longitude;
-        painelResultado.appendChild(resumo);
-
-        var mapaResultadoElement = document.createElement('div');
-        mapaResultadoElement.className = 'result-map';
-        mapaResultadoElement.setAttribute('role', 'region');
-        mapaResultadoElement.setAttribute('aria-label', 'Mapa comparando o palpite e o local correto');
-        painelResultado.appendChild(mapaResultadoElement);
+        resumo.className = 'result-location-coordinates';
+        resumo.textContent = 'Localização correta: ' + local.latitude + ', ' + local.longitude;
+        informacoes.appendChild(resumo);
 
         estado.mapaResultado = window.L.map(mapaResultadoElement, { scrollWheelZoom: true, zoomControl: true });
         window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -533,7 +568,7 @@
         estado.mapaResultado.fitBounds([palpite, correto], { padding: [35, 35], maxZoom: 14 });
 
         var detalhes = document.createElement('div');
-        detalhes.className = 'result-details';
+        detalhes.className = 'result-education';
         var informacao = document.createElement('div');
         var tituloInformacao = document.createElement('h3');
         tituloInformacao.textContent = 'Conheça o local';
@@ -586,7 +621,7 @@
         }
         referencias.appendChild(lista);
         detalhes.append(informacao, referencias);
-        painelResultado.appendChild(detalhes);
+        informacoes.appendChild(detalhes);
         var acoesResultado = document.createElement('div');
         acoesResultado.className = 'result-actions';
         var avancar = document.createElement('button');
@@ -597,7 +632,9 @@
             : '<i class="fas fa-arrow-right" aria-hidden="true"></i> Próxima localização';
         avancar.addEventListener('click', selecionarNovaLocalizacao);
         acoesResultado.appendChild(avancar);
-        painelResultado.appendChild(acoesResultado);
+        informacoes.append(acoesResultado);
+        layout.append(mapaColuna, informacoes);
+        painelResultado.appendChild(layout);
         window.setTimeout(function () {
             if (estado.mapaResultado) {
                 estado.mapaResultado.invalidateSize();

@@ -33,7 +33,8 @@ function criarAmbiente(opcoes = {}) {
                 toggle(nome, ativo) {
                     if (ativo) classes.add(nome);
                     else classes.delete(nome);
-                }
+                },
+                contains(nome) { return classes.has(nome); }
             },
             addEventListener(tipo, callback) {
                 (listeners[tipo] ||= []).push(callback);
@@ -123,12 +124,14 @@ function criarAmbiente(opcoes = {}) {
             camadasTiles.push({ url, options, camada });
             return camada;
         },
-        marker(ponto) {
+        marker(ponto, options) {
             const marcador = criarCamada();
             marcador.latlng = ponto;
+            marcador.options = options;
             marcadores.push(marcador);
             return marcador;
         },
+        divIcon(options) { return options; },
         circleMarker() { return criarCamada(); },
         polyline() { return criarCamada(); }
     };
@@ -206,6 +209,14 @@ test('all local panorama records point to existing files and unique valid locati
     assert.equal(locais.find((local) => local.id === 'porto-imbituba').panoramaPath, null);
 });
 
+test('the game is linked from Services and not from the homepage cards', function () {
+    const homepage = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const services = fs.readFileSync(path.join(ROOT, 'servicos.html'), 'utf8');
+
+    assert.doesNotMatch(homepage, /href="desafio-360\.html"/);
+    assert.match(services, /href="desafio-360\.html"/);
+});
+
 test('game starts with a local panorama, preserves map guess, scores once, and advances without reload', function () {
     const jogo = criarAmbiente();
     const [primeiro, segundo] = jogo.locais.filter((local) => local.panoramaPath);
@@ -226,14 +237,22 @@ test('game starts with a local panorama, preserves map guess, scores once, and a
     elemento('confirm-button').click();
     elemento('confirm-button').click();
     assert.equal(elemento('result-panel').hidden, false);
-    assert.match(elemento('result-panel').children[0].children[0].children[1].textContent, new RegExp(primeiro.nome));
-    assert.match(elemento('result-panel').children[0].children[1].textContent, /5\.000 \/ 5\.000 pontos/);
+    assert.equal(elemento('panorama-stage').classList.contains('is-result'), true);
+    const infoResultado = elemento('result-panel').children[0].children[1];
+    assert.match(infoResultado.children[0].children[0].children[1].textContent, new RegExp(primeiro.nome));
+    assert.match(infoResultado.children[1].children[0].children[1].textContent, /5\.000 \/ 5\.000 pontos/);
+    assert.equal(elemento('result-panel').children[0].children[0].children[0].className, 'result-map');
+    assert.match(jogo.marcadores[1].options.icon.html, /result-marker-guess/);
+    assert.match(jogo.marcadores[2].options.icon.html, /result-marker-correct/);
+    assert.equal(jogo.mapas.length, 2);
 
-    elemento('result-panel').children[4].children[0].click();
+    infoResultado.children[4].children[0].click();
     assert.equal(jogo.eventosPanorama.length, 2);
     assert.equal(jogo.eventosPanorama[1].configuracao.panorama, segundo.panoramaPath);
     assert.equal(elemento('result-panel').hidden, true);
+    assert.equal(elemento('panorama-stage').classList.contains('is-result'), false);
     assert.equal(elemento('confirm-button').disabled, false);
+    assert.equal(elemento('panorama-title').textContent, 'Observe a paisagem');
     assert.equal(jogo.mapas[0].layers.has(marcador), false);
 });
 
