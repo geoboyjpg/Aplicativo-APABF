@@ -39,6 +39,6 @@ As fotografias novas são JPEG equiretangulares, aproximadamente 2:1, compatíve
 
 ## Regras e mapa
 
-A pontuação é `arredondar(5.000 × max(0, 1 − distância_em_metros / 20.000))`, limitada entre zero e 5.000 pontos por rodada. A distância usa a fórmula de Haversine. O mapa Leaflet aparece inicialmente compacto; **Ampliar mapa** abre um diálogo acessível e mantém o marcador e a tentativa ao retornar.
+A pontuação é `arredondar(5.000 × max(0, 1 − distância_em_metros / 20.000))`, limitada entre zero e 5.000 pontos por rodada. A distância usa a fórmula de Haversine. O mapa Leaflet aparece como minimapa sobre o panorama; **Ampliar** abre um diálogo acessível com o mesmo mapa e marcador. **Confirmar palpite** registra a rodada, fecha o diálogo e mostra o resultado e as informações educativas em um painel sobre a fotografia.
 
 O mapa usa tiles do OpenStreetMap, com atribuição exibida. Os tiles e o CDN do Pannellum dependem de rede. Localizações ainda precisam de conferência de campo/documental onde isso estiver indicado no conteúdo.

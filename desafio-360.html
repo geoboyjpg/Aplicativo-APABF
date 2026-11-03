@@ -44,7 +44,28 @@
                     <div class="section-heading">
                         <h3 id="panorama-title"><i class="fas fa-binoculars" aria-hidden="true"></i> Observe a paisagem</h3>
                     </div>
-                    <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem"></div>
+                    <div id="panorama-stage" class="panorama-stage">
+                        <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem"></div>
+                        <aside class="map-card" aria-labelledby="map-title">
+                            <div class="section-heading map-heading">
+                                <div>
+                                    <span class="eyebrow">Seu palpite</span>
+                                    <h3 id="map-title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Onde estamos?</h3>
+                                </div>
+                                <button id="expand-map-button" class="map-expand-button" type="button" aria-haspopup="dialog" aria-controls="map-dialog" aria-expanded="false" aria-label="Ampliar mapa">
+                                    <i class="fas fa-expand-alt" aria-hidden="true"></i><span>Ampliar</span>
+                                </button>
+                            </div>
+                            <div id="map-inline-slot" class="map-inline-slot">
+                                <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar e ajustar seu palpite"></div>
+                            </div>
+                            <p id="map-status" class="map-status" role="status" aria-live="polite">Marque no mapa o local onde acredita que a paisagem está.</p>
+                            <button id="retry-map-button" class="secondary-button retry-map-button" type="button" hidden>
+                                <i class="fas fa-redo" aria-hidden="true"></i> Tentar carregar mapa novamente
+                            </button>
+                        </aside>
+                        <section id="result-panel" class="result-panel" hidden aria-live="polite"></section>
+                    </div>
                     <p id="panorama-status" class="panorama-status" role="status" aria-live="polite">Carregando fotografia…</p>
                     <div id="panorama-error-actions" class="panorama-error-actions" hidden>
                         <button id="retry-panorama-button" class="secondary-button" type="button"><i class="fas fa-redo" aria-hidden="true"></i> Tentar novamente</button>
@@ -52,30 +73,8 @@
                     </div>
                     <p class="panorama-hint"><i class="fas fa-hand-pointer" aria-hidden="true"></i> Arraste para olhar ao redor; use os controles para aproximar.</p>
                 </section>
-
-                <aside class="map-card" aria-labelledby="map-title">
-                    <div class="section-heading map-heading">
-                        <div>
-                            <span class="eyebrow">Seu palpite</span>
-                            <h3 id="map-title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Onde estamos?</h3>
-                        </div>
-                        <button id="expand-map-button" class="map-expand-button" type="button" aria-haspopup="dialog" aria-controls="map-dialog" aria-expanded="false">
-                            <i class="fas fa-expand-alt" aria-hidden="true"></i> Ampliar mapa
-                        </button>
-                    </div>
-                    <div id="map-inline-slot" class="map-inline-slot">
-                        <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar e ajustar seu palpite"></div>
-                    </div>
-                    <p id="map-status" class="map-status" role="status" aria-live="polite">Marque no mapa o local onde acredita que a paisagem está.</p>
-                    <button id="retry-map-button" class="secondary-button retry-map-button" type="button" hidden>
-                        <i class="fas fa-redo" aria-hidden="true"></i> Tentar carregar mapa novamente
-                    </button>
-                    <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
-                    <p id="new-location-hint" class="new-location-hint">Confirme o palpite para registrar a rodada e liberar outro cenário.</p>
-                </aside>
             </div>
-
-            <section id="result-panel" class="result-panel" hidden aria-live="polite"></section>
+            <p id="new-location-hint" class="new-location-hint">Confirme o palpite para registrar a rodada e liberar outro cenário.</p>
         </section>
 
         <section id="final-panel" class="final-panel" hidden aria-live="polite">
@@ -103,6 +102,10 @@
         </div>
         <div id="map-dialog-slot" class="map-dialog-slot"></div>
         <p>Toque ou clique para reposicionar o marcador; arraste-o para ajustar com precisão.</p>
+        <p id="map-dialog-status" class="map-dialog-status" role="status" aria-live="polite">Escolha um ponto no mapa para habilitar seu palpite.</p>
+        <div class="map-dialog-actions">
+            <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
+        </div>
     </dialog>
 
     <nav class="nav-bar" aria-label="Navegação principal"></nav>

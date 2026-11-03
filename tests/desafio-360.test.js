@@ -219,9 +219,9 @@ test('game starts with a local panorama, preserves map guess, scores once, and a
     const marcador = jogo.marcadores[0];
     elemento('expand-map-button').click();
     assert.equal(elemento('map-dialog').open, true);
-    elemento('close-map-button').click();
-    assert.equal(jogo.marcadores[0], marcador);
+    elemento('confirm-button').click();
     assert.equal(elemento('map-dialog').open, false);
+    assert.equal(jogo.marcadores[0], marcador);
 
     elemento('confirm-button').click();
     elemento('confirm-button').click();
@@ -229,12 +229,24 @@ test('game starts with a local panorama, preserves map guess, scores once, and a
     assert.match(elemento('result-panel').children[0].children[0].children[1].textContent, new RegExp(primeiro.nome));
     assert.match(elemento('result-panel').children[0].children[1].textContent, /5\.000 \/ 5\.000 pontos/);
 
-    elemento('new-location-button').click();
+    elemento('result-panel').children[4].children[0].click();
     assert.equal(jogo.eventosPanorama.length, 2);
     assert.equal(jogo.eventosPanorama[1].configuracao.panorama, segundo.panoramaPath);
     assert.equal(elemento('result-panel').hidden, true);
-    assert.equal(elemento('confirm-button').disabled, true);
+    assert.equal(elemento('confirm-button').disabled, false);
     assert.equal(jogo.mapas[0].layers.has(marcador), false);
+});
+
+test('expanded-map confirmation without a selected point explains how to continue', function () {
+    const jogo = criarAmbiente();
+    const clicar = (id) => jogo.elementos.get(id).click();
+
+    clicar('expand-map-button');
+    clicar('confirm-button');
+
+    assert.equal(jogo.elementos.get('map-dialog').open, true);
+    assert.equal(jogo.elementos.get('result-panel').hidden, true);
+    assert.match(jogo.elementos.get('map-dialog-status').textContent, /Ainda não há um ponto selecionado/);
 });
 
 test('failed panorama offers retry and an alternate without recording a result', function () {
