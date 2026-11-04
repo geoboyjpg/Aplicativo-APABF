@@ -894,6 +894,16 @@
     min-height: 0;
 }
 
+.leaflet-top.leaflet-right {
+    top: 8px;
+    right: 8px;
+}
+
+.leaflet-top.leaflet-right .leaflet-control {
+    margin-top: 0;
+    margin-right: 0;
+}
+
 .map-dialog > p {
     flex: 0 0 auto;
     margin: 9px 0 0;
@@ -1413,7 +1423,7 @@ body.challenge-page .nav-bar {
     pointer-events: none;
 }
 
-.panorama-card .section-heading {
+.panorama-card > .section-heading {
     display: none;
 }
 

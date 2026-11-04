@@ -54,13 +54,17 @@ function criarAmbiente(opcoes = {}) {
                 (listeners[tipo] || []).forEach((callback) => callback(evento));
             },
             click() {
-                if (!this.disabled) this.dispatch('click', { target: this });
+                if (!this.disabled) this.dispatch('click', { target: this, stopPropagation() {} });
             },
             append(...items) {
                 this.children.push(...items);
             },
             appendChild(item) {
+                if (item.parentElement) {
+                    item.parentElement.children = item.parentElement.children.filter((child) => child !== item);
+                }
                 this.children.push(item);
+                item.parentElement = this;
                 return item;
             },
             replaceChildren(...items) {
@@ -70,6 +74,7 @@ function criarAmbiente(opcoes = {}) {
             focus() {},
             showModal() {
                 this.open = true;
+                this.topLayerOrder = ++ordemTopLayer;
             },
             show() {
                 this.open = true;
@@ -100,12 +105,13 @@ function criarAmbiente(opcoes = {}) {
         }
     };
 
-    function criarMapa(element) {
+    function criarMapa(element, options) {
         const layers = new Set();
         const listeners = {};
         const map = {
             element,
             layers,
+            options,
             setView(center, zoom) { this.center = center; this.zoom = zoom; return this; },
             latLngToContainerPoint() { return { x: 200, y: 120 }; },
             on(tipo, callback) { listeners[tipo] = callback; return this; },
@@ -139,6 +145,17 @@ function criarAmbiente(opcoes = {}) {
             const camada = criarCamada();
             camadasTiles.push({ url, options, camada });
             return camada;
+        },
+        control: {
+            zoom(options) {
+                return {
+                    options,
+                    addTo(map) {
+                        map.zoomControl = this;
+                        return this;
+                    }
+                };
+            }
         },
         marker(ponto, options) {
             const marcador = criarCamada();
@@ -270,6 +287,8 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     assert.match(css, /\.tutorial-dialog\[open\]\s*\{[^}]*inset:[\s\S]*?auto auto/s);
     assert.match(css, /\.tutorial-panorama-drag::after\s*\{[^}]*color:\s*#f4c95d[^}]*opacity:\s*1/s);
     assert.match(css, /\.panorama-stage\.tutorial-panorama-drag \.tutorial-panorama-guide/);
+    assert.match(css, /\.panorama-card > \.section-heading\s*\{\s*display:\s*none/s);
+    assert.doesNotMatch(css, /\.panorama-card \.section-heading\s*\{\s*display:\s*none/s);
     assert.match(css, /\.tutorial-panorama-moved::before,[\s\S]*?opacity:\s*1/);
     assert.match(css, /\.tutorial-map-pick::before\s*\{\s*content:\s*none/s);
 
@@ -340,6 +359,49 @@ test('expanded-map confirmation without a selected point explains how to continu
     clicar('confirm-button');
     assert.equal(jogo.elementos.get('result-panel').hidden, false);
     assert.equal(jogo.elementos.get('map-dialog').open, false);
+});
+
+test('expanded map reuses the Leaflet instance, preserves the guess, and separates zoom controls', function () {
+    const jogo = criarAmbiente({ escolhaInicial: 'skip' });
+    const elemento = (id) => jogo.elementos.get(id);
+    const mapa = jogo.mapas[0];
+    const palpite = { lat: -28.42, lng: -48.71 };
+
+    assert.equal(mapa.options.zoomControl, false);
+    assert.equal(mapa.zoomControl.options.position, 'topright');
+    mapa.emit('click', { latlng: palpite });
+    const marcador = jogo.marcadores[0];
+
+    elemento('expand-map-button').click();
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('map-dialog').topLayerOrder > 0, true);
+    assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), true);
+    assert.equal(elemento('guess-map').parentElement.id, 'map-dialog-slot');
+    assert.equal(jogo.mapas.length, 1);
+    assert.equal(marcador.latlng, palpite);
+
+    const novoPalpite = { lat: -28.31, lng: -48.68 };
+    mapa.emit('click', { latlng: novoPalpite });
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(jogo.marcadores[0], marcador);
+    assert.deepEqual(marcador.latlng, novoPalpite);
+    assert.equal(elemento('confirm-button').disabled, false);
+    elemento('close-map-button').click();
+
+    assert.equal(elemento('map-dialog').open, false);
+    assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), false);
+    assert.equal(elemento('guess-map').parentElement.id, 'map-inline-slot');
+    assert.equal(jogo.mapas[0], mapa);
+    assert.equal(jogo.marcadores[0], marcador);
+    assert.deepEqual(marcador.latlng, novoPalpite);
+    assert.equal(elemento('confirm-button').disabled, false);
+
+    elemento('expand-map-button').click();
+    assert.equal(elemento('map-dialog').open, true);
+    mapa.emit('click', { latlng: { lat: -28.2, lng: -48.6 } });
+    elemento('confirm-button').click();
+    assert.equal(elemento('result-panel').hidden, false);
+    assert.equal(elemento('map-dialog').open, false);
 });
 
 test('minimized map enables the shared confirmation only after selecting a point', function () {

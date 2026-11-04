@@ -478,7 +478,11 @@
             return false;
         }
         try {
-            var mapa = window.L.map(mapaElement, { scrollWheelZoom: true }).setView([-28.235, -48.668], 10);
+            var mapa = window.L.map(mapaElement, {
+                scrollWheelZoom: true,
+                zoomControl: false
+            }).setView([-28.235, -48.668], 10);
+            window.L.control.zoom({ position: 'topright' }).addTo(mapa);
             var camada = window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -896,6 +900,15 @@
         window.setTimeout(atualizar, movimentoReduzido ? 0 : 70);
     }
 
+    function atualizarDimensoesMapa() {
+        window.setTimeout(function () {
+            if (estado.mapa) {
+                estado.mapa.invalidateSize();
+                atualizarCursorTutorialMapa();
+            }
+        }, 30);
+    }
+
     function abrirMapaAmpliado() {
         if (!estado.mapa || dialogoMapa.open) {
             return;
@@ -903,7 +916,7 @@
         slotMapaDialogo.appendChild(mapaElement);
         slotConfirmacaoDialogo.appendChild(botaoConfirmar);
         jogo.classList.toggle('is-map-expanded', true);
-        dialogoMapa.show();
+        dialogoMapa.showModal();
         botaoAmpliarMapa.setAttribute('aria-expanded', 'true');
         if (tutorialAtivo && etapaTutorial === 1) {
             etapaTutorial = 2;
@@ -913,10 +926,7 @@
             ], 14);
             atualizarEtapaTutorial();
         }
-        window.setTimeout(function () {
-            estado.mapa.invalidateSize();
-            atualizarCursorTutorialMapa();
-        }, 30);
+        atualizarDimensoesMapa();
     }
 
     function fecharMapaAmpliado() {
@@ -931,8 +941,7 @@
         jogo.classList.toggle('is-map-expanded', false);
         botaoAmpliarMapa.setAttribute('aria-expanded', 'false');
         if (estado.mapa) {
-            estado.mapa.invalidateSize();
-            atualizarCursorTutorialMapa();
+            atualizarDimensoesMapa();
         }
         if (painelResultado.hidden) {
             botaoAmpliarMapa.focus();
@@ -1245,7 +1254,10 @@
         escolherLocal();
     });
     document.getElementById('retry-panorama-button').addEventListener('click', tentarNovamente);
-    botaoConfirmar.addEventListener('click', confirmarResposta);
+    botaoConfirmar.addEventListener('click', function (evento) {
+        evento.stopPropagation();
+        confirmarResposta();
+    });
     document.getElementById('tutorial-button').addEventListener('click', iniciarDemonstracao);
     document.getElementById('learn-to-play-button').addEventListener('click', iniciarDemonstracao);
     document.getElementById('skip-tutorial-button').addEventListener('click', pularTutorial);
@@ -1263,8 +1275,14 @@
             atualizarEtapaTutorial();
         }
     });
-    botaoAmpliarMapa.addEventListener('click', abrirMapaAmpliado);
-    document.getElementById('close-map-button').addEventListener('click', fecharMapaAmpliado);
+    botaoAmpliarMapa.addEventListener('click', function (evento) {
+        evento.stopPropagation();
+        abrirMapaAmpliado();
+    });
+    document.getElementById('close-map-button').addEventListener('click', function (evento) {
+        evento.stopPropagation();
+        fecharMapaAmpliado();
+    });
     dialogoMapa.addEventListener('close', aoFecharMapaAmpliado);
     document.getElementById('restart-button').addEventListener('click', iniciarSessao);
     botaoTentarMapa.addEventListener('click', tentarCarregarMapa);
