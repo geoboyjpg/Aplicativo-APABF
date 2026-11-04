@@ -26,7 +26,7 @@ function criarAmbiente(opcoes = {}) {
         return {
             id,
             children: [],
-            hidden: false,
+            hidden: id === 'tutorial-dialog',
             disabled: false,
             open: false,
             classList: {
@@ -58,6 +58,9 @@ function criarAmbiente(opcoes = {}) {
             setAttribute() {},
             focus() {},
             showModal() {
+                this.open = true;
+            },
+            show() {
                 this.open = true;
             },
             close() {
@@ -221,6 +224,18 @@ test('the game is linked from Services and not from the homepage cards', functio
     assert.match(services, /href="desafio-360\.html"/);
 });
 
+test('immersive layout keeps the panorama interactive behind a click-through tutorial and result panel', function () {
+    const html = fs.readFileSync(path.join(ROOT, 'desafio-360.html'), 'utf8');
+    const css = fs.readFileSync(path.join(ROOT, 'desafio-360.css'), 'utf8');
+
+    assert.match(html, /<section id="tutorial-dialog"[^>]+hidden/);
+    assert.match(css, /\.game-layout,\s*\.panorama-card,\s*\.panorama-stage\s*\{[^}]*height:\s*100dvh/s);
+    assert.match(css, /\.tutorial-dialog\s*\{[^}]*pointer-events:\s*none/s);
+    assert.match(css, /\.tutorial-actions button\s*\{[^}]*pointer-events:\s*auto/s);
+    assert.match(css, /\.panorama-stage\.is-result #panorama\s*\{\s*display:\s*block/s);
+    assert.match(css, /\.result-panel\s*\{[^}]*position:\s*fixed/s);
+});
+
 test('game starts with a local panorama, preserves map guess, scores once, and advances without reload', function () {
     const jogo = criarAmbiente();
     const [primeiro, segundo] = jogo.locais.filter((local) => local.panoramaPath);
@@ -300,8 +315,11 @@ test('tutorial navigates, demonstrates the expanded map, can be skipped, and can
     const jogo = criarAmbiente();
     const elemento = (id) => jogo.elementos.get(id);
 
-    assert.equal(elemento('tutorial-dialog').open, true);
+    assert.equal(elemento('tutorial-dialog').hidden, false);
     assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
+    elemento('panorama').dispatch('pointerdown', { clientX: 100, clientY: 100 });
+    elemento('panorama').dispatch('pointermove', { clientX: 130, clientY: 101 });
+    assert.match(elemento('tutorial-copy').textContent, /Ótimo!/);
     elemento('tutorial-next').click();
     assert.match(elemento('tutorial-copy').textContent, /Utilize o mapa/);
     assert.equal(elemento('expand-map-button').classList.contains('tutorial-target'), true);
@@ -309,23 +327,22 @@ test('tutorial navigates, demonstrates the expanded map, can be skipped, and can
     elemento('tutorial-next').click();
     assert.equal(elemento('map-dialog').open, true);
     assert.equal(elemento('guess-map').classList.contains('tutorial-map-pick'), true);
-    elemento('tutorial-previous').click();
-    assert.equal(elemento('map-dialog').open, false);
-    elemento('tutorial-next').click();
-    elemento('tutorial-next').click();
+    const local = jogo.locais.find((item) => item.panoramaPath);
+    jogo.mapas[0].emit('click', { latlng: { lat: local.latitude, lng: local.longitude } });
     assert.match(elemento('tutorial-copy').textContent, /Confirme sua localização/);
+    assert.equal(elemento('map-dialog').open, false);
     elemento('tutorial-skip').click();
 
-    assert.equal(elemento('tutorial-dialog').open, false);
+    assert.equal(elemento('tutorial-dialog').hidden, true);
     assert.equal(jogo.window.localStorage.getItem('apabf-desafio-360-tutorial-apresentado'), 'true');
     elemento('tutorial-button').click();
-    assert.equal(elemento('tutorial-dialog').open, true);
+    assert.equal(elemento('tutorial-dialog').hidden, false);
     assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
 
     const proximaVisita = criarAmbiente({ armazenamento: jogo.armazenamento });
-    assert.equal(proximaVisita.elementos.get('tutorial-dialog').open, false);
+    assert.equal(proximaVisita.elementos.get('tutorial-dialog').hidden, true);
     proximaVisita.elementos.get('tutorial-button').click();
-    assert.equal(proximaVisita.elementos.get('tutorial-dialog').open, true);
+    assert.equal(proximaVisita.elementos.get('tutorial-dialog').hidden, false);
 });
 
 test('failed panorama offers retry and an alternate without recording a result', function () {

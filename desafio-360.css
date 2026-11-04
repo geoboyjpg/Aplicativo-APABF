@@ -1253,3 +1253,757 @@
         animation-iteration-count: 1 !important;
     }
 }
+
+/* Immersive game canvas and overlays */
+body.challenge-page {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.challenge-page .nav-bar {
+    display: none !important;
+}
+
+.challenge-shell {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.challenge-header,
+.round-heading,
+.map-card,
+.tutorial-dialog,
+.result-panel,
+.final-panel {
+    pointer-events: auto;
+}
+
+.challenge-header {
+    position: fixed;
+    z-index: 25;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    left: max(12px, env(safe-area-inset-left, 0px));
+    display: block;
+    margin: 0;
+}
+
+.challenge-back {
+    min-height: 40px;
+    padding: 8px 13px;
+    color: #fff;
+    background: rgba(9, 47, 59, 0.72);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+}
+
+.challenge-back:hover {
+    color: #fff;
+    background: rgba(9, 47, 59, 0.92);
+}
+
+.challenge-heading {
+    display: none;
+}
+
+.game-panel {
+    display: contents;
+}
+
+.round-heading {
+    position: fixed;
+    z-index: 20;
+    top: 62px;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    display: block;
+    min-height: 0;
+    margin: 0;
+    padding: 8px 11px;
+    color: #fff;
+    background: rgba(9, 47, 59, 0.54);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    backdrop-filter: blur(7px);
+}
+
+.round-heading > div:first-child {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.round-heading .eyebrow {
+    color: #b9ece3;
+    font-size: 0.62rem;
+}
+
+.round-heading h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.round-actions {
+    display: contents;
+}
+
+.round-progress {
+    position: fixed;
+    z-index: 21;
+    top: 112px;
+    left: max(16px, env(safe-area-inset-left, 0px));
+    padding: 4px 7px;
+    background: rgba(9, 47, 59, 0.42);
+    border-radius: 10px;
+}
+
+.round-progress span {
+    background: rgba(255, 255, 255, 0.45);
+}
+
+#tutorial-button {
+    position: fixed;
+    z-index: 51;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    right: max(14px, env(safe-area-inset-right, 0px));
+    min-width: 42px;
+    min-height: 42px;
+    padding: 8px 12px;
+    color: #fff;
+    background: rgba(9, 47, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    backdrop-filter: blur(8px);
+}
+
+#new-location-button {
+    display: none;
+}
+
+.game-layout,
+.panorama-card,
+.panorama-stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+}
+
+.panorama-card {
+    z-index: 0;
+    overflow: visible;
+    background: #092f3b;
+    border-radius: 0;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.panorama-card .section-heading {
+    display: none;
+}
+
+.panorama-stage {
+    isolation: auto;
+    pointer-events: none;
+}
+
+.panorama-view {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.panorama-view .pnlm-container {
+    touch-action: none;
+}
+
+.map-card {
+    position: fixed;
+    z-index: 30;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    width: min(320px, 30vw);
+    max-height: calc(100dvh - 100px);
+    overflow: auto;
+    padding: 9px;
+    pointer-events: auto;
+    background: rgba(247, 250, 249, 0.92);
+    backdrop-filter: blur(9px);
+}
+
+.map-inline-slot,
+.guess-map {
+    min-height: 0;
+    height: clamp(125px, 20vh, 190px);
+}
+
+.map-status {
+    margin-top: 4px;
+}
+
+.map-confirm-slot .confirm-button {
+    min-height: 38px;
+}
+
+.panorama-status,
+.panorama-error-actions,
+.panorama-hint,
+.new-location-hint {
+    position: fixed;
+    z-index: 15;
+    left: 16px;
+    max-width: min(360px, 42vw);
+    padding: 5px 9px;
+    color: #fff;
+    background: rgba(9, 47, 59, 0.55);
+    border-radius: 8px;
+    pointer-events: auto;
+}
+
+.panorama-status {
+    bottom: 42px;
+    margin: 0;
+}
+
+.panorama-error-actions {
+    bottom: 70px;
+}
+
+.panorama-hint {
+    bottom: 10px;
+    margin: 0;
+    font-size: 0.74rem;
+}
+
+.panorama-hint i {
+    color: #b9ece3;
+}
+
+.new-location-hint {
+    display: none;
+}
+
+.tutorial-dialog[hidden] {
+    display: none !important;
+}
+
+.tutorial-dialog {
+    position: fixed;
+    z-index: 70;
+    top: max(64px, calc(env(safe-area-inset-top, 0px) + 56px));
+    right: max(14px, env(safe-area-inset-right, 0px));
+    width: min(370px, calc(100vw - 28px));
+    max-height: calc(100dvh - 86px);
+    overflow: visible;
+    color: #203638;
+    pointer-events: none;
+}
+
+.tutorial-card {
+    padding: 14px 16px;
+    background: rgba(247, 250, 249, 0.86);
+    border-color: rgba(207, 226, 220, 0.75);
+    box-shadow: 0 8px 24px rgba(4, 25, 32, 0.16);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+
+.tutorial-card h2 {
+    margin-bottom: 5px;
+    font-size: 1.08rem;
+}
+
+.tutorial-card > p {
+    min-height: 0;
+    font-size: 0.88rem;
+}
+
+.tutorial-progress {
+    margin: 10px 0;
+}
+
+.tutorial-actions {
+    pointer-events: none;
+}
+
+.tutorial-actions button {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 0.76rem;
+    pointer-events: auto;
+}
+
+.tutorial-target {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.map-card.tutorial-target {
+    outline: 2px solid #f4c95d !important;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(244, 201, 93, 0.3), 0 10px 28px rgba(4, 25, 32, 0.28) !important;
+}
+
+.map-expand-button.tutorial-target,
+.confirm-button.tutorial-target {
+    outline: 3px solid #f4c95d !important;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(244, 201, 93, 0.3) !important;
+}
+
+.tutorial-panorama-drag::after {
+    z-index: 8;
+    top: 56%;
+    left: 48%;
+    font-size: 2.4rem;
+    content: "\f25a";
+    animation: tutorial-drag 1.8s ease-in-out infinite;
+}
+
+.tutorial-panorama-drag::before {
+    position: absolute;
+    z-index: 8;
+    top: calc(56% + 13px);
+    left: calc(48% + 42px);
+    color: #fff;
+    font: 900 1.5rem/1 "Font Awesome 6 Free";
+    content: "\f178";
+    filter: drop-shadow(0 2px 3px rgba(9, 47, 59, 0.8));
+    pointer-events: none;
+    animation: tutorial-arrow 1.8s ease-in-out infinite;
+}
+
+.tutorial-panorama-moved::before,
+.tutorial-panorama-moved::after {
+    opacity: 0.35;
+    animation-play-state: paused;
+}
+
+.tutorial-expand-cursor::after {
+    top: auto;
+    right: auto;
+    bottom: 38px;
+    left: -28px;
+}
+
+.tutorial-map-pick::after {
+    top: 48%;
+    left: 50%;
+}
+
+.tutorial-map-pick::before {
+    position: absolute;
+    z-index: 500;
+    top: 48%;
+    left: 56%;
+    color: #d97706;
+    font: 900 1.4rem/1 "Font Awesome 6 Free";
+    content: "\f0a6";
+    filter: drop-shadow(0 1px 2px #fff);
+    pointer-events: none;
+    animation: tutorial-map-tap 1.4s ease-in-out infinite;
+}
+
+.result-panel {
+    position: fixed;
+    z-index: 28;
+    top: 50%;
+    left: max(14px, env(safe-area-inset-left, 0px));
+    width: min(350px, 30vw);
+    height: min(78dvh, 690px);
+    min-height: 0;
+    overflow: hidden;
+    color: #294345;
+    background: rgba(241, 247, 245, 0.92);
+    border: 1px solid rgba(220, 233, 230, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 12px 36px rgba(4, 25, 32, 0.28);
+    backdrop-filter: blur(10px);
+    transform: translateY(-50%);
+    animation: result-panel-in 0.32s ease-out both;
+}
+
+.panorama-stage.is-result #panorama {
+    display: block;
+}
+
+.panorama-stage.is-result .map-card {
+    display: none;
+}
+
+.panorama-stage.is-result ~ .panorama-status,
+.panorama-stage.is-result ~ .panorama-hint,
+.panorama-stage.is-result ~ .panorama-error-actions {
+    display: none;
+}
+
+.result-layout {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+
+.result-map-column {
+    flex: 0 0 155px;
+    min-height: 100px;
+    border-radius: 10px;
+}
+
+.result-map-legend {
+    gap: 6px 12px;
+    padding: 6px 9px;
+    font-size: 0.7rem;
+}
+
+.result-info {
+    gap: 6px;
+    padding: 0 2px;
+}
+
+.result-info-heading {
+    margin-bottom: 0;
+}
+
+.result-info-heading h2 {
+    margin-top: 2px;
+    font-size: 1.2rem;
+}
+
+.result-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 0;
+}
+
+.result-metric {
+    min-height: 58px;
+    gap: 4px;
+    padding: 8px;
+}
+
+.result-metric > span {
+    font-size: 0.68rem;
+}
+
+.result-metric strong,
+.score-badge {
+    font-size: 0.98rem;
+}
+
+.result-location-coordinates {
+    margin: 2px 0;
+}
+
+.result-education {
+    gap: 0;
+}
+
+.result-education h3 {
+    margin-top: 4px;
+    font-size: 0.88rem;
+}
+
+.result-education p,
+.result-education ul {
+    font-size: 0.74rem;
+}
+
+.result-performance {
+    margin: 3px 0;
+    font-size: 0.78rem;
+}
+
+.result-actions {
+    position: sticky;
+    bottom: -3px;
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding: 6px 0 2px;
+}
+
+.result-actions .primary-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px;
+    font-size: 0.82rem;
+}
+
+.final-panel {
+    position: fixed;
+    z-index: 40;
+    top: 50%;
+    left: 50%;
+    width: min(900px, calc(100vw - 28px));
+    max-height: calc(100dvh - 30px);
+    overflow: auto;
+    transform: translate(-50%, -50%);
+}
+
+.map-dialog {
+    z-index: 60;
+}
+
+.map-dialog::backdrop {
+    background: rgba(4, 25, 32, 0.58);
+}
+
+@keyframes tutorial-arrow {
+    50% { transform: translateX(10px); opacity: 0.75; }
+}
+
+@keyframes tutorial-map-tap {
+    50% { transform: translateY(-5px) scale(0.9); }
+}
+
+@keyframes result-panel-in {
+    from { opacity: 0; transform: translate(-8px, -50%); }
+    to { opacity: 1; transform: translate(0, -50%); }
+}
+
+@media (max-width: 700px) {
+    .round-heading {
+        top: 57px;
+        left: 8px;
+        padding: 6px 8px;
+    }
+
+    .round-heading .eyebrow {
+        display: none;
+    }
+
+    .round-heading h2 {
+        font-size: 0.82rem;
+    }
+
+    .round-progress {
+        top: 94px;
+        left: 10px;
+    }
+
+    #tutorial-button {
+        top: max(9px, env(safe-area-inset-top, 0px));
+        right: max(8px, env(safe-area-inset-right, 0px));
+        width: 40px;
+        min-width: 40px;
+        padding: 8px;
+        font-size: 0;
+    }
+
+    #tutorial-button i {
+        font-size: 1rem;
+    }
+
+    .challenge-header {
+        top: max(8px, env(safe-area-inset-top, 0px));
+        left: max(8px, env(safe-area-inset-left, 0px));
+    }
+
+    .challenge-back {
+        min-height: 38px;
+        padding: 7px 10px;
+        font-size: 0.78rem;
+    }
+
+    .map-card {
+        right: max(7px, env(safe-area-inset-right, 0px));
+        bottom: max(7px, env(safe-area-inset-bottom, 0px));
+        width: min(280px, 62vw);
+        max-height: 48dvh;
+        padding: 7px;
+    }
+
+    .map-inline-slot,
+    .guess-map {
+        height: clamp(105px, 16dvh, 150px);
+    }
+
+    .tutorial-dialog {
+        z-index: 70;
+        top: max(54px, calc(env(safe-area-inset-top, 0px) + 50px));
+        right: 7px;
+        width: min(280px, 70vw);
+    }
+
+    .tutorial-card {
+        padding: 10px;
+    }
+
+    .tutorial-card h2 {
+        font-size: 0.95rem;
+    }
+
+    .tutorial-card > p {
+        font-size: 0.78rem;
+    }
+
+    .tutorial-actions button {
+        min-height: 34px;
+        padding: 6px 7px;
+        font-size: 0.68rem;
+    }
+
+    .result-panel {
+        top: auto;
+        right: max(7px, env(safe-area-inset-right, 0px));
+        bottom: max(7px, env(safe-area-inset-bottom, 0px));
+        left: max(7px, env(safe-area-inset-left, 0px));
+        width: auto;
+        height: min(56dvh, 470px);
+        transform: none;
+        animation-name: result-sheet-in;
+    }
+
+    .result-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        grid-template-rows: minmax(0, 1fr);
+        gap: 7px;
+        padding: 7px;
+    }
+
+    .result-map-column {
+        min-height: 0;
+        flex-basis: auto;
+    }
+
+    .result-info {
+        overflow: auto;
+        gap: 4px;
+    }
+
+    .result-info-heading h2 {
+        font-size: 1rem;
+    }
+
+    .result-metric {
+        min-height: 50px;
+        padding: 6px;
+    }
+
+    .result-metric strong,
+    .score-badge {
+        font-size: 0.84rem;
+    }
+
+    .result-performance {
+        font-size: 0.68rem;
+    }
+
+    .result-actions {
+        padding-top: 2px;
+    }
+
+    .result-actions .primary-button {
+        min-height: 34px;
+        font-size: 0.72rem;
+    }
+}
+
+@media (max-width: 430px) {
+    .result-layout {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .result-map-column {
+        min-height: 95px;
+    }
+
+    .result-map-legend {
+        display: grid;
+        gap: 3px;
+        padding: 4px;
+        font-size: 0.62rem;
+    }
+
+    .result-metrics {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .result-metric {
+        min-height: 39px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+}
+
+@media (max-height: 560px) {
+    .map-card {
+        max-height: calc(100dvh - 70px);
+    }
+
+    @media (max-width: 700px) and (max-height: 520px) {
+        .map-card {
+            max-height: 43dvh;
+        }
+
+        .map-inline-slot,
+        .guess-map {
+            height: 85px;
+        }
+
+        .tutorial-dialog {
+            top: 50px;
+            width: min(250px, 60vw);
+        }
+
+        .tutorial-progress {
+            margin: 6px 0;
+        }
+
+        .tutorial-card > p {
+            font-size: 0.7rem;
+        }
+    }
+
+    .map-inline-slot,
+    .guess-map {
+        height: 105px;
+    }
+
+    .tutorial-dialog {
+        max-height: calc(100dvh - 70px);
+    }
+
+    .tutorial-card {
+        padding: 8px 10px;
+    }
+
+    .result-panel {
+        height: min(86dvh, calc(100dvh - 20px));
+    }
+}
+
+@keyframes result-sheet-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tutorial-panorama-drag::before,
+    .tutorial-panorama-drag::after,
+    .tutorial-map-pick::before,
+    .tutorial-map-pick::after {
+        animation: none !important;
+    }
+}
