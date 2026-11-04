@@ -48,7 +48,13 @@
                         <h3 id="panorama-title"><i class="fas fa-binoculars" aria-hidden="true"></i> Observe a paisagem</h3>
                     </div>
                     <div id="panorama-stage" class="panorama-stage">
-                        <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem"></div>
+                        <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem">
+                        </div>
+                        <div id="tutorial-panorama-guide" class="tutorial-panorama-guide" aria-hidden="true">
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                            <i class="fas fa-hand-pointer" aria-hidden="true"></i>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </div>
                         <aside id="map-card" class="map-card" aria-labelledby="map-title">
                             <div class="section-heading map-heading">
                                 <div>
@@ -102,7 +108,7 @@
                 <span class="eyebrow">Ajuste seu palpite</span>
                 <h2 id="map-dialog-title">Mapa ampliado</h2>
             </div>
-            <button id="close-map-button" class="map-close-button" type="button" aria-label="Reduzir mapa e fechar">
+            <button id="close-map-button" class="map-close-button" type="button" aria-label="Minimizar mapa">
                 <i class="fas fa-compress-alt" aria-hidden="true"></i> Reduzir mapa
             </button>
         </div>
@@ -112,17 +118,29 @@
         <div id="map-dialog-actions" class="map-dialog-actions"></div>
     </dialog>
 
+    <dialog id="tutorial-choice-dialog" class="tutorial-choice-dialog" aria-labelledby="tutorial-choice-title">
+        <div class="tutorial-choice-card">
+            <span class="eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Desafio 360°</span>
+            <h2 id="tutorial-choice-title">Como jogar?</h2>
+            <p>Antes de começar sua aventura pela APA da Baleia Franca, você gostaria de conhecer o funcionamento do jogo?</p>
+            <div class="tutorial-choice-actions">
+                <button id="learn-to-play-button" class="primary-button" type="button">Aprender a jogar</button>
+                <button id="skip-tutorial-button" class="secondary-button" type="button">Já sei jogar</button>
+            </div>
+        </div>
+    </dialog>
+
     <dialog id="tutorial-dialog" class="tutorial-dialog" aria-labelledby="tutorial-title" aria-live="polite" hidden>
         <div class="tutorial-card">
-            <span id="tutorial-step-label" class="eyebrow">Etapa 1 de 4</span>
-            <h2 id="tutorial-title">Como jogar</h2>
+            <span id="tutorial-step-label" class="eyebrow">Etapa 1 de 5</span>
+            <h2 id="tutorial-title">Explore o ambiente!</h2>
             <p id="tutorial-copy"></p>
             <div class="tutorial-progress" id="tutorial-progress" aria-label="Etapas do tutorial"></div>
             <div class="tutorial-actions">
-                <button id="tutorial-skip" class="secondary-button" type="button">Pular tutorial</button>
+                <button id="tutorial-skip" class="secondary-button" type="button">Pular e iniciar partida</button>
                 <div>
                     <button id="tutorial-previous" class="secondary-button" type="button">Voltar</button>
-                    <button id="tutorial-next" class="primary-button" type="button">Próxima</button>
+                    <button id="tutorial-next" class="primary-button" type="button">Prosseguir</button>
                 </div>
             </div>
         </div>

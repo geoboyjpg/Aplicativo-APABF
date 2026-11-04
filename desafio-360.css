@@ -2093,3 +2093,176 @@ body.challenge-page .nav-bar {
         font-size: 0.7rem;
     }
 }
+
+.tutorial-panorama-guide {
+    position: absolute;
+    z-index: 12;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 2.5vw, 30px);
+    color: #fff;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}
+
+.tutorial-panorama-guide > i:first-child,
+.tutorial-panorama-guide > i:last-child {
+    color: #f4c95d;
+    filter: drop-shadow(0 2px 3px #092f3b);
+}
+
+.tutorial-panorama-guide > i:first-child {
+    animation: tutorial-arrow-left 3.6s ease-in-out infinite;
+}
+
+.tutorial-panorama-guide > i:last-child {
+    animation: tutorial-arrow-right 3.6s ease-in-out infinite;
+}
+
+.tutorial-panorama-guide > i:nth-child(2) {
+    color: #fff;
+    font-size: clamp(2.4rem, 5vw, 3.5rem);
+    filter: drop-shadow(0 2px 4px #092f3b);
+    animation: tutorial-hand-sweep 3.6s ease-in-out infinite;
+}
+
+.panorama-stage.tutorial-panorama-drag .tutorial-panorama-guide {
+    opacity: 1;
+}
+
+.panorama-stage.tutorial-panorama-drag::before,
+.panorama-stage.tutorial-panorama-drag::after {
+    display: none !important;
+    content: none !important;
+}
+
+.panorama-view.tutorial-panorama-interacting ~ .tutorial-panorama-guide {
+    opacity: 0;
+}
+
+.game-panel.is-map-expanded .map-card {
+    display: none !important;
+}
+
+.guess-map.tutorial-target {
+    outline: 4px solid #f4c95d;
+    outline-offset: -4px;
+}
+
+.tutorial-map-pointer {
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    color: #f4c95d;
+    font-size: 2rem;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px #092f3b) drop-shadow(0 0 2px #fff);
+    pointer-events: none;
+    transform: translate(-12%, -12%);
+    animation: tutorial-map-tap 1.15s ease-in-out infinite;
+}
+
+.tutorial-map-pointer.is-visible {
+    display: block;
+}
+
+.tutorial-choice-dialog {
+    position: fixed;
+    inset: 0;
+    width: min(460px, calc(100vw - 28px));
+    max-width: none;
+    max-height: calc(100dvh - 28px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    color: #203638;
+    background: transparent;
+    border: 0;
+}
+
+.tutorial-choice-dialog::backdrop {
+    background: rgba(4, 25, 32, 0.68);
+    backdrop-filter: blur(3px);
+}
+
+.tutorial-choice-card {
+    padding: clamp(20px, 5vw, 30px);
+    background: #f7faf9;
+    border: 1px solid #cfe2dc;
+    border-radius: 17px;
+    box-shadow: 0 18px 60px rgba(4, 25, 32, 0.35);
+}
+
+.tutorial-choice-card h2 {
+    margin: 8px 0;
+    color: #092f3b;
+    font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.tutorial-choice-card > p {
+    margin: 0;
+    color: #526b6d;
+    line-height: 1.55;
+}
+
+.tutorial-choice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.tutorial-choice-actions > button {
+    flex: 1 1 170px;
+}
+
+@keyframes tutorial-hand-sweep {
+    0%, 8%, 100% { transform: translateX(0); }
+    23% { transform: translateX(-58px); }
+    40% { transform: translateX(0); }
+    63% { transform: translateX(58px); }
+    80% { transform: translateX(0); }
+}
+
+@keyframes tutorial-arrow-left {
+    0%, 100% { opacity: 0.5; transform: translateX(4px); }
+    18%, 30% { opacity: 1; transform: translateX(-3px); }
+}
+
+@keyframes tutorial-arrow-right {
+    0%, 100% { opacity: 0.5; transform: translateX(-4px); }
+    58%, 70% { opacity: 1; transform: translateX(3px); }
+}
+
+@media (max-width: 700px) {
+    .tutorial-panorama-guide {
+        gap: 15px;
+    }
+
+    .tutorial-panorama-guide > i:nth-child(2) {
+        font-size: 2.5rem;
+    }
+
+    .tutorial-choice-actions {
+        flex-direction: column;
+    }
+
+    .tutorial-choice-actions > button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tutorial-panorama-guide > i,
+    .tutorial-map-pointer {
+        animation: none !important;
+    }
+
+    .panorama-view.tutorial-panorama-interacting ~ .tutorial-panorama-guide {
+        opacity: 0;
+    }
+}

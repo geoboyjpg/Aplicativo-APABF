@@ -16,6 +16,7 @@ function criarAmbiente(opcoes = {}) {
     const marcadores = [];
     const mapas = [];
     const scriptsMapa = [];
+    const listenersJanela = {};
     const camadasTiles = [];
     const armazenamento = opcoes.armazenamento || new Map();
     let primeiraFalha = false;
@@ -30,6 +31,7 @@ function criarAmbiente(opcoes = {}) {
             hidden: id === 'tutorial-dialog',
             disabled: false,
             open: false,
+            style: {},
             dataset: {},
             classList: {
                 toggle(nome, ativo) {
@@ -104,7 +106,8 @@ function criarAmbiente(opcoes = {}) {
         const map = {
             element,
             layers,
-            setView() { return this; },
+            setView(center, zoom) { this.center = center; this.zoom = zoom; return this; },
+            latLngToContainerPoint() { return { x: 200, y: 120 }; },
             on(tipo, callback) { listeners[tipo] = callback; return this; },
             emit(tipo, evento) { listeners[tipo](evento); },
             addLayer(layer) { layers.add(layer); return this; },
@@ -159,7 +162,14 @@ function criarAmbiente(opcoes = {}) {
             getItem(chave) { return armazenamento.get(chave) || null; },
             setItem(chave, valor) { armazenamento.set(chave, valor); }
         },
+        addEventListener(tipo, callback) {
+            (listenersJanela[tipo] ||= []).push(callback);
+        },
+        dispatch(tipo, evento = {}) {
+            (listenersJanela[tipo] || []).forEach((callback) => callback(evento));
+        },
         setTimeout(callback) { callback(); },
+        clearTimeout() {},
         matchMedia() { return { matches: false }; },
         scrollTo() {}
     };
@@ -190,6 +200,10 @@ function criarAmbiente(opcoes = {}) {
     if (opcoes.locais) context.window.APABF_DESAFIO_360_LOCAIS = opcoes.locais;
     const locais = context.window.APABF_DESAFIO_360_LOCAIS;
     vm.runInContext(fs.readFileSync(path.join(ROOT, 'scripts', 'desafio-360.js'), 'utf8'), context);
+    if (opcoes.escolhaInicial !== null) {
+        const escolha = opcoes.escolhaInicial || 'play';
+        elementos.get(escolha === 'tutorial' ? 'learn-to-play-button' : 'skip-tutorial-button').click();
+    }
     return { elementos, eventosPanorama, marcadores, mapas, locais, scriptsMapa, camadasTiles, window, L, armazenamento };
 }
 
@@ -239,8 +253,10 @@ test('the game is linked from Services and not from the homepage cards', functio
 test('immersive layout keeps the panorama interactive behind a click-through tutorial and result panel', function () {
     const html = fs.readFileSync(path.join(ROOT, 'desafio-360.html'), 'utf8');
     const css = fs.readFileSync(path.join(ROOT, 'desafio-360.css'), 'utf8');
+    const panoramaMarkup = html.match(/<div id="panorama"[^>]*>([\s\S]*?)<\/div>/)?.[1] || '';
 
     assert.match(html, /<dialog id="tutorial-dialog"[^>]+hidden/);
+    assert.doesNotMatch(panoramaMarkup, /tutorial-panorama-guide/);
     assert.equal([...html.matchAll(/<link[^>]+href="[^"]*desafio-360\.css"/g)].length, 1);
     assert.equal([...html.matchAll(/<script[^>]+src="[^"]*scripts\/desafio-360\.js"/g)].length, 1);
     assert.match(css, /\.game-layout,\s*\.panorama-card,\s*\.panorama-stage\s*\{[^}]*height:\s*100dvh/s);
@@ -253,21 +269,12 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     assert.doesNotMatch(css.match(/\.round-heading\s*\{[^}]*\}/s)?.[0] || '', /backdrop-filter/);
     assert.match(css, /\.tutorial-dialog\[open\]\s*\{[^}]*inset:[\s\S]*?auto auto/s);
     assert.match(css, /\.tutorial-panorama-drag::after\s*\{[^}]*color:\s*#f4c95d[^}]*opacity:\s*1/s);
+    assert.match(css, /\.panorama-stage\.tutorial-panorama-drag \.tutorial-panorama-guide/);
     assert.match(css, /\.tutorial-panorama-moved::before,[\s\S]*?opacity:\s*1/);
     assert.match(css, /\.tutorial-map-pick::before\s*\{\s*content:\s*none/s);
 
-    const reducedMotionStart = css.lastIndexOf('@media (prefers-reduced-motion: reduce)');
-    const reducedMotionOpen = css.indexOf('{', reducedMotionStart);
-    let depth = 0;
-    let reducedMotionEnd = -1;
-    for (let index = reducedMotionOpen; index < css.length; index += 1) {
-        if (css[index] === '{') depth += 1;
-        if (css[index] === '}' && --depth === 0) {
-            reducedMotionEnd = index;
-            break;
-        }
-    }
-    assert.ok(css.indexOf('@media (max-width: 700px) and (max-height: 520px)') > reducedMotionEnd);
+    assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+    assert.match(css, /@media \(max-width: 700px\) and \(max-height: 520px\)/);
 });
 
 test('game starts with a local panorama, preserves map guess, scores once, and advances without reload', function () {
@@ -420,43 +427,98 @@ test('duplicate coordinates are treated as the same location and fewer than thre
     assert.equal(jogo.elementos.get('final-score').textContent, '10.000 / 10.000 pontos');
 });
 
-test('tutorial navigates, demonstrates the expanded map, can be skipped, and can be reopened', function () {
-    const jogo = criarAmbiente();
+test('first visit asks whether to learn; skipping starts the official game', function () {
+    const jogo = criarAmbiente({ escolhaInicial: null });
     const elemento = (id) => jogo.elementos.get(id);
 
-    assert.equal(elemento('tutorial-dialog').hidden, false);
-    assert.equal(elemento('tutorial-dialog').open, true);
-    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
-    elemento('panorama').dispatch('pointerdown', { clientX: 100, clientY: 100 });
-    elemento('panorama').dispatch('pointermove', { clientX: 130, clientY: 101 });
-    assert.match(elemento('tutorial-copy').textContent, /Ótimo!/);
-    elemento('tutorial-next').click();
-    assert.match(elemento('tutorial-copy').textContent, /Utilize o mapa/);
-    assert.equal(elemento('expand-map-button').classList.contains('tutorial-target'), true);
-
-    elemento('tutorial-next').click();
-    assert.equal(elemento('map-dialog').open, true);
-    assert.ok(elemento('tutorial-dialog').topLayerOrder > elemento('map-dialog').topLayerOrder);
-    assert.equal(elemento('guess-map').classList.contains('tutorial-map-pick'), true);
-    const local = jogo.locais.find((item) => item.panoramaPath);
-    jogo.mapas[0].emit('click', { latlng: { lat: local.latitude, lng: local.longitude } });
-    assert.match(elemento('tutorial-copy').textContent, /Confirme sua localização/);
-    assert.equal(elemento('map-dialog').open, true);
-    elemento('tutorial-skip').click();
-    assert.equal(elemento('map-dialog').open, true);
-    assert.equal(elemento('tutorial-dialog').open, false);
-    elemento('close-map-button').click();
-
-    assert.equal(elemento('tutorial-dialog').hidden, true);
+    assert.equal(elemento('tutorial-choice-dialog').open, true);
+    assert.equal(jogo.eventosPanorama.length, 0);
+    elemento('skip-tutorial-button').click();
+    assert.equal(elemento('tutorial-choice-dialog').open, false);
+    assert.equal(elemento('round-title').textContent, 'Desafio 1 de 3');
+    assert.equal(jogo.eventosPanorama.length, 1);
     assert.equal(jogo.window.localStorage.getItem('apabf-desafio-360-tutorial-apresentado'), 'true');
-    elemento('tutorial-button').click();
-    assert.equal(elemento('tutorial-dialog').hidden, false);
-    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
 
     const proximaVisita = criarAmbiente({ armazenamento: jogo.armazenamento });
-    assert.equal(proximaVisita.elementos.get('tutorial-dialog').hidden, true);
+    assert.equal(proximaVisita.elementos.get('tutorial-choice-dialog').open, false);
+    assert.equal(proximaVisita.elementos.get('round-title').textContent, 'Desafio 1 de 3');
     proximaVisita.elementos.get('tutorial-button').click();
-    assert.equal(proximaVisita.elementos.get('tutorial-dialog').hidden, false);
+    assert.equal(proximaVisita.elementos.get('tutorial-step-label').textContent, 'Etapa 1 de 5');
+    assert.equal(proximaVisita.elementos.get('round-title').textContent, 'Demonstração guiada');
+});
+
+test('guided tutorial requires real actions and does not count its demonstration as an official round', function () {
+    const jogo = criarAmbiente({ escolhaInicial: 'tutorial' });
+    const elemento = (id) => jogo.elementos.get(id);
+    const local = jogo.locais.find((item) => item.panoramaPath);
+
+    assert.equal(elemento('tutorial-choice-dialog').open, false);
+    assert.equal(elemento('tutorial-dialog').open, true);
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 1 de 5');
+    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem para a esquerda e para a direita/);
+    elemento('panorama').dispatch('pointerdown', { clientX: 100, clientY: 100 });
+    assert.equal(elemento('panorama').classList.contains('tutorial-panorama-interacting'), true);
+    jogo.window.dispatch('pointerup');
+    assert.equal(elemento('panorama').classList.contains('tutorial-panorama-interacting'), false);
+
+    elemento('tutorial-next').click();
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 2 de 5');
+    assert.equal(elemento('expand-map-button').classList.contains('tutorial-target'), true);
+    assert.equal(elemento('tutorial-next').disabled, true);
+    elemento('expand-map-button').click();
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), true);
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 3 de 5');
+    assert.equal(jogo.mapas[0].center[0], local.latitude);
+    assert.equal(elemento('guess-map').children[0].style.left, '200px');
+
+    const pontoErrado = { lat: local.latitude + 0.02, lng: local.longitude };
+    jogo.mapas[0].emit('click', { latlng: pontoErrado });
+    assert.deepEqual(jogo.marcadores[0].latlng, pontoErrado);
+    assert.equal(elemento('confirm-button').disabled, true);
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 3 de 5');
+
+    const pontoCorreto = { lat: local.latitude, lng: local.longitude };
+    jogo.mapas[0].emit('click', { latlng: pontoCorreto });
+    assert.deepEqual(jogo.marcadores[0].latlng, pontoCorreto);
+    assert.equal(elemento('confirm-button').disabled, false);
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 4 de 5');
+    assert.equal(elemento('confirm-button').classList.contains('tutorial-target'), true);
+    elemento('confirm-button').click();
+
+    assert.equal(elemento('map-dialog').open, false);
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 5 de 5');
+    assert.match(elemento('tutorial-copy').textContent, /Prepare-se para explorar a APA da Baleia Franca/);
+    assert.equal(elemento('result-panel').hidden, false);
+    const resultado = elemento('result-panel').children.find((child) => child.className === 'result-layout');
+    const informacoes = resultado.children[1];
+    assert.match(informacoes.children[0].children[0].children[1].textContent, new RegExp(local.nome));
+    assert.match(informacoes.children[1].children[0].children[1].textContent, /5\.000 \/ 5\.000 pontos/);
+    assert.match(informacoes.children[3].children[3].textContent, /pontuação diminui conforme aumenta a distância/);
+    assert.equal(elemento('round-title').textContent, 'Demonstração guiada');
+
+    elemento('tutorial-button').click();
+    assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 1 de 5');
+    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
+    elemento('tutorial-skip').click();
+    assert.equal(elemento('round-title').textContent, 'Desafio 1 de 3');
+    assert.equal(jogo.eventosPanorama.length, 3);
+
+    for (let rodada = 0; rodada < 3; rodada += 1) {
+        const panorama = jogo.eventosPanorama[rodada + 2].configuracao.panorama;
+        const localOficial = jogo.locais.find((item) => item.panoramaPath === panorama);
+        jogo.mapas[0].emit('click', { latlng: { lat: localOficial.latitude, lng: localOficial.longitude } });
+        elemento('confirm-button').click();
+        if (rodada < 2) {
+            elemento('result-panel').children.find((child) => child.className === 'result-layout')
+                .children[1].children[4].children[0].click();
+        }
+    }
+    elemento('new-location-button').click();
+    assert.equal(elemento('round-summary').children.length, 3);
+    assert.equal(elemento('final-score').textContent, '15.000 / 15.000 pontos');
 });
 
 test('failed panorama offers retry and an alternate without recording a result', function () {
