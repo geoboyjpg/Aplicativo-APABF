@@ -17,9 +17,12 @@
     ];
     var estado = {
         rodada: 0,
+        rodadasPlanejadas: 0,
         palpite: null,
         resultados: [],
         candidatos: [],
+        sequenciaLocais: [],
+        proximoLocal: 0,
         locaisIndisponiveis: new Set(),
         ultimoLocalId: '',
         localAtual: null,
@@ -156,6 +159,39 @@
             && local.longitude <= 180;
     }
 
+    function chaveGeografica(local) {
+        return local.latitude.toFixed(6) + ',' + local.longitude.toFixed(6);
+    }
+
+    function prepararSequenciaDaPartida() {
+        var vistos = new Set();
+        estado.sequenciaLocais = estado.candidatos.filter(function (local) {
+            var chave = chaveGeografica(local);
+            if (vistos.has(chave)) {
+                return false;
+            }
+            vistos.add(chave);
+            return true;
+        });
+        for (var indice = estado.sequenciaLocais.length - 1; indice > 0; indice -= 1) {
+            var aleatorio = Math.floor(Math.random() * (indice + 1));
+            var temporario = estado.sequenciaLocais[indice];
+            estado.sequenciaLocais[indice] = estado.sequenciaLocais[aleatorio];
+            estado.sequenciaLocais[aleatorio] = temporario;
+        }
+        if (estado.sequenciaLocais.length > 1
+            && estado.sequenciaLocais[0].id === estado.ultimoLocalId) {
+            var outroLocal = estado.sequenciaLocais.findIndex(function (local) {
+                return local.id !== estado.ultimoLocalId;
+            });
+            var primeiro = estado.sequenciaLocais[0];
+            estado.sequenciaLocais[0] = estado.sequenciaLocais[outroLocal];
+            estado.sequenciaLocais[outroLocal] = primeiro;
+        }
+        estado.rodadasPlanejadas = Math.min(maxRodadas, estado.sequenciaLocais.length);
+        estado.proximoLocal = 0;
+    }
+
     function lerUltimoLocal() {
         try {
             return window.sessionStorage.getItem(chaveUltimoLocal) || '';
@@ -174,7 +210,7 @@
     }
 
     function candidatosDisponiveis() {
-        return estado.candidatos.filter(function (local) {
+        return estado.sequenciaLocais.slice(estado.proximoLocal).filter(function (local) {
             return !estado.locaisIndisponiveis.has(local.id);
         });
     }
@@ -226,7 +262,7 @@
         var falhaSemResposta = estado.panoramaComErro && estado.resultados.length === estado.rodada;
         var falhaComAlternativa = falhaSemResposta && candidatosDisponiveis().length > 0;
         botaoNovaLocalizacao.disabled = !(rodadaRespondida || falhaComAlternativa);
-        if (estado.resultados.length >= maxRodadas && rodadaRespondida) {
+        if (estado.resultados.length >= estado.rodadasPlanejadas && rodadaRespondida) {
             botaoNovaLocalizacao.innerHTML = '<i class="fas fa-flag-checkered" aria-hidden="true"></i> Ver resultado final';
         } else {
             botaoNovaLocalizacao.innerHTML = '<i class="fas fa-random" aria-hidden="true"></i> Nova localização';
@@ -302,27 +338,25 @@
         }
     }
 
-    function escolherLocal(proibirUltimo) {
-        var disponiveis = candidatosDisponiveis();
-        if (proibirUltimo && disponiveis.length > 1) {
-            var alternativas = disponiveis.filter(function (local) {
-                return local.id !== estado.ultimoLocalId;
-            });
-            if (alternativas.length) {
-                disponiveis = alternativas;
+    function escolherLocal() {
+        var localEscolhido = null;
+        while (estado.proximoLocal < estado.sequenciaLocais.length && !localEscolhido) {
+            var proximo = estado.sequenciaLocais[estado.proximoLocal];
+            estado.proximoLocal += 1;
+            if (!estado.locaisIndisponiveis.has(proximo.id)) {
+                localEscolhido = proximo;
             }
         }
-        if (!disponiveis.length) {
+        if (!localEscolhido) {
             estado.localAtual = null;
             estado.panoramaPronto = false;
-            mostrarFallbackPanorama('Nenhuma fotografia 360° disponível para iniciar uma rodada. Verifique os arquivos cadastrados.');
-            setStatus(statusPanorama, 'Não há cenários com imagens disponíveis.', true);
+            mostrarFallbackPanorama('Não há outros locais únicos disponíveis nesta partida. Você pode iniciar uma nova partida para sortear novamente.');
+            setStatus(statusPanorama, 'Todos os locais únicos desta partida foram utilizados.', true);
             botaoNovaLocalizacao.disabled = true;
             return false;
         }
 
-        var indice = Math.min(disponiveis.length - 1, Math.floor(Math.random() * disponiveis.length));
-        estado.localAtual = disponiveis[indice];
+        estado.localAtual = localEscolhido;
         registrarUltimoLocal(estado.localAtual.id);
         estado.rodada = estado.resultados.length;
         iniciarCenarioAtual();
@@ -345,10 +379,10 @@
         atualizarBotaoConfirmar();
         setStatus(statusMapaDialogo, 'Ainda não há um ponto selecionado. Escolha um ponto no mapa para habilitar seu palpite.');
         document.getElementById('round-title').textContent =
-            'Desafio ' + (estado.rodada + 1) + ' de ' + maxRodadas;
+            'Desafio ' + (estado.rodada + 1) + ' de ' + estado.rodadasPlanejadas;
         document.getElementById('round-progress').replaceChildren.apply(
             document.getElementById('round-progress'),
-            lugares.filter(eCenarioValido).slice(0, maxRodadas).map(function (_, indice) {
+            Array.from({ length: estado.rodadasPlanejadas }).map(function (_, indice) {
                 var item = document.createElement('span');
                 item.className = indice < estado.rodada ? 'is-complete' : (indice === estado.rodada ? 'is-current' : '');
                 item.setAttribute('aria-hidden', 'true');
@@ -531,6 +565,7 @@
         limparMapaResultado();
         painelResultado.replaceChildren();
         painelResultado.hidden = false;
+        painelResultado.classList.toggle('is-expanded', false);
         palcoPanorama.classList.toggle('is-result', true);
         document.getElementById('panorama-title').textContent = 'Resultado da rodada';
         botaoConfirmar.hidden = true;
@@ -539,6 +574,37 @@
         botaoNovaLocalizacao.disabled = false;
 
         var local = resultado.local;
+        var alternadorPainel = document.createElement('button');
+        alternadorPainel.className = 'result-sheet-toggle';
+        alternadorPainel.type = 'button';
+        alternadorPainel.setAttribute('aria-expanded', 'false');
+        alternadorPainel.setAttribute('aria-label', 'Expandir painel de resultado');
+        alternadorPainel.innerHTML = '<span aria-hidden="true"></span>';
+        var gestoPainel = false;
+        alternadorPainel.addEventListener('click', function () {
+            if (gestoPainel) {
+                gestoPainel = false;
+                return;
+            }
+            var expandido = painelResultado.classList.toggle('is-expanded');
+            alternadorPainel.setAttribute('aria-expanded', String(expandido));
+            alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher painel de resultado' : 'Expandir painel de resultado');
+        });
+        alternadorPainel.addEventListener('pointerdown', function (evento) {
+            alternadorPainel.dataset.startY = String(evento.clientY);
+        });
+        alternadorPainel.addEventListener('pointerup', function (evento) {
+            var startY = Number(alternadorPainel.dataset.startY);
+            if (!Number.isFinite(startY) || Math.abs(evento.clientY - startY) < 18) {
+                return;
+            }
+            gestoPainel = true;
+            var expandido = evento.clientY < startY;
+            painelResultado.classList.toggle('is-expanded', expandido);
+            alternadorPainel.setAttribute('aria-expanded', String(expandido));
+            alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher painel de resultado' : 'Expandir painel de resultado');
+        });
+        painelResultado.appendChild(alternadorPainel);
         var layout = document.createElement('div');
         layout.className = 'result-layout';
         var mapaColuna = document.createElement('section');
@@ -672,15 +738,14 @@
             lista.appendChild(fontePendente);
         }
         referencias.appendChild(lista);
-        detalhes.append(informacao, referencias);
-        detalhes.appendChild(mensagemDesempenho);
+        detalhes.append(informacao, referencias, mensagemDesempenho);
         informacoes.appendChild(detalhes);
         var acoesResultado = document.createElement('div');
         acoesResultado.className = 'result-actions';
         var avancar = document.createElement('button');
         avancar.className = 'primary-button';
         avancar.type = 'button';
-        avancar.innerHTML = estado.resultados.length >= maxRodadas
+        avancar.innerHTML = estado.resultados.length >= estado.rodadasPlanejadas
             ? '<i class="fas fa-flag-checkered" aria-hidden="true"></i> Ver resultado final'
             : '<i class="fas fa-arrow-right" aria-hidden="true"></i> Próxima localização';
         avancar.addEventListener('click', selecionarNovaLocalizacao);
@@ -714,9 +779,7 @@
         };
         estado.resultados.push(resultado);
         montarResultado(resultado);
-        if (dialogoMapa.open) {
-            dialogoMapa.close();
-        }
+        if (dialogoMapa.open) dialogoMapa.close();
         painelResultado.setAttribute('tabindex', '-1');
         painelResultado.focus();
         atualizarBotaoNovaLocalizacao();
@@ -745,11 +808,7 @@
         }
         slotMapaDialogo.appendChild(mapaElement);
         slotConfirmacaoDialogo.appendChild(botaoConfirmar);
-        if (dialogoTutorial.hidden) {
-            dialogoMapa.showModal();
-        } else {
-            dialogoMapa.show();
-        }
+        dialogoMapa.show();
         botaoAmpliarMapa.setAttribute('aria-expanded', 'true');
         window.setTimeout(function () {
             estado.mapa.invalidateSize();
@@ -788,10 +847,6 @@
         limparDestaquesTutorial();
         if (etapaTutorial === 2) {
             abrirMapaAmpliado();
-        } else if (dialogoMapa.open) {
-            fecharMapaAmpliado();
-            slotMapaEmLinha.appendChild(mapaElement);
-            slotConfirmacaoEmLinha.appendChild(botaoConfirmar);
         }
         var etapa = etapasTutorial[etapaTutorial];
         var alvo = document.getElementById(etapa.alvo);
@@ -831,9 +886,6 @@
 
     function concluirTutorial() {
         limparDestaquesTutorial();
-        if (dialogoMapa.open) {
-            fecharMapaAmpliado();
-        }
         dialogoTutorial.hidden = true;
         try {
             window.localStorage.setItem(chaveTutorialApresentado, 'true');
@@ -908,7 +960,7 @@
             return soma + resultado.distancia;
         }, 0);
         document.getElementById('final-score').textContent =
-            totalPontos.toLocaleString('pt-BR') + ' / ' + (maxPontos * maxRodadas).toLocaleString('pt-BR') + ' pontos';
+            totalPontos.toLocaleString('pt-BR') + ' / ' + (maxPontos * estado.rodadasPlanejadas).toLocaleString('pt-BR') + ' pontos';
         document.getElementById('final-distance').textContent =
             'Distância acumulada: ' + formatarDistancia(totalDistancia);
         var resumo = document.getElementById('round-summary');
@@ -929,19 +981,19 @@
 
     function selecionarNovaLocalizacao() {
         if (estado.panoramaComErro && estado.resultados.length === estado.rodada) {
-            escolherLocal(true);
+            escolherLocal();
             return;
         }
         if (estado.resultados.length <= estado.rodada) {
             setStatus(statusMapa, 'Confirme seu palpite antes de trocar de cenário; a rodada atual não será perdida.', true);
             return;
         }
-        if (estado.resultados.length >= maxRodadas) {
+        if (estado.resultados.length >= estado.rodadasPlanejadas) {
             mostrarFinal();
             return;
         }
         estado.rodada = estado.resultados.length;
-        escolherLocal(true);
+        escolherLocal();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -965,46 +1017,61 @@
         estado.rodada = 0;
         estado.palpite = null;
         estado.resultados = [];
+        estado.sequenciaLocais = [];
+        estado.proximoLocal = 0;
+        estado.rodadasPlanejadas = 0;
         estado.locaisIndisponiveis.clear();
         estado.panoramaComErro = false;
         estado.panoramaPronto = false;
         estado.ultimoLocalId = lerUltimoLocal();
         estado.localAtual = null;
+        prepararSequenciaDaPartida();
         jogo.hidden = false;
         final.hidden = true;
         botaoConfirmar.hidden = false;
         botaoNovaLocalizacao.disabled = true;
         if (window.L) {
             if (!estado.mapa && !inicializarMapa()) {
-                escolherLocal(true);
+                escolherLocal();
                 return;
             }
             botaoTentarMapa.hidden = true;
-            escolherLocal(true);
+            escolherLocal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
         setStatus(statusMapa, 'Carregando biblioteca do mapa…');
         carregarLeaflet().then(function () {
             if (!estado.mapa && !inicializarMapa()) {
-                escolherLocal(true);
+                escolherLocal();
                 return;
             }
             botaoTentarMapa.hidden = true;
-            escolherLocal(true);
+            escolherLocal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }).catch(function (erro) {
             console.error('[Desafio 360] Falha ao carregar a biblioteca Leaflet.', erro);
             botaoTentarMapa.hidden = false;
             setStatus(statusMapa, 'A biblioteca do mapa não carregou. Tente novamente; o panorama continua disponível.', true);
-            escolherLocal(true);
+            escolherLocal();
         });
     }
 
-    estado.candidatos = lugares.filter(eCenarioValido);
+    var identificadoresGeograficos = new Set();
+    estado.candidatos = lugares.filter(function (local) {
+        if (!eCenarioValido(local)) {
+            return false;
+        }
+        var chave = chaveGeografica(local);
+        if (identificadoresGeograficos.has(chave)) {
+            return false;
+        }
+        identificadoresGeograficos.add(chave);
+        return true;
+    });
     document.getElementById('new-location-button').addEventListener('click', selecionarNovaLocalizacao);
     document.getElementById('error-new-location-button').addEventListener('click', function () {
-        escolherLocal(true);
+        escolherLocal();
     });
     document.getElementById('retry-panorama-button').addEventListener('click', tentarNovamente);
     botaoConfirmar.addEventListener('click', confirmarResposta);
