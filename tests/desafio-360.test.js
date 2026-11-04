@@ -19,6 +19,7 @@ function criarAmbiente(opcoes = {}) {
     const camadasTiles = [];
     const armazenamento = opcoes.armazenamento || new Map();
     let primeiraFalha = false;
+    let ordemTopLayer = 0;
 
     function criarElemento(id = '') {
         const listeners = {};
@@ -70,6 +71,7 @@ function criarAmbiente(opcoes = {}) {
             },
             show() {
                 this.open = true;
+                this.topLayerOrder = ++ordemTopLayer;
             },
             close() {
                 this.open = false;
@@ -238,15 +240,34 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     const html = fs.readFileSync(path.join(ROOT, 'desafio-360.html'), 'utf8');
     const css = fs.readFileSync(path.join(ROOT, 'desafio-360.css'), 'utf8');
 
-    assert.match(html, /<section id="tutorial-dialog"[^>]+hidden/);
+    assert.match(html, /<dialog id="tutorial-dialog"[^>]+hidden/);
+    assert.equal([...html.matchAll(/<link[^>]+href="[^"]*desafio-360\.css"/g)].length, 1);
+    assert.equal([...html.matchAll(/<script[^>]+src="[^"]*scripts\/desafio-360\.js"/g)].length, 1);
     assert.match(css, /\.game-layout,\s*\.panorama-card,\s*\.panorama-stage\s*\{[^}]*height:\s*100dvh/s);
     assert.match(css, /\.tutorial-dialog\s*\{[^}]*pointer-events:\s*none/s);
     assert.match(css, /\.tutorial-actions button\s*\{[^}]*pointer-events:\s*auto/s);
     assert.match(css, /\.panorama-stage\.is-result #panorama\s*\{\s*display:\s*block/s);
     assert.match(css, /\.result-panel\s*\{[^}]*position:\s*fixed/s);
     assert.match(css, /\.result-panel\.is-expanded\s*\{[^}]*height:\s*min\(78dvh/s);
+    assert.match(css, /\.round-heading\s*\{[^}]*env\(safe-area-inset-top/s);
+    assert.doesNotMatch(css.match(/\.round-heading\s*\{[^}]*\}/s)?.[0] || '', /backdrop-filter/);
+    assert.match(css, /\.tutorial-dialog\[open\]\s*\{[^}]*inset:[\s\S]*?auto auto/s);
+    assert.match(css, /\.tutorial-panorama-drag::after\s*\{[^}]*color:\s*#f4c95d[^}]*opacity:\s*1/s);
     assert.match(css, /\.tutorial-panorama-moved::before,[\s\S]*?opacity:\s*1/);
     assert.match(css, /\.tutorial-map-pick::before\s*\{\s*content:\s*none/s);
+
+    const reducedMotionStart = css.lastIndexOf('@media (prefers-reduced-motion: reduce)');
+    const reducedMotionOpen = css.indexOf('{', reducedMotionStart);
+    let depth = 0;
+    let reducedMotionEnd = -1;
+    for (let index = reducedMotionOpen; index < css.length; index += 1) {
+        if (css[index] === '{') depth += 1;
+        if (css[index] === '}' && --depth === 0) {
+            reducedMotionEnd = index;
+            break;
+        }
+    }
+    assert.ok(css.indexOf('@media (max-width: 700px) and (max-height: 520px)') > reducedMotionEnd);
 });
 
 test('game starts with a local panorama, preserves map guess, scores once, and advances without reload', function () {
@@ -404,6 +425,7 @@ test('tutorial navigates, demonstrates the expanded map, can be skipped, and can
     const elemento = (id) => jogo.elementos.get(id);
 
     assert.equal(elemento('tutorial-dialog').hidden, false);
+    assert.equal(elemento('tutorial-dialog').open, true);
     assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
     elemento('panorama').dispatch('pointerdown', { clientX: 100, clientY: 100 });
     elemento('panorama').dispatch('pointermove', { clientX: 130, clientY: 101 });
@@ -414,6 +436,7 @@ test('tutorial navigates, demonstrates the expanded map, can be skipped, and can
 
     elemento('tutorial-next').click();
     assert.equal(elemento('map-dialog').open, true);
+    assert.ok(elemento('tutorial-dialog').topLayerOrder > elemento('map-dialog').topLayerOrder);
     assert.equal(elemento('guess-map').classList.contains('tutorial-map-pick'), true);
     const local = jogo.locais.find((item) => item.panoramaPath);
     jogo.mapas[0].emit('click', { latlng: { lat: local.latitude, lng: local.longitude } });
@@ -421,6 +444,7 @@ test('tutorial navigates, demonstrates the expanded map, can be skipped, and can
     assert.equal(elemento('map-dialog').open, true);
     elemento('tutorial-skip').click();
     assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('tutorial-dialog').open, false);
     elemento('close-map-button').click();
 
     assert.equal(elemento('tutorial-dialog').hidden, true);

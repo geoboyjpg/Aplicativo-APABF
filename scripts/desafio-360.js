@@ -848,9 +848,13 @@
         if (etapaTutorial === 2) {
             abrirMapaAmpliado();
         }
+        dialogoTutorial.hidden = false;
+        if (dialogoTutorial.open) {
+            dialogoTutorial.close();
+        }
+        dialogoTutorial.show();
         var etapa = etapasTutorial[etapaTutorial];
         var alvo = document.getElementById(etapa.alvo);
-        dialogoTutorial.hidden = false;
         if (alvo) {
             alvo.classList.toggle('tutorial-target', true);
         }
@@ -886,6 +890,9 @@
 
     function concluirTutorial() {
         limparDestaquesTutorial();
+        if (dialogoTutorial.open) {
+            dialogoTutorial.close();
+        }
         dialogoTutorial.hidden = true;
         try {
             window.localStorage.setItem(chaveTutorialApresentado, 'true');

@@ -1324,9 +1324,10 @@ body.challenge-page .nav-bar {
 .round-heading {
     position: fixed;
     z-index: 20;
-    top: 62px;
+    top: calc(max(12px, env(safe-area-inset-top, 0px)) + 52px);
     left: max(12px, env(safe-area-inset-left, 0px));
     display: block;
+    max-width: min(540px, calc(100vw - 96px));
     min-height: 0;
     margin: 0;
     padding: 8px 11px;
@@ -1334,7 +1335,6 @@ body.challenge-page .nav-bar {
     background: rgba(9, 47, 59, 0.54);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 10px;
-    backdrop-filter: blur(7px);
 }
 
 .round-heading > div:first-child {
@@ -1352,17 +1352,19 @@ body.challenge-page .nav-bar {
     margin: 0;
     color: #fff;
     font-size: 0.95rem;
+    overflow-wrap: anywhere;
 }
 
 .round-actions {
-    display: contents;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: block;
 }
 
 .round-progress {
-    position: fixed;
-    z-index: 21;
-    top: 112px;
-    left: max(16px, env(safe-area-inset-left, 0px));
+    position: static;
+    margin: 0;
     padding: 4px 7px;
     background: rgba(9, 47, 59, 0.42);
     border-radius: 10px;
@@ -1516,6 +1518,13 @@ body.challenge-page .nav-bar {
     pointer-events: none;
 }
 
+.tutorial-dialog[open] {
+    inset: max(64px, calc(env(safe-area-inset-top, 0px) + 56px))
+        max(14px, env(safe-area-inset-right, 0px)) auto auto;
+    width: min(370px, calc(100vw - 28px));
+    margin: 0;
+}
+
 .tutorial-card {
     padding: 14px 16px;
     background: rgba(247, 250, 249, 0.86);
@@ -1572,8 +1581,12 @@ body.challenge-page .nav-bar {
     z-index: 8;
     top: 56%;
     left: 48%;
+    color: #f4c95d;
     font-size: 2.4rem;
     content: "\f25a";
+    opacity: 1;
+    text-shadow: 0 1px 2px #092f3b, 0 0 3px #fff;
+    transform-origin: center;
     animation: tutorial-drag 1.8s ease-in-out infinite;
 }
 
@@ -1792,8 +1805,9 @@ body.challenge-page .nav-bar {
 
 @media (max-width: 700px) {
     .round-heading {
-        top: 57px;
-        left: 8px;
+        top: calc(max(8px, env(safe-area-inset-top, 0px)) + 46px);
+        left: max(8px, env(safe-area-inset-left, 0px));
+        max-width: calc(100vw - 72px);
         padding: 6px 8px;
     }
 
@@ -1806,8 +1820,7 @@ body.challenge-page .nav-bar {
     }
 
     .round-progress {
-        top: 94px;
-        left: 10px;
+        left: 0;
     }
 
     #tutorial-button {
@@ -1852,6 +1865,12 @@ body.challenge-page .nav-bar {
         top: max(54px, calc(env(safe-area-inset-top, 0px) + 50px));
         right: 7px;
         width: min(280px, 70vw);
+    }
+
+    .tutorial-dialog[open] {
+        inset: max(54px, calc(env(safe-area-inset-top, 0px) + 50px))
+            max(7px, env(safe-area-inset-right, 0px)) auto auto;
+        width: min(280px, calc(100vw - 14px));
     }
 
     .tutorial-card {
@@ -1910,10 +1929,18 @@ body.challenge-page .nav-bar {
     }
 
     .result-info > .result-info-heading {
-        order: 0;
+        order: 4;
     }
 
     .result-info > .result-metrics {
+        order: 0;
+    }
+
+    .result-metrics > .result-metric:not(.result-score) {
+        order: 0;
+    }
+
+    .result-metrics > .result-score {
         order: 1;
     }
 
@@ -2041,27 +2068,28 @@ body.challenge-page .nav-bar {
         animation: none !important;
     }
 
-    @media (max-width: 700px) and (max-height: 520px) {
-        .map-card {
-            max-height: 43dvh;
-        }
+}
 
-        .map-inline-slot,
-        .guess-map {
-            height: 85px;
-        }
+@media (max-width: 700px) and (max-height: 520px) {
+    .map-card {
+        max-height: 43dvh;
+    }
 
-        .tutorial-dialog {
-            top: 50px;
-            width: min(250px, 60vw);
-        }
+    .map-inline-slot,
+    .guess-map {
+        height: 85px;
+    }
 
-        .tutorial-progress {
-            margin: 6px 0;
-        }
+    .tutorial-dialog[open] {
+        top: max(50px, calc(env(safe-area-inset-top, 0px) + 42px));
+        width: min(250px, calc(100vw - 14px));
+    }
 
-        .tutorial-card > p {
-            font-size: 0.7rem;
-        }
+    .tutorial-progress {
+        margin: 6px 0;
+    }
+
+    .tutorial-card > p {
+        font-size: 0.7rem;
     }
 }
