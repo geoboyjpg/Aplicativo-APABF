@@ -29,6 +29,7 @@
             body {
                 min-width: 320px;
                 min-height: 100vh;
+                min-height: 100dvh;
                 margin: 0;
                 color: var(--branco);
                 font-family: Arial, sans-serif;
@@ -46,15 +47,19 @@
             }
 
             .page-shell {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
                 width: min(1180px, 100%);
                 min-height: 100vh;
+                min-height: 100dvh;
                 margin: 0 auto;
-                padding: 28px clamp(20px, 4vw, 56px) 132px;
+                padding: 14px clamp(20px, 4vw, 56px) calc(98px + env(safe-area-inset-bottom, 0px));
             }
 
             .hero {
                 max-width: 850px;
-                margin: clamp(28px, 6vh, 68px) auto 32px;
+                margin: clamp(18px, 4vh, 42px) auto 22px;
                 text-align: center;
             }
 
@@ -92,7 +97,7 @@
             .main-card {
                 position: relative;
                 display: flex;
-                min-height: 148px;
+                min-height: clamp(112px, 18vh, 148px);
                 align-items: center;
                 gap: 18px;
                 width: 100%;
@@ -164,7 +169,7 @@
                 justify-content: center;
                 gap: 10px 22px;
                 max-width: 920px;
-                margin: 25px auto 0;
+                margin: 18px auto 0;
                 color: rgba(255, 255, 255, 0.92);
                 font-size: 0.92rem;
             }
@@ -274,7 +279,7 @@
                     padding-top: 12px;
                     padding-right: 16px;
                     padding-left: 16px;
-                    padding-bottom: 92px;
+                    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
                 }
 
                 .hero {
@@ -361,12 +366,13 @@
 
             @media (max-height: 650px) and (orientation: landscape) {
                 .page-shell {
-                    padding-top: 14px;
+                    padding-top: 8px;
+                    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
                 }
 
                 .hero {
-                    margin-top: 18px;
-                    margin-bottom: 18px;
+                    margin-top: 10px;
+                    margin-bottom: 12px;
                 }
 
                 .hero p {
@@ -374,16 +380,21 @@
                 }
 
                 .main-card {
-                    min-height: 96px;
-                    padding-top: 13px;
-                    padding-bottom: 13px;
+                    min-height: 90px;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                }
+
+                .secondary-links {
+                    margin-top: 10px;
+                    gap: 5px 12px;
                 }
             }
         </style>
         <link rel="stylesheet" href="nav.css">
         <title>APABF - Área de Proteção Ambiental da Baleia Franca</title>
     </head>
-    <body>
+    <body class="home-page">
         <main class="page-shell">
             <section class="page-footer home-footer" aria-label="Informações institucionais">
                 <div class="page-footer-logos">

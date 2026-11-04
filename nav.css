@@ -216,6 +216,11 @@ body:has(.nav-bar):not(.map-ui) {
     color: #171d1c;
 }
 
+body.home-page:has(.nav-bar),
+body.challenge-page:has(.nav-bar) {
+    padding-bottom: 0 !important;
+}
+
 @media (max-width: 700px) {
     .nav-bar {
         right: 8px !important;
@@ -230,6 +235,11 @@ body:has(.nav-bar):not(.map-ui) {
 
     body:has(.nav-bar):not(.map-ui) {
         padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.home-page:has(.nav-bar),
+    body.challenge-page:has(.nav-bar) {
+        padding-bottom: 0 !important;
     }
 
     .nav-bar .nav-btn {

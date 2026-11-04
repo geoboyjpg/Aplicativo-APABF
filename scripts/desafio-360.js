@@ -6,6 +6,14 @@
     var distanciaSemPontos = 20000;
     var maxRodadas = 3;
     var chaveUltimoLocal = 'apabf-desafio-360-ultimo-local';
+    var chaveTutorialApresentado = 'apabf-desafio-360-tutorial-apresentado';
+    var etapaTutorial = 0;
+    var etapasTutorial = [
+        { alvo: 'panorama', texto: 'Explore o ambiente! Arraste a imagem para olhar ao seu redor e descobrir onde você está.' },
+        { alvo: 'expand-map-button', texto: 'Utilize o mapa para explorar a região e encontrar pistas sobre sua localização.' },
+        { alvo: 'guess-map', texto: 'Clique no mapa para marcar onde você acredita que esta fotografia foi registrada.' },
+        { alvo: 'confirm-button', texto: 'Tudo pronto? Confirme sua localização e descubra quantos pontos você conseguiu!' }
+    ];
     var estado = {
         rodada: 0,
         palpite: null,
@@ -32,7 +40,10 @@
     var mapaElement = document.getElementById('guess-map');
     var slotMapaEmLinha = document.getElementById('map-inline-slot');
     var slotMapaDialogo = document.getElementById('map-dialog-slot');
+    var slotConfirmacaoEmLinha = document.getElementById('map-confirm-slot');
+    var slotConfirmacaoDialogo = document.getElementById('map-dialog-actions');
     var dialogoMapa = document.getElementById('map-dialog');
+    var dialogoTutorial = document.getElementById('tutorial-dialog');
     var botaoAmpliarMapa = document.getElementById('expand-map-button');
     var botaoNovaLocalizacao = document.getElementById('new-location-button');
     var botaoConfirmar = document.getElementById('confirm-button');
@@ -68,6 +79,14 @@
     function setStatus(element, texto, erro) {
         element.textContent = texto;
         element.classList.toggle('is-error', Boolean(erro));
+    }
+
+    function atualizarBotaoConfirmar() {
+        var pronto = Boolean(estado.mapa && estado.panoramaPronto && estado.palpite)
+            && estado.resultados.length <= estado.rodada
+            && !estado.panoramaComErro;
+        botaoConfirmar.disabled = !pronto;
+        botaoConfirmar.classList.toggle('is-ready', pronto);
     }
 
     function carregarLeaflet() {
@@ -164,7 +183,7 @@
         }
         estado.marcadorPalpite = null;
         estado.palpite = null;
-        botaoConfirmar.disabled = true;
+        atualizarBotaoConfirmar();
     }
 
     function limparMapaDePalpite() {
@@ -220,7 +239,7 @@
         estado.panoramaPronto = false;
         estado.panoramaComErro = true;
         estado.locaisIndisponiveis.add(local.id);
-        botaoConfirmar.disabled = true;
+        atualizarBotaoConfirmar();
         mostrarFallbackPanorama('Não foi possível carregar esta fotografia 360°. Tente novamente ou sorteie outro cenário; esta rodada ainda não foi registrada.');
         setStatus(statusPanorama, 'Falha ao carregar ' + local.panoramaPath + '.', true);
         document.getElementById('retry-panorama-button').hidden = false;
@@ -268,7 +287,7 @@
                 estado.panoramaPronto = true;
                 estado.panoramaComErro = false;
                 estado.locaisIndisponiveis.delete(local.id);
-                botaoConfirmar.disabled = !estado.mapa || estado.resultados.length > estado.rodada;
+                atualizarBotaoConfirmar();
                 acoesErroPanorama.hidden = true;
                 setStatus(statusPanorama, 'Panorama interativo pronto. Arraste para explorar a paisagem e use os controles de zoom.');
                 atualizarBotaoNovaLocalizacao();
@@ -321,8 +340,8 @@
         palcoPanorama.classList.toggle('is-result', false);
         document.getElementById('panorama-title').textContent = 'Observe a paisagem';
         botaoConfirmar.hidden = false;
-        botaoConfirmar.disabled = !estado.mapa || !estado.panoramaPronto;
-        setStatus(statusMapaDialogo, 'Escolha um ponto no mapa para habilitar seu palpite.');
+        atualizarBotaoConfirmar();
+        setStatus(statusMapaDialogo, 'Ainda não há um ponto selecionado. Escolha um ponto no mapa para habilitar seu palpite.');
         document.getElementById('round-title').textContent =
             'Desafio ' + (estado.rodada + 1) + ' de ' + maxRodadas;
         document.getElementById('round-progress').replaceChildren.apply(
@@ -398,18 +417,31 @@
                 }
                 estado.palpite = { lat: evento.latlng.lat, lng: evento.latlng.lng };
                 if (!estado.marcadorPalpite) {
-                    estado.marcadorPalpite = window.L.marker(evento.latlng, { draggable: true }).addTo(estado.mapa);
+                    var iconePalpite = window.L.divIcon({
+                        className: 'guess-marker-icon',
+                        html: '<span class="guess-marker"><i class="fas fa-location-dot" aria-hidden="true"></i></span>',
+                        iconSize: [34, 40],
+                        iconAnchor: [17, 40]
+                    });
+                    estado.marcadorPalpite = window.L.marker(evento.latlng, {
+                        draggable: true,
+                        riseOnHover: true,
+                        icon: iconePalpite
+                    }).addTo(estado.mapa);
                     estado.marcadorPalpite.on('dragend', function (dragEvento) {
                         var ponto = dragEvento.target.getLatLng();
                         estado.palpite = { lat: ponto.lat, lng: ponto.lng };
                         setStatus(statusMapaDialogo, 'Ponto ajustado. Confirme para registrar seu palpite.');
+                        setStatus(statusMapa, 'Palpite marcado. Clique novamente ou arraste o marcador para ajustar.');
+                        atualizarBotaoConfirmar();
                     });
                 } else {
                     estado.marcadorPalpite.setLatLng(evento.latlng);
                 }
-                botaoConfirmar.disabled = !estado.panoramaPronto;
+                atualizarBotaoConfirmar();
                 setStatus(statusMapaDialogo, 'Ponto selecionado. Confirme para registrar seu palpite.');
                 setStatus(statusMapa, 'Palpite marcado. Clique novamente ou arraste o marcador para ajustar.');
+                atualizarBotaoConfirmar();
             });
         } catch (erro) {
             console.error('[Desafio 360] Não foi possível conectar os controles ao mapa Leaflet.', erro);
@@ -420,7 +452,7 @@
             setStatus(statusMapa, 'Não foi possível preparar os controles do mapa. Tente carregar novamente.', true);
             return false;
         }
-        botaoConfirmar.disabled = !estado.panoramaPronto || estado.resultados.length > estado.rodada;
+        atualizarBotaoConfirmar();
         return true;
     }
 
@@ -533,8 +565,7 @@
         metricas.className = 'result-metrics';
         var selo = document.createElement('span');
         selo.className = 'score-badge';
-        selo.textContent = resultado.pontos.toLocaleString('pt-BR')
-            + ' / ' + maxPontos.toLocaleString('pt-BR') + ' pontos';
+        selo.textContent = '0 / ' + maxPontos.toLocaleString('pt-BR') + ' pontos';
         var pontuacao = document.createElement('div');
         pontuacao.className = 'result-metric result-score';
         var rotuloPontos = document.createElement('span');
@@ -549,6 +580,17 @@
         distancia.append(rotuloDistancia, valorDistancia);
         metricas.append(pontuacao, distancia);
         informacoes.appendChild(metricas);
+
+        var mensagemDesempenho = document.createElement('p');
+        mensagemDesempenho.className = 'result-note result-performance';
+        mensagemDesempenho.textContent = resultado.pontos >= 4000
+            ? 'Excelente! Você chegou muito perto!'
+            : resultado.pontos >= 2500
+                ? 'Muito bem! Você conseguiu identificar a região!'
+                : resultado.pontos >= 1000
+                    ? 'Quase lá! Continue explorando!'
+                    : 'Continue tentando! A próxima rodada pode render mais pontos!';
+        animarPontuacao(selo, resultado.pontos);
 
         var resumo = document.createElement('p');
         resumo.className = 'result-location-coordinates';
@@ -621,6 +663,7 @@
         }
         referencias.appendChild(lista);
         detalhes.append(informacao, referencias);
+        detalhes.appendChild(mensagemDesempenho);
         informacoes.appendChild(detalhes);
         var acoesResultado = document.createElement('div');
         acoesResultado.className = 'result-actions';
@@ -669,11 +712,29 @@
         atualizarBotaoNovaLocalizacao();
     }
 
+    function animarPontuacao(elemento, pontuacao) {
+        var movimentoReduzido = window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var quadros = movimentoReduzido ? 1 : 20;
+        var quadro = 0;
+        function atualizar() {
+            quadro += 1;
+            var valor = Math.round(pontuacao * quadro / quadros);
+            elemento.textContent = valor.toLocaleString('pt-BR')
+                + ' / ' + maxPontos.toLocaleString('pt-BR') + ' pontos';
+            if (quadro < quadros) {
+                window.setTimeout(atualizar, 45);
+            }
+        }
+        window.setTimeout(atualizar, movimentoReduzido ? 0 : 70);
+    }
+
     function abrirMapaAmpliado() {
         if (!estado.mapa || dialogoMapa.open) {
             return;
         }
         slotMapaDialogo.appendChild(mapaElement);
+        slotConfirmacaoDialogo.appendChild(botaoConfirmar);
         dialogoMapa.showModal();
         botaoAmpliarMapa.setAttribute('aria-expanded', 'true');
         window.setTimeout(function () {
@@ -689,6 +750,7 @@
 
     function aoFecharMapaAmpliado() {
         slotMapaEmLinha.appendChild(mapaElement);
+        slotConfirmacaoEmLinha.appendChild(botaoConfirmar);
         botaoAmpliarMapa.setAttribute('aria-expanded', 'false');
         if (estado.mapa) {
             estado.mapa.invalidateSize();
@@ -696,6 +758,104 @@
         if (painelResultado.hidden) {
             botaoAmpliarMapa.focus();
         }
+    }
+
+    function limparDestaquesTutorial() {
+        ['panorama', 'map-card', 'expand-map-button', 'guess-map', 'confirm-button'].forEach(function (id) {
+            document.getElementById(id).classList.toggle('tutorial-target', false);
+        });
+        document.getElementById('panorama').classList.toggle('tutorial-panorama-drag', false);
+        document.getElementById('expand-map-button').classList.toggle('tutorial-expand-cursor', false);
+        mapaElement.classList.toggle('tutorial-map-pick', false);
+    }
+
+    function atualizarEtapaTutorial() {
+        limparDestaquesTutorial();
+        if (etapaTutorial === 2) {
+            abrirMapaAmpliado();
+        } else if (dialogoMapa.open) {
+            fecharMapaAmpliado();
+            slotMapaEmLinha.appendChild(mapaElement);
+            slotConfirmacaoEmLinha.appendChild(botaoConfirmar);
+        }
+        var etapa = etapasTutorial[etapaTutorial];
+        var alvo = document.getElementById(etapa.alvo);
+        if (alvo) {
+            alvo.classList.toggle('tutorial-target', true);
+        }
+        if (etapaTutorial === 1) {
+            document.getElementById('map-card').classList.toggle('tutorial-target', true);
+            document.getElementById('expand-map-button').classList.toggle('tutorial-expand-cursor', true);
+        }
+        if (etapaTutorial === 0) {
+            document.getElementById('panorama').classList.toggle('tutorial-panorama-drag', true);
+        }
+        if (etapaTutorial === 2) {
+            mapaElement.classList.toggle('tutorial-map-pick', true);
+            window.setTimeout(function () {
+                if (estado.mapa) {
+                    estado.mapa.invalidateSize();
+                }
+            }, 30);
+        }
+        document.getElementById('tutorial-step-label').textContent = 'Etapa ' + (etapaTutorial + 1) + ' de ' + etapasTutorial.length;
+        document.getElementById('tutorial-copy').textContent = etapa.texto;
+        document.getElementById('tutorial-previous').disabled = etapaTutorial === 0;
+        document.getElementById('tutorial-next').textContent = etapaTutorial === etapasTutorial.length - 1 ? 'Concluir' : 'Próxima';
+        document.getElementById('tutorial-progress').replaceChildren.apply(
+            document.getElementById('tutorial-progress'),
+            etapasTutorial.map(function (_, indice) {
+                var item = document.createElement('span');
+                item.className = indice < etapaTutorial ? 'is-complete' : (indice === etapaTutorial ? 'is-current' : '');
+                return item;
+            })
+        );
+    }
+
+    function concluirTutorial() {
+        limparDestaquesTutorial();
+        if (dialogoMapa.open) {
+            fecharMapaAmpliado();
+        }
+        if (dialogoTutorial.open) {
+            dialogoTutorial.close();
+        }
+        try {
+            window.localStorage.setItem(chaveTutorialApresentado, 'true');
+        } catch (erro) {
+            // O tutorial permanece acessível pelo botão quando o armazenamento está bloqueado.
+        }
+    }
+
+    function iniciarTutorial() {
+        etapaTutorial = 0;
+        atualizarEtapaTutorial();
+        if (!dialogoTutorial.open) {
+            dialogoTutorial.showModal();
+        }
+    }
+
+    function apresentarTutorialSeNovo() {
+        try {
+            if (window.localStorage.getItem(chaveTutorialApresentado) === 'true') {
+                return;
+            }
+        } catch (erro) {
+            iniciarTutorial();
+            return;
+        }
+        if (estado.mapa) {
+            iniciarTutorial();
+            return;
+        }
+        carregarLeaflet().then(function () {
+            if (!estado.mapa) {
+                inicializarMapa();
+            }
+            iniciarTutorial();
+        }).catch(function () {
+            iniciarTutorial();
+        });
     }
 
     function mostrarFinal() {
@@ -809,6 +969,26 @@
     });
     document.getElementById('retry-panorama-button').addEventListener('click', tentarNovamente);
     botaoConfirmar.addEventListener('click', confirmarResposta);
+    document.getElementById('tutorial-button').addEventListener('click', iniciarTutorial);
+    document.getElementById('tutorial-skip').addEventListener('click', concluirTutorial);
+    document.getElementById('tutorial-next').addEventListener('click', function () {
+        if (etapaTutorial === etapasTutorial.length - 1) {
+            concluirTutorial();
+            return;
+        }
+        etapaTutorial += 1;
+        atualizarEtapaTutorial();
+    });
+    document.getElementById('tutorial-previous').addEventListener('click', function () {
+        if (etapaTutorial > 0) {
+            etapaTutorial -= 1;
+            atualizarEtapaTutorial();
+        }
+    });
+    dialogoTutorial.addEventListener('cancel', function (evento) {
+        evento.preventDefault();
+        concluirTutorial();
+    });
     botaoAmpliarMapa.addEventListener('click', abrirMapaAmpliado);
     document.getElementById('close-map-button').addEventListener('click', fecharMapaAmpliado);
     dialogoMapa.addEventListener('close', aoFecharMapaAmpliado);
@@ -830,4 +1010,5 @@
     } else {
         iniciarSessao();
     }
+    apresentarTutorialSeNovo();
 }());

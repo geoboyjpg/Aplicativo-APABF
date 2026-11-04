@@ -17,7 +17,7 @@ function criarAmbiente(opcoes = {}) {
     const mapas = [];
     const scriptsMapa = [];
     const camadasTiles = [];
-    const armazenamento = new Map();
+    const armazenamento = opcoes.armazenamento || new Map();
     let primeiraFalha = false;
 
     function criarElemento(id = '') {
@@ -142,6 +142,10 @@ function criarAmbiente(opcoes = {}) {
             getItem(chave) { return armazenamento.get(chave) || null; },
             setItem(chave, valor) { armazenamento.set(chave, valor); }
         },
+        localStorage: {
+            getItem(chave) { return armazenamento.get(chave) || null; },
+            setItem(chave, valor) { armazenamento.set(chave, valor); }
+        },
         setTimeout(callback) { callback(); },
         scrollTo() {}
     };
@@ -171,7 +175,7 @@ function criarAmbiente(opcoes = {}) {
     vm.runInContext(fs.readFileSync(path.join(ROOT, 'dados', 'desafio-360-locais.js'), 'utf8'), context);
     const locais = context.window.APABF_DESAFIO_360_LOCAIS;
     vm.runInContext(fs.readFileSync(path.join(ROOT, 'scripts', 'desafio-360.js'), 'utf8'), context);
-    return { elementos, eventosPanorama, marcadores, mapas, locais, scriptsMapa, camadasTiles, window, L };
+    return { elementos, eventosPanorama, marcadores, mapas, locais, scriptsMapa, camadasTiles, window, L, armazenamento };
 }
 
 test('all local panorama records point to existing files and unique valid locations', function () {
@@ -251,7 +255,7 @@ test('game starts with a local panorama, preserves map guess, scores once, and a
     assert.equal(jogo.eventosPanorama[1].configuracao.panorama, segundo.panoramaPath);
     assert.equal(elemento('result-panel').hidden, true);
     assert.equal(elemento('panorama-stage').classList.contains('is-result'), false);
-    assert.equal(elemento('confirm-button').disabled, false);
+    assert.equal(elemento('confirm-button').disabled, true);
     assert.equal(elemento('panorama-title').textContent, 'Observe a paisagem');
     assert.equal(jogo.mapas[0].layers.has(marcador), false);
 });
@@ -266,6 +270,62 @@ test('expanded-map confirmation without a selected point explains how to continu
     assert.equal(jogo.elementos.get('map-dialog').open, true);
     assert.equal(jogo.elementos.get('result-panel').hidden, true);
     assert.match(jogo.elementos.get('map-dialog-status').textContent, /Ainda não há um ponto selecionado/);
+    const local = jogo.locais.find((item) => item.panoramaPath);
+    jogo.mapas[0].emit('click', { latlng: { lat: local.latitude, lng: local.longitude } });
+    assert.equal(jogo.elementos.get('confirm-button').disabled, false);
+    clicar('confirm-button');
+    assert.equal(jogo.elementos.get('result-panel').hidden, false);
+    assert.equal(jogo.elementos.get('map-dialog').open, false);
+});
+
+test('minimized map enables the shared confirmation only after selecting a point', function () {
+    const jogo = criarAmbiente();
+    const confirmar = jogo.elementos.get('confirm-button');
+
+    assert.equal(confirmar.disabled, true);
+    confirmar.click();
+    assert.equal(jogo.elementos.get('result-panel').hidden, true);
+
+    const local = jogo.locais.find((item) => item.panoramaPath);
+    jogo.mapas[0].emit('click', { latlng: { lat: local.latitude, lng: local.longitude } });
+    assert.equal(confirmar.disabled, false);
+    assert.equal(confirmar.classList.contains('is-ready'), true);
+    confirmar.click();
+
+    assert.equal(jogo.elementos.get('result-panel').hidden, false);
+    assert.equal(confirmar.hidden, true);
+});
+
+test('tutorial navigates, demonstrates the expanded map, can be skipped, and can be reopened', function () {
+    const jogo = criarAmbiente();
+    const elemento = (id) => jogo.elementos.get(id);
+
+    assert.equal(elemento('tutorial-dialog').open, true);
+    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
+    elemento('tutorial-next').click();
+    assert.match(elemento('tutorial-copy').textContent, /Utilize o mapa/);
+    assert.equal(elemento('expand-map-button').classList.contains('tutorial-target'), true);
+
+    elemento('tutorial-next').click();
+    assert.equal(elemento('map-dialog').open, true);
+    assert.equal(elemento('guess-map').classList.contains('tutorial-map-pick'), true);
+    elemento('tutorial-previous').click();
+    assert.equal(elemento('map-dialog').open, false);
+    elemento('tutorial-next').click();
+    elemento('tutorial-next').click();
+    assert.match(elemento('tutorial-copy').textContent, /Confirme sua localização/);
+    elemento('tutorial-skip').click();
+
+    assert.equal(elemento('tutorial-dialog').open, false);
+    assert.equal(jogo.window.localStorage.getItem('apabf-desafio-360-tutorial-apresentado'), 'true');
+    elemento('tutorial-button').click();
+    assert.equal(elemento('tutorial-dialog').open, true);
+    assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem/);
+
+    const proximaVisita = criarAmbiente({ armazenamento: jogo.armazenamento });
+    assert.equal(proximaVisita.elementos.get('tutorial-dialog').open, false);
+    proximaVisita.elementos.get('tutorial-button').click();
+    assert.equal(proximaVisita.elementos.get('tutorial-dialog').open, true);
 });
 
 test('failed panorama offers retry and an alternate without recording a result', function () {

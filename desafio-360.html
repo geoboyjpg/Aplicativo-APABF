@@ -33,6 +33,9 @@
                 </div>
                 <div class="round-actions">
                     <div class="round-progress" id="round-progress" aria-label="Progresso da partida"></div>
+                    <button id="tutorial-button" class="secondary-button tutorial-button" type="button">
+                        <i class="fas fa-circle-question" aria-hidden="true"></i> Como jogar
+                    </button>
                     <button id="new-location-button" class="secondary-button new-location-button" type="button" disabled>
                         <i class="fas fa-random" aria-hidden="true"></i> Nova localização
                     </button>
@@ -46,7 +49,7 @@
                     </div>
                     <div id="panorama-stage" class="panorama-stage">
                         <div id="panorama" class="panorama-view" role="region" aria-label="Panorama interativo da paisagem"></div>
-                        <aside class="map-card" aria-labelledby="map-title">
+                        <aside id="map-card" class="map-card" aria-labelledby="map-title">
                             <div class="section-heading map-heading">
                                 <div>
                                     <span class="eyebrow">Seu palpite</span>
@@ -60,6 +63,9 @@
                                 <div id="guess-map" class="guess-map" role="region" aria-label="Mapa para marcar e ajustar seu palpite"></div>
                             </div>
                             <p id="map-status" class="map-status" role="status" aria-live="polite">Marque no mapa o local onde acredita que a paisagem está.</p>
+                            <div id="map-confirm-slot" class="map-confirm-slot">
+                                <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
+                            </div>
                             <button id="retry-map-button" class="secondary-button retry-map-button" type="button" hidden>
                                 <i class="fas fa-redo" aria-hidden="true"></i> Tentar carregar mapa novamente
                             </button>
@@ -103,8 +109,22 @@
         <div id="map-dialog-slot" class="map-dialog-slot"></div>
         <p>Toque ou clique para reposicionar o marcador; arraste-o para ajustar com precisão.</p>
         <p id="map-dialog-status" class="map-dialog-status" role="status" aria-live="polite">Escolha um ponto no mapa para habilitar seu palpite.</p>
-        <div class="map-dialog-actions">
-            <button id="confirm-button" class="primary-button confirm-button" type="button" disabled>Confirmar palpite</button>
+        <div id="map-dialog-actions" class="map-dialog-actions"></div>
+    </dialog>
+
+    <dialog id="tutorial-dialog" class="tutorial-dialog" aria-labelledby="tutorial-title">
+        <div class="tutorial-card">
+            <span id="tutorial-step-label" class="eyebrow">Etapa 1 de 4</span>
+            <h2 id="tutorial-title">Como jogar</h2>
+            <p id="tutorial-copy"></p>
+            <div class="tutorial-progress" id="tutorial-progress" aria-label="Etapas do tutorial"></div>
+            <div class="tutorial-actions">
+                <button id="tutorial-skip" class="secondary-button" type="button">Pular tutorial</button>
+                <div>
+                    <button id="tutorial-previous" class="secondary-button" type="button">Voltar</button>
+                    <button id="tutorial-next" class="primary-button" type="button">Próxima</button>
+                </div>
+            </div>
         </div>
     </dialog>
 
