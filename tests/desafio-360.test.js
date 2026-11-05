@@ -123,6 +123,13 @@ function criarAmbiente(opcoes = {}) {
             fitBounds() {},
             remove() {}
         };
+        ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach((nome) => {
+            map[nome] = {
+                enabled: true,
+                enable() { this.enabled = true; },
+                disable() { this.enabled = false; }
+            };
+        });
         mapas.push(map);
         return map;
     }
@@ -287,6 +294,11 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     assert.match(css, /\.tutorial-dialog\[open\]\s*\{[^}]*inset:[\s\S]*?auto auto/s);
     assert.match(css, /\.tutorial-panorama-drag::after\s*\{[^}]*color:\s*#f4c95d[^}]*opacity:\s*1/s);
     assert.match(css, /\.panorama-stage\.tutorial-panorama-drag \.tutorial-panorama-guide/);
+    assert.doesNotMatch(css, /\.panorama-view\.tutorial-panorama-interacting\s*~/);
+    assert.match(css, /\.tutorial-panorama-guide\s*>\s*i:nth-child\(2\)[\s\S]*?animation:\s*tutorial-hand-sweep/);
+    assert.match(css, /\.tutorial-expand-cursor::after,[\s\S]*?\.confirm-button\.tutorial-target::after/);
+    assert.match(css, /@keyframes tutorial-button-pulse/);
+    assert.match(css, /\.guess-map\.is-tutorial-static \.leaflet-control-zoom/);
     assert.match(css, /\.panorama-card > \.section-heading\s*\{\s*display:\s*none/s);
     assert.doesNotMatch(css, /\.panorama-card \.section-heading\s*\{\s*display:\s*none/s);
     assert.match(css, /\.tutorial-panorama-moved::before,[\s\S]*?opacity:\s*1/);
@@ -376,6 +388,8 @@ test('expanded map reuses the Leaflet instance, preserves the guess, and separat
     assert.equal(elemento('map-dialog').open, true);
     assert.equal(elemento('map-dialog').topLayerOrder > 0, true);
     assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), true);
+    assert.equal(mapa.dragging.enabled, true);
+    assert.equal(mapa.scrollWheelZoom.enabled, true);
     assert.equal(elemento('guess-map').parentElement.id, 'map-dialog-slot');
     assert.equal(jogo.mapas.length, 1);
     assert.equal(marcador.latlng, palpite);
@@ -390,6 +404,8 @@ test('expanded map reuses the Leaflet instance, preserves the guess, and separat
 
     assert.equal(elemento('map-dialog').open, false);
     assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), false);
+    assert.equal(mapa.dragging.enabled, true);
+    assert.equal(mapa.scrollWheelZoom.enabled, true);
     assert.equal(elemento('guess-map').parentElement.id, 'map-inline-slot');
     assert.equal(jogo.mapas[0], mapa);
     assert.equal(jogo.marcadores[0], marcador);
@@ -519,8 +535,6 @@ test('guided tutorial requires real actions and does not count its demonstration
     assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 1 de 5');
     assert.match(elemento('tutorial-copy').textContent, /Arraste a imagem para a esquerda e para a direita/);
     elemento('panorama').dispatch('pointerdown', { clientX: 100, clientY: 100 });
-    assert.equal(elemento('panorama').classList.contains('tutorial-panorama-interacting'), true);
-    jogo.window.dispatch('pointerup');
     assert.equal(elemento('panorama').classList.contains('tutorial-panorama-interacting'), false);
 
     elemento('tutorial-next').click();
@@ -531,6 +545,10 @@ test('guided tutorial requires real actions and does not count its demonstration
     assert.equal(elemento('map-dialog').open, true);
     assert.equal(elemento('game-panel').classList.contains('is-map-expanded'), true);
     assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 3 de 5');
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), true);
+    ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach((nome) => {
+        assert.equal(jogo.mapas[0][nome].enabled, false, `${nome} deve ficar desabilitado durante a etapa ampliada`);
+    });
     assert.equal(jogo.mapas[0].center[0], local.latitude);
     assert.equal(elemento('guess-map').children[0].style.left, '200px');
 
@@ -547,6 +565,10 @@ test('guided tutorial requires real actions and does not count its demonstration
     assert.equal(elemento('confirm-button').disabled, false);
     assert.equal(elemento('map-dialog').open, true);
     assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 4 de 5');
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), false);
+    ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach((nome) => {
+        assert.equal(jogo.mapas[0][nome].enabled, true, `${nome} deve ser restaurado ao sair da etapa ampliada`);
+    });
     assert.equal(elemento('confirm-button').classList.contains('tutorial-target'), true);
     elemento('confirm-button').click();
 
@@ -581,6 +603,29 @@ test('guided tutorial requires real actions and does not count its demonstration
     elemento('new-location-button').click();
     assert.equal(elemento('round-summary').children.length, 3);
     assert.equal(elemento('final-score').textContent, '15.000 / 15.000 pontos');
+});
+
+test('closing the expanded tutorial map restores interactions and reopening freezes them again', function () {
+    const jogo = criarAmbiente({ escolhaInicial: 'tutorial' });
+    const elemento = (id) => jogo.elementos.get(id);
+    const mapa = jogo.mapas[0];
+
+    elemento('tutorial-next').click();
+    elemento('expand-map-button').click();
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), true);
+    elemento('close-map-button').click();
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), false);
+    assert.equal(mapa.dragging.enabled, true);
+    assert.equal(mapa.scrollWheelZoom.enabled, true);
+
+    elemento('expand-map-button').click();
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), true);
+    assert.equal(mapa.dragging.enabled, false);
+    assert.equal(mapa.scrollWheelZoom.enabled, false);
+    elemento('tutorial-skip').click();
+    assert.equal(elemento('guess-map').classList.contains('is-tutorial-static'), false);
+    assert.equal(mapa.dragging.enabled, true);
+    assert.equal(mapa.scrollWheelZoom.enabled, true);
 });
 
 test('failed panorama offers retry and an alternate without recording a result', function () {

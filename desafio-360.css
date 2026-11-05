@@ -1574,17 +1574,10 @@ body.challenge-page .nav-bar {
     box-shadow: none !important;
 }
 
-.map-card.tutorial-target {
-    outline: 2px solid #f4c95d !important;
-    outline-offset: 3px;
-    box-shadow: 0 0 0 6px rgba(244, 201, 93, 0.3), 0 10px 28px rgba(4, 25, 32, 0.28) !important;
-}
-
 .map-expand-button.tutorial-target,
 .confirm-button.tutorial-target {
-    outline: 3px solid #f4c95d !important;
-    outline-offset: 3px;
-    box-shadow: 0 0 0 6px rgba(244, 201, 93, 0.3) !important;
+    position: relative;
+    animation: tutorial-button-pulse 1.8s ease-in-out infinite;
 }
 
 .tutorial-panorama-drag::after {
@@ -2134,9 +2127,9 @@ body.challenge-page .nav-bar {
 }
 
 .tutorial-panorama-guide > i:nth-child(2) {
-    color: #fff;
+    color: #f4c95d;
     font-size: clamp(2.4rem, 5vw, 3.5rem);
-    filter: drop-shadow(0 2px 4px #092f3b);
+    filter: drop-shadow(0 2px 3px #092f3b);
     animation: tutorial-hand-sweep 3.6s ease-in-out infinite;
 }
 
@@ -2150,17 +2143,48 @@ body.challenge-page .nav-bar {
     content: none !important;
 }
 
-.panorama-view.tutorial-panorama-interacting ~ .tutorial-panorama-guide {
-    opacity: 0;
-}
-
 .game-panel.is-map-expanded .map-card {
     display: none !important;
 }
 
 .guess-map.tutorial-target {
-    outline: 4px solid #f4c95d;
-    outline-offset: -4px;
+    outline: none;
+}
+
+.tutorial-expand-cursor::after,
+.confirm-button.tutorial-target::after,
+.tutorial-map-pointer {
+    color: #f4c95d;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    filter: drop-shadow(0 2px 3px #092f3b);
+    pointer-events: none;
+}
+
+.tutorial-expand-cursor::after,
+.confirm-button.tutorial-target::after {
+    position: absolute;
+    z-index: 3;
+    font-size: 1.45rem;
+    line-height: 1;
+    content: "\f25a";
+    animation: tutorial-hand-pulse 1.8s ease-in-out infinite;
+}
+
+.tutorial-expand-cursor::after {
+    top: calc(50% + 6px);
+    bottom: auto;
+    right: -5px;
+    left: auto;
+}
+
+.confirm-button.tutorial-target::after {
+    top: -12px;
+    right: 10px;
+}
+
+.guess-map.is-tutorial-static .leaflet-control-zoom {
+    display: none;
 }
 
 .tutorial-map-pointer {
@@ -2170,8 +2194,6 @@ body.challenge-page .nav-bar {
     color: #f4c95d;
     font-size: 2rem;
     line-height: 1;
-    filter: drop-shadow(0 1px 2px #092f3b) drop-shadow(0 0 2px #fff);
-    pointer-events: none;
     transform: translate(-12%, -12%);
     animation: tutorial-map-tap 1.15s ease-in-out infinite;
 }
@@ -2232,10 +2254,20 @@ body.challenge-page .nav-bar {
 
 @keyframes tutorial-hand-sweep {
     0%, 8%, 100% { transform: translateX(0); }
-    23% { transform: translateX(-58px); }
+    23% { transform: translateX(-28px); }
     40% { transform: translateX(0); }
-    63% { transform: translateX(58px); }
+    63% { transform: translateX(28px); }
     80% { transform: translateX(0); }
+}
+
+@keyframes tutorial-hand-pulse {
+    0%, 100% { transform: scale(0.96); }
+    50% { transform: scale(1.04); }
+}
+
+@keyframes tutorial-button-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.025); }
 }
 
 @keyframes tutorial-arrow-left {
@@ -2268,11 +2300,11 @@ body.challenge-page .nav-bar {
 
 @media (prefers-reduced-motion: reduce) {
     .tutorial-panorama-guide > i,
-    .tutorial-map-pointer {
+    .tutorial-map-pointer,
+    .map-expand-button.tutorial-target,
+    .confirm-button.tutorial-target,
+    .tutorial-expand-cursor::after,
+    .confirm-button.tutorial-target::after {
         animation: none !important;
-    }
-
-    .panorama-view.tutorial-panorama-interacting ~ .tutorial-panorama-guide {
-        opacity: 0;
     }
 }

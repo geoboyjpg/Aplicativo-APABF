@@ -83,7 +83,6 @@
     var acoesErroPanorama = document.getElementById('panorama-error-actions');
     var painelResultado = document.getElementById('result-panel');
     var palcoPanorama = document.getElementById('panorama-stage');
-    var panoramaElement = document.getElementById('panorama');
 
     function formatarDistancia(metros) {
         return metros < 1000
@@ -281,6 +280,20 @@
             cursor.style.left = ponto.x + 'px';
             cursor.style.top = ponto.y + 'px';
         }
+    }
+
+    function sincronizarInteracoesMapaTutorial() {
+        if (!estado.mapa) {
+            return;
+        }
+        var mapaEstatico = tutorialAtivo && etapaTutorial === 2 && dialogoMapa.open;
+        ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach(function (interacao) {
+            var controle = estado.mapa[interacao];
+            if (controle && typeof controle[mapaEstatico ? 'disable' : 'enable'] === 'function') {
+                controle[mapaEstatico ? 'disable' : 'enable']();
+            }
+        });
+        mapaElement.classList.toggle('is-tutorial-static', mapaEstatico);
     }
 
     function atualizarSelecaoDemonstrativa(ponto) {
@@ -926,6 +939,7 @@
             ], 14);
             atualizarEtapaTutorial();
         }
+        sincronizarInteracoesMapaTutorial();
         atualizarDimensoesMapa();
     }
 
@@ -936,6 +950,7 @@
     }
 
     function aoFecharMapaAmpliado() {
+        sincronizarInteracoesMapaTutorial();
         slotMapaEmLinha.appendChild(mapaElement);
         slotConfirmacaoEmLinha.appendChild(botaoConfirmar);
         jogo.classList.toggle('is-map-expanded', false);
@@ -955,7 +970,6 @@
         palcoPanorama.classList.toggle('tutorial-panorama-drag', false);
         document.getElementById('expand-map-button').classList.toggle('tutorial-expand-cursor', false);
         mapaElement.classList.toggle('tutorial-map-pick', false);
-        panoramaElement.classList.toggle('tutorial-panorama-interacting', false);
         atualizarCursorTutorialMapa();
     }
 
@@ -987,6 +1001,7 @@
                 }
             }, 30);
         }
+        sincronizarInteracoesMapaTutorial();
         document.getElementById('tutorial-step-label').textContent = 'Etapa ' + (etapaTutorial + 1) + ' de ' + etapasTutorial.length;
         document.getElementById('tutorial-title').textContent = etapa.titulo;
         document.getElementById('tutorial-copy').textContent = etapa.texto;
@@ -1071,6 +1086,7 @@
     function iniciarSessaoOficial() {
         tutorialAtivo = false;
         tutorialLocalSelecionado = false;
+        sincronizarInteracoesMapaTutorial();
         limparDestaquesTutorial();
         if (dialogoTutorial.open) {
             dialogoTutorial.close();
@@ -1104,30 +1120,6 @@
             dialogoEscolhaTutorial.showModal();
         }
     }
-
-    var liberarAnimacaoArrasto = null;
-    panoramaElement.addEventListener('pointerdown', function () {
-        if (!tutorialAtivo || etapaTutorial !== 0) {
-            return;
-        }
-        if (liberarAnimacaoArrasto) {
-            window.clearTimeout(liberarAnimacaoArrasto);
-            liberarAnimacaoArrasto = null;
-        }
-        panoramaElement.classList.toggle('tutorial-panorama-interacting', true);
-    }, true);
-    function restaurarAnimacaoTutorial() {
-        if (!panoramaElement.classList.contains('tutorial-panorama-interacting')) {
-            return;
-        }
-        window.clearTimeout(liberarAnimacaoArrasto);
-        liberarAnimacaoArrasto = window.setTimeout(function () {
-            panoramaElement.classList.toggle('tutorial-panorama-interacting', false);
-        }, 180);
-    }
-    window.addEventListener('pointerup', restaurarAnimacaoTutorial, true);
-    window.addEventListener('pointercancel', restaurarAnimacaoTutorial, true);
-    window.addEventListener('blur', restaurarAnimacaoTutorial);
 
     function mostrarFinal() {
         limparMapaResultado();
