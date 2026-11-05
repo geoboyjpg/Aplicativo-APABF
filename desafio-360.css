@@ -1303,7 +1303,7 @@ body.challenge-page .nav-bar {
     position: fixed;
     z-index: 25;
     top: max(12px, env(safe-area-inset-top, 0px));
-    left: max(12px, env(safe-area-inset-left, 0px));
+    left: max(20px, calc(env(safe-area-inset-left, 0px) + 20px));
     display: block;
     margin: 0;
 }
@@ -1368,7 +1368,7 @@ body.challenge-page .nav-bar {
 .round-actions {
     position: absolute;
     top: calc(100% + 6px);
-    left: 0;
+    left: 8px;
     display: block;
 }
 
@@ -1826,6 +1826,10 @@ body.challenge-page .nav-bar {
         left: 0;
     }
 
+    .round-actions {
+        left: 6px;
+    }
+
     #tutorial-button {
         top: max(9px, env(safe-area-inset-top, 0px));
         right: max(8px, env(safe-area-inset-right, 0px));
@@ -1841,7 +1845,7 @@ body.challenge-page .nav-bar {
 
     .challenge-header {
         top: max(8px, env(safe-area-inset-top, 0px));
-        left: max(8px, env(safe-area-inset-left, 0px));
+        left: max(14px, calc(env(safe-area-inset-left, 0px) + 14px));
     }
 
     .challenge-back {
@@ -2110,6 +2114,7 @@ body.challenge-page .nav-bar {
     opacity: 0;
     pointer-events: none;
     transform: translate(-50%, -50%);
+    will-change: opacity;
 }
 
 .tutorial-panorama-guide > i:first-child,
@@ -2131,6 +2136,7 @@ body.challenge-page .nav-bar {
     font-size: clamp(2.4rem, 5vw, 3.5rem);
     filter: drop-shadow(0 2px 3px #092f3b);
     animation: tutorial-hand-sweep 3.6s ease-in-out infinite;
+    will-change: transform;
 }
 
 .panorama-stage.tutorial-panorama-drag .tutorial-panorama-guide {
@@ -2179,8 +2185,8 @@ body.challenge-page .nav-bar {
 }
 
 .confirm-button.tutorial-target::after {
-    top: -12px;
-    right: 10px;
+    top: calc(50% + 3px);
+    left: calc(50% + 3px);
 }
 
 .guess-map.is-tutorial-static .leaflet-control-zoom {
@@ -2282,7 +2288,8 @@ body.challenge-page .nav-bar {
 
 @media (max-width: 700px) {
     .tutorial-panorama-guide {
-        gap: 15px;
+        gap: clamp(12px, 4vw, 20px);
+        left: 50%;
     }
 
     .tutorial-panorama-guide > i:nth-child(2) {

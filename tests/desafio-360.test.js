@@ -296,6 +296,12 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     assert.match(css, /\.panorama-stage\.tutorial-panorama-drag \.tutorial-panorama-guide/);
     assert.doesNotMatch(css, /\.panorama-view\.tutorial-panorama-interacting\s*~/);
     assert.match(css, /\.tutorial-panorama-guide\s*>\s*i:nth-child\(2\)[\s\S]*?animation:\s*tutorial-hand-sweep/);
+    assert.match(css, /\.tutorial-panorama-guide\s*\{[^}]*top:\s*50%;[^}]*left:\s*50%/s);
+    assert.match(css, /\.confirm-button\.tutorial-target::after\s*\{[^}]*top:\s*calc\(50% \+ 3px\);[^}]*left:\s*calc\(50% \+ 3px\)/s);
+    assert.match(css, /\.challenge-header\s*\{[^}]*left:\s*max\(20px,/s);
+    assert.match(css, /\.round-actions\s*\{[^}]*left:\s*8px/s);
+    assert.match(css, /@media \(max-width: 700px\)[\s\S]*?\.challenge-header\s*\{[^}]*left:\s*max\(14px,/s);
+    assert.match(css, /@media \(max-width: 700px\)[\s\S]*?\.round-actions\s*\{[^}]*left:\s*6px/s);
     assert.match(css, /\.tutorial-expand-cursor::after,[\s\S]*?\.confirm-button\.tutorial-target::after/);
     assert.match(css, /@keyframes tutorial-button-pulse/);
     assert.match(css, /\.guess-map\.is-tutorial-static \.leaflet-control-zoom/);
