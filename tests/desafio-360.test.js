@@ -278,9 +278,17 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     const html = fs.readFileSync(path.join(ROOT, 'desafio-360.html'), 'utf8');
     const css = fs.readFileSync(path.join(ROOT, 'desafio-360.css'), 'utf8');
     const panoramaMarkup = html.match(/<div id="panorama"[^>]*>([\s\S]*?)<\/div>/)?.[1] || '';
+    const roundHeader = html.match(/<header class="round-heading">([\s\S]*?)<\/header>/)?.[1] || '';
 
     assert.match(html, /<dialog id="tutorial-dialog"[^>]+hidden/);
     assert.doesNotMatch(panoramaMarkup, /tutorial-panorama-guide/);
+    assert.ok(roundHeader.indexOf('class="challenge-back"') < roundHeader.indexOf('id="tutorial-button"'));
+    assert.match(css, /\.round-heading > \.challenge-back\s*\{[^}]*order:\s*1/);
+    assert.match(css, /#tutorial-button\s*\{[^}]*order:\s*2/);
+    assert.match(css, /\.round-heading > div:first-of-type\s*\{[^}]*order:\s*3/s);
+    assert.match(css, /\.round-heading\s*\{[^}]*right:\s*max\(12px,[^}]*flex-wrap:\s*wrap/s);
+    assert.match(css, /\.round-actions\s*\{[^}]*display:\s*contents/s);
+    assert.match(css, /@media \(max-width: 700px\)[\s\S]*?\.round-heading\s*\{[^}]*max-width:\s*calc\(100vw - 16px\)/s);
     assert.equal([...html.matchAll(/<link[^>]+href="[^"]*desafio-360\.css"/g)].length, 1);
     assert.equal([...html.matchAll(/<script[^>]+src="[^"]*scripts\/desafio-360\.js"/g)].length, 1);
     assert.match(css, /\.game-layout,\s*\.panorama-card,\s*\.panorama-stage\s*\{[^}]*height:\s*100dvh/s);

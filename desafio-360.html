@@ -17,7 +17,6 @@
 <body class="challenge-page">
     <main class="challenge-shell">
         <header class="challenge-header">
-            <a class="challenge-back" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar ao aplicativo</a>
             <div class="challenge-heading">
                 <span class="eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Experiência educativa</span>
                 <h1>Desafio 360° da APABF</h1>
@@ -27,12 +26,13 @@
 
         <section id="game-panel" class="game-panel" aria-live="polite">
             <header class="round-heading">
+                <a class="challenge-back" href="index.html"><i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar ao aplicativo</a>
                 <div>
                     <span class="eyebrow">Explore e localize</span>
                     <h2 id="round-title">Preparando cenário…</h2>
+                    <div class="round-progress" id="round-progress" aria-label="Progresso da partida"></div>
                 </div>
                 <div class="round-actions">
-                    <div class="round-progress" id="round-progress" aria-label="Progresso da partida"></div>
                     <button id="tutorial-button" class="secondary-button tutorial-button" type="button">
                         <i class="fas fa-circle-question" aria-hidden="true"></i> Como jogar
                     </button>
