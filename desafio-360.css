@@ -2385,3 +2385,173 @@ body.challenge-page .nav-bar {
         order: 3;
     }
 }
+
+.round-heading {
+    align-items: center;
+}
+
+.round-heading > .challenge-back,
+#tutorial-button {
+    height: 42px;
+    min-height: 42px;
+    align-self: center;
+}
+
+.tutorial-dialog[open] {
+    inset: max(76px, calc(env(safe-area-inset-top, 0px) + 68px))
+        max(14px, env(safe-area-inset-right, 0px)) auto auto;
+}
+
+@media (max-width: 700px) {
+    .round-heading > .challenge-back {
+        width: 42px;
+        min-width: 42px;
+        justify-content: center;
+        gap: 0;
+        padding: 0;
+        font-size: 0;
+    }
+
+    .round-heading > .challenge-back i {
+        font-size: 1rem;
+    }
+
+    #tutorial-button {
+        width: 42px;
+        min-width: 42px;
+        padding: 0;
+    }
+
+    .tutorial-dialog[open] {
+        inset: max(68px, calc(env(safe-area-inset-top, 0px) + 60px))
+            max(8px, env(safe-area-inset-right, 0px)) auto auto;
+    }
+
+    .map-card,
+    .map-heading {
+        display: contents;
+    }
+
+    .map-heading > div,
+    .map-inline-slot,
+    .map-status,
+    .map-confirm-slot,
+    .retry-map-button {
+        display: none;
+    }
+
+    #expand-map-button {
+        position: fixed;
+        z-index: 35;
+        right: auto;
+        bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 8px);
+        left: 50%;
+        min-width: 160px;
+        min-height: 48px;
+        padding: 10px 16px;
+        color: #fff;
+        font-size: 0.9rem;
+        background: rgba(9, 47, 59, 0.9);
+        border-color: rgba(255, 255, 255, 0.42);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        transform: translateX(-50%);
+    }
+
+    #expand-map-button span {
+        display: none;
+    }
+
+    #expand-map-button::after {
+        content: "Escolher local";
+    }
+
+    #expand-map-button:hover {
+        transform: translate(-50%, -1px);
+    }
+
+    .result-panel:not(.is-expanded) {
+        height: auto;
+        max-height: calc(100dvh - 100px);
+        overflow: hidden;
+    }
+
+    .result-panel:not(.is-expanded) .result-layout {
+        height: auto;
+        padding: 5px 8px 8px;
+    }
+
+    .result-panel:not(.is-expanded) .result-map-column,
+    .result-panel:not(.is-expanded) .result-info > *:not(.result-metrics) {
+        display: none;
+    }
+
+    .result-panel:not(.is-expanded) .result-info {
+        flex: 0 0 auto;
+        overflow: visible;
+        gap: 0;
+    }
+
+    .result-panel:not(.is-expanded) .result-sheet-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: auto;
+        min-height: 38px;
+        gap: 4px;
+        touch-action: manipulation;
+    }
+
+    .result-sheet-toggle > .result-sheet-label {
+        width: auto;
+        height: auto;
+        color: #125f5f;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    .result-panel.is-expanded {
+        top: max(8px, env(safe-area-inset-top, 0px));
+        right: max(7px, env(safe-area-inset-right, 0px));
+        bottom: max(7px, env(safe-area-inset-bottom, 0px));
+        left: max(7px, env(safe-area-inset-left, 0px));
+        height: auto;
+        max-height: none;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .result-panel.is-expanded .result-sheet-toggle {
+        position: sticky;
+        z-index: 2;
+        top: 0;
+        background: #f1f7f5;
+    }
+
+    .result-panel.is-expanded .result-layout {
+        height: auto;
+        gap: 10px;
+        padding: 7px 10px 12px;
+    }
+
+    .result-panel.is-expanded .result-map-column {
+        order: 0;
+        flex: 0 0 clamp(240px, 42dvh, 420px);
+        min-height: 220px;
+    }
+
+    .result-panel.is-expanded .result-info {
+        order: 1;
+        flex: 0 0 auto;
+        overflow: visible;
+        gap: 8px;
+    }
+
+    .result-panel.is-expanded .result-info > .result-actions {
+        position: static;
+        margin-top: 8px;
+    }
+}

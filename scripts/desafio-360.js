@@ -667,8 +667,25 @@
         alternadorPainel.className = 'result-sheet-toggle';
         alternadorPainel.type = 'button';
         alternadorPainel.setAttribute('aria-expanded', 'false');
-        alternadorPainel.setAttribute('aria-label', 'Expandir painel de resultado');
-        alternadorPainel.innerHTML = '<span aria-hidden="true"></span>';
+        alternadorPainel.setAttribute('aria-label', 'Ver mais informações');
+        var puxadorPainel = document.createElement('span');
+        puxadorPainel.setAttribute('aria-hidden', 'true');
+        var textoAlternadorPainel = document.createElement('span');
+        textoAlternadorPainel.className = 'result-sheet-label';
+        textoAlternadorPainel.textContent = 'Ver mais informações';
+        alternadorPainel.append(puxadorPainel, textoAlternadorPainel);
+        function atualizarAlternadorPainel(expandido) {
+            alternadorPainel.setAttribute('aria-expanded', String(expandido));
+            alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher informações' : 'Ver mais informações');
+            textoAlternadorPainel.textContent = expandido ? 'Recolher informações' : 'Ver mais informações';
+            if (expandido) {
+                window.setTimeout(function () {
+                    if (estado.mapaResultado) {
+                        estado.mapaResultado.invalidateSize();
+                    }
+                }, 0);
+            }
+        }
         var gestoPainel = false;
         alternadorPainel.addEventListener('click', function () {
             if (gestoPainel) {
@@ -676,8 +693,7 @@
                 return;
             }
             var expandido = painelResultado.classList.toggle('is-expanded');
-            alternadorPainel.setAttribute('aria-expanded', String(expandido));
-            alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher painel de resultado' : 'Expandir painel de resultado');
+            atualizarAlternadorPainel(expandido);
         });
         alternadorPainel.addEventListener('pointerdown', function (evento) {
             alternadorPainel.dataset.startY = String(evento.clientY);
@@ -690,8 +706,7 @@
             gestoPainel = true;
             var expandido = evento.clientY < startY;
             painelResultado.classList.toggle('is-expanded', expandido);
-            alternadorPainel.setAttribute('aria-expanded', String(expandido));
-            alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher painel de resultado' : 'Expandir painel de resultado');
+            atualizarAlternadorPainel(expandido);
         });
         painelResultado.appendChild(alternadorPainel);
         var layout = document.createElement('div');
