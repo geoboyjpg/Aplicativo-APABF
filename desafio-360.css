@@ -2708,3 +2708,20 @@ body.challenge-page .nav-bar {
         animation: none !important;
     }
 }
+
+@media (min-width: 701px) {
+    #result-panel.is-expanded {
+        position: fixed;
+        z-index: 28;
+        top: 50%;
+        right: auto;
+        bottom: auto;
+        left: max(14px, env(safe-area-inset-left, 0px));
+        width: min(350px, 30vw);
+        height: min(78dvh, 690px);
+        max-height: none;
+        margin: 0;
+        overflow: hidden;
+        transform: translateY(-50%);
+    }
+}

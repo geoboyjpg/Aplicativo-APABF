@@ -307,6 +307,8 @@ test('immersive layout keeps the panorama interactive behind a click-through tut
     assert.match(css, /\.panorama-stage\.is-result #panorama\s*\{\s*display:\s*block/s);
     assert.match(css, /\.result-panel\s*\{[^}]*position:\s*fixed/s);
     assert.match(css, /\.result-panel\.is-expanded\s*\{[^}]*height:\s*min\(78dvh/s);
+    assert.match(css, /@media \(min-width: 701px\)[\s\S]*?#result-panel\.is-expanded\s*\{[^}]*left:\s*max\(14px,[^}]*width:\s*min\(350px,\s*30vw\)/s);
+    assert.match(css, /@media \(max-width: 700px\)[\s\S]*?\.result-panel\.is-expanded\s*\{[^}]*right:\s*max\(7px,[^}]*bottom:\s*max\(7px,[^}]*left:\s*max\(7px,[^}]*overflow-y:\s*auto/s);
     assert.match(css, /\.round-heading\s*\{[^}]*env\(safe-area-inset-top/s);
     assert.doesNotMatch(css.match(/\.round-heading\s*\{[^}]*\}/s)?.[0] || '', /backdrop-filter/);
     assert.match(css, /\.tutorial-dialog\[open\]\s*\{[^}]*inset:[\s\S]*?auto auto/s);
