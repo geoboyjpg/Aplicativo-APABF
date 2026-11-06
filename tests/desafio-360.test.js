@@ -71,6 +71,16 @@ function criarAmbiente(opcoes = {}) {
                 this.children = items;
             },
             setAttribute() {},
+            matches(selector) {
+                return selector === ':popover-open' && Boolean(this.popoverOpen);
+            },
+            showPopover() {
+                this.popoverOpen = true;
+                this.topLayerOrder = ++ordemTopLayer;
+            },
+            hidePopover() {
+                this.popoverOpen = false;
+            },
             focus() {},
             showModal() {
                 this.open = true;
@@ -194,7 +204,7 @@ function criarAmbiente(opcoes = {}) {
         },
         setTimeout(callback) { callback(); },
         clearTimeout() {},
-        matchMedia() { return { matches: false }; },
+        matchMedia() { return { matches: Boolean(opcoes.mobile) }; },
         scrollTo() {}
     };
     const math = Object.create(Math);
@@ -435,7 +445,7 @@ test('expanded map reuses the Leaflet instance, preserves the guess, and separat
 });
 
 test('minimized map enables the shared confirmation only after selecting a point', function () {
-    const jogo = criarAmbiente();
+    const jogo = criarAmbiente({ mobile: true });
     const confirmar = jogo.elementos.get('confirm-button');
 
     assert.equal(confirmar.disabled, true);
@@ -454,8 +464,10 @@ test('minimized map enables the shared confirmation only after selecting a point
     const controlePainel = painelResultado.children.find((child) => child.className === 'result-sheet-toggle');
     controlePainel.click();
     assert.equal(painelResultado.classList.contains('is-expanded'), true);
+    assert.equal(painelResultado.popoverOpen, true);
     controlePainel.click();
     assert.equal(painelResultado.classList.contains('is-expanded'), false);
+    assert.equal(painelResultado.popoverOpen, false);
     controlePainel.dispatch('pointerdown', { clientY: 120 });
     controlePainel.dispatch('pointerup', { clientY: 70 });
     controlePainel.click();
@@ -540,7 +552,7 @@ test('first visit asks whether to learn; skipping starts the official game', fun
 });
 
 test('guided tutorial requires real actions and does not count its demonstration as an official round', function () {
-    const jogo = criarAmbiente({ escolhaInicial: 'tutorial' });
+    const jogo = criarAmbiente({ escolhaInicial: 'tutorial', mobile: true });
     const elemento = (id) => jogo.elementos.get(id);
     const local = jogo.locais.find((item) => item.panoramaPath);
 
@@ -590,6 +602,12 @@ test('guided tutorial requires real actions and does not count its demonstration
     assert.equal(elemento('tutorial-step-label').textContent, 'Etapa 5 de 5');
     assert.match(elemento('tutorial-copy').textContent, /Prepare-se para explorar a APA da Baleia Franca/);
     assert.equal(elemento('result-panel').hidden, false);
+    const controleResultado = elemento('result-panel').children.find((child) => child.className === 'result-sheet-toggle');
+    controleResultado.click();
+    assert.equal(elemento('result-panel').popoverOpen, true);
+    assert.ok(elemento('result-panel').topLayerOrder > elemento('tutorial-dialog').topLayerOrder);
+    controleResultado.click();
+    assert.equal(elemento('result-panel').popoverOpen, false);
     const resultado = elemento('result-panel').children.find((child) => child.className === 'result-layout');
     const informacoes = resultado.children[1];
     assert.match(informacoes.children[0].children[0].children[1].textContent, new RegExp(local.nome));

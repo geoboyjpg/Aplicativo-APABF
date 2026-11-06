@@ -446,6 +446,7 @@
             return;
         }
         limparMapaResultado();
+        sincronizarCamadaPainelResultado(false);
         estado.panoramaComErro = false;
         estado.panoramaPronto = false;
         limparMapaDePalpite();
@@ -650,8 +651,23 @@
         }
     }
 
+    function sincronizarCamadaPainelResultado(expandido) {
+        if (!window.matchMedia
+            || !window.matchMedia('(max-width: 700px)').matches
+            || typeof painelResultado.showPopover !== 'function') {
+            return;
+        }
+        var aberto = painelResultado.matches(':popover-open');
+        if (expandido && !aberto) {
+            painelResultado.showPopover();
+        } else if (!expandido && aberto) {
+            painelResultado.hidePopover();
+        }
+    }
+
     function montarResultado(resultado, demonstracao) {
         limparMapaResultado();
+        sincronizarCamadaPainelResultado(false);
         painelResultado.replaceChildren();
         painelResultado.hidden = false;
         painelResultado.classList.toggle('is-expanded', false);
@@ -678,6 +694,7 @@
             alternadorPainel.setAttribute('aria-expanded', String(expandido));
             alternadorPainel.setAttribute('aria-label', expandido ? 'Recolher informações' : 'Ver mais informações');
             textoAlternadorPainel.textContent = expandido ? 'Recolher informações' : 'Ver mais informações';
+            sincronizarCamadaPainelResultado(expandido);
             if (expandido) {
                 window.setTimeout(function () {
                     if (estado.mapaResultado) {
