@@ -40,10 +40,11 @@ test('clusters use a smaller zoom-sensitive radius and retain spiderfy for overl
     const mapPage = fs.readFileSync(MAP_PAGE, 'utf8');
 
     assert.match(mapPage, /maxClusterRadius:\s*function\s*\(zoom\)/);
-    assert.match(mapPage, /if \(zoom >= 16\) return 20/);
-    assert.match(mapPage, /if \(zoom >= 13\) return 28/);
-    assert.match(mapPage, /if \(zoom >= 10\) return 38/);
-    assert.match(mapPage, /return 45/);
+    assert.match(mapPage, /radius:\s*5\.0/);
+    assert.match(mapPage, /if \(zoom >= 16\) return 12/);
+    assert.match(mapPage, /if \(zoom >= 13\) return 20/);
+    assert.match(mapPage, /if \(zoom >= 10\) return 30/);
+    assert.match(mapPage, /return 38/);
     assert.match(mapPage, /spiderfyOnMaxZoom:\s*true/);
     assert.match(mapPage, /zoomToBoundsOnClick:\s*true/);
     assert.doesNotMatch(mapPage, /disableClusteringAtZoom:\s*\d+/);
@@ -61,12 +62,15 @@ test('filter controls use source fields and only update clusters when submitted'
 
     [
         'Espécies - Espécie',
+        'OFAI - Espécie do indivíduo',
+        'Necropsia - Espécie do indivíduo',
         'Nome Popular',
         'Espécies - Classe',
         'Data/Hora',
         'Data',
         'Cidade',
         'Trecho',
+        'Instituição executora',
         'Condição',
         'OFAI - Sexo',
         'Necropsia - Sexo',
@@ -82,9 +86,53 @@ test('filter controls use source fields and only update clusters when submitted'
     assert.match(interfaceScript, /cluster\.clearLayers\(\)/);
     assert.match(interfaceScript, /cluster\.addLayers/);
     assert.match(interfaceScript, /Nenhuma ocorrência corresponde à pesquisa/);
-    assert.match(interfaceScript, /includes\(filters\.scientific\)/);
-    assert.match(interfaceScript, /includes\(filters\.common\)/);
+    assert.match(interfaceScript, /buildSpeciesSuggestions/);
+    assert.match(interfaceScript, /matchesSpeciesSuggestion/);
+    assert.match(interfaceScript, /includes\(filters\.speciesQuery\)/);
+    assert.match(interfaceScript, /event\.key === 'Enter'/);
+    assert.match(interfaceScript, /filterFields\.institution, filters\.institution/);
     assert.match(interfaceScript, /occurrenceDate < filters\.dateFrom/);
+});
+
+test('species autocomplete and institution options come from occurrence records', function () {
+    const mapPage = fs.readFileSync(MAP_PAGE, 'utf8');
+    const interfaceScript = fs.readFileSync(MAP_INTERFACE, 'utf8');
+    const sourceScript = fs.readFileSync(
+        path.join(ROOT, 'Ocorrencias de Fauna Registradas', 'data', 'OcorrnciasdeFaunaindividual_1.js'),
+        'utf8'
+    );
+    const serialized = sourceScript.slice(sourceScript.indexOf('=') + 1).trim().replace(/;\s*$/, '');
+    const collection = JSON.parse(serialized);
+    const records = collection.features.map(function (feature) {
+        return feature.properties;
+    });
+    const institutions = new Set(records.map(function (properties) {
+        return properties['Instituição executora'];
+    }).filter(Boolean));
+    const individualIds = records.map(function (properties) {
+        return properties['Identificador do indivíduo'];
+    });
+
+    assert.match(mapPage, /role="combobox"/);
+    assert.match(mapPage, /role="listbox"/);
+    assert.match(mapPage, /fauna-filter-institution/);
+    assert.match(interfaceScript, /term\.includes\(query\)/);
+    assert.match(interfaceScript, /speciesSearchClear\.addEventListener\('click'/);
+    assert.equal(institutions.size, 3);
+    assert.deepEqual([...institutions].sort(), ['Trecho 01', 'Trecho 02', 'Trecho 03']);
+    assert.equal(individualIds.length, 2798);
+    assert.ok(individualIds.every(function (identifier) {
+        return identifier !== null && identifier !== undefined && String(identifier).trim() !== '';
+    }));
+    assert.equal(new Set(individualIds.map(String)).size, individualIds.length);
+    assert.ok(records.filter(function (properties) {
+        return properties.Fotos !== null && properties.Fotos !== undefined;
+    }).every(function (properties) {
+        return !/^https?:/i.test(String(properties.Fotos));
+    }));
+    assert.ok(records.every(function (properties) {
+        return properties.Fotos_1 === null || properties.Fotos_1 === undefined;
+    }));
 });
 
 test('record modal uses a split desktop layout and stacks on small screens', function () {
@@ -134,7 +182,26 @@ test('photo gallery prefers distinct observations and lazy-loads each selected i
     assert.match(helper, /\(index \+ 1\) \+ ' de ' \+ gallery\.length/);
     assert.match(helper, /selectIndex\(0\)/);
     assert.match(helper, /image\.src = photo\.imageUrl/);
+    assert.match(helper, /imageLink\.hidden = true/);
+    assert.match(helper, /fauna-gallery__error/);
     assert.match(helper, /Fotografia ilustrativa indisponível para esta espécie\./);
+    assert.match(helper, /Imagem ilustrativa da espécie – não corresponde necessariamente ao indivíduo registrado\./);
+});
+
+test('individual photos require explicit authorization and do not silently fall back after failure', function () {
+    const helper = fs.readFileSync(MAP_SCRIPT, 'utf8');
+    const manifest = fs.readFileSync(
+        path.join(ROOT, 'Ocorrencias de Fauna Registradas', 'data', 'fotos-individuos-autorizadas.js'),
+        'utf8'
+    );
+
+    assert.match(helper, /Identificador do indivíduo/);
+    assert.match(helper, /entry\.authorized === true/);
+    assert.match(helper, /Registro fotográfico autorizado indisponível para este indivíduo\./);
+    assert.match(helper, /Registro fotográfico do indivíduo – PMP/);
+    assert.match(helper, /Ampliar fotografia em uma nova guia/);
+    assert.match(manifest, /Object\.create\(null\)/);
+    assert.doesNotMatch(manifest, /https?:\/\//);
 });
 
 test('record details retain source attribute names and represent empty values', function () {

@@ -161,6 +161,7 @@
             candidates.push({
                 photoId: String(photo.id || photo.url),
                 observationId: String(observation.id),
+                kind: 'illustrative',
                 area: (Number(dimensions.width) || 0) * (Number(dimensions.height) || 0),
                 observationVotes: Number(observation.cached_votes_total) || 0,
                 imageUrl: imageUrl,
@@ -208,6 +209,60 @@
             });
         }
         return selected;
+    }
+
+    function safeAuthorizedUrl(value) {
+        if (isEmpty(value)) {
+            return null;
+        }
+        try {
+            var url = new URL(String(value).trim(), document.baseURI);
+            if (url.protocol === 'https:' ||
+                (url.protocol === global.location.protocol &&
+                    url.origin === global.location.origin &&
+                    url.protocol !== 'data:' &&
+                    url.protocol !== 'javascript:')) {
+                return url.href;
+            }
+        } catch (error) {
+            return null;
+        }
+        return null;
+    }
+
+    function getAuthorizedIndividualPhotos(properties) {
+        var individualId = getValue(properties, ['Identificador do indivíduo']);
+        var manifest = global.FaunaIndividualPhotos;
+        if (!individualId || !manifest ||
+            !Object.prototype.hasOwnProperty.call(manifest, individualId)) {
+            return null;
+        }
+
+        var entries = Array.isArray(manifest[individualId]) ? manifest[individualId] : [];
+        var authorizedEntries = entries.filter(function (entry) {
+            return entry && entry.authorized === true;
+        });
+        if (!authorizedEntries.length) {
+            return null;
+        }
+
+        return {
+            individualId: individualId,
+            photos: authorizedEntries.map(function (entry, index) {
+                return {
+                    photoId: String(entry.photoId || index),
+                    kind: 'individual',
+                    individualId: individualId,
+                    imageUrl: safeAuthorizedUrl(entry.url),
+                    attribution: String(entry.credit || '').trim(),
+                    source: String(entry.source || '').trim(),
+                    sourceUrl: safeAuthorizedUrl(entry.sourceUrl),
+                    license: String(entry.license || '').trim()
+                };
+            }).filter(function (photo) {
+                return photo.imageUrl;
+            })
+        };
     }
 
     function requestGallery(species) {
@@ -295,14 +350,37 @@
         var galleryElement = createElement('div', 'fauna-gallery');
         var frame = createElement('div', 'fauna-gallery__frame');
         var image = createElement('img', 'fauna-gallery__image');
-        image.alt = 'Fotografia ' + (index + 1) + ' de ' + gallery.length + ' de ' + species;
+        image.alt = photo.kind === 'individual'
+            ? 'Registro fotográfico do indivíduo ' + photo.individualId
+            : 'Imagem ilustrativa ' + (index + 1) + ' de ' + gallery.length + ' da espécie ' + species;
         image.loading = 'eager';
         image.decoding = 'async';
+        var imageLink = createElement('a', 'fauna-gallery__image-link');
         image.addEventListener('error', function () {
-            frame.textContent = '';
-            frame.appendChild(createElement('div', 'fauna-photo__placeholder', 'Esta fotografia não pôde ser carregada.'));
+            imageLink.hidden = true;
+            var unavailable = createElement(
+                'div',
+                'fauna-photo__placeholder fauna-gallery__error',
+                photo.kind === 'individual'
+                    ? 'O registro fotográfico do indivíduo não pôde ser carregado.'
+                    : 'Esta imagem ilustrativa não pôde ser carregada.'
+            );
+            frame.appendChild(unavailable);
         }, { once: true });
-        frame.appendChild(image);
+        imageLink.href = photo.imageUrl;
+        imageLink.target = '_blank';
+        imageLink.rel = 'noopener noreferrer';
+        imageLink.setAttribute('aria-label', 'Ampliar fotografia em uma nova guia');
+        imageLink.appendChild(image);
+        frame.appendChild(imageLink);
+
+        var position = createElement(
+            'div',
+            'fauna-gallery__position',
+            (index + 1) + ' de ' + gallery.length
+        );
+        position.setAttribute('aria-live', 'polite');
+        frame.appendChild(position);
 
         if (gallery.length > 1) {
             var previous = createElement('button', 'fauna-gallery__arrow fauna-gallery__arrow--previous', '‹');
@@ -327,28 +405,81 @@
         }
 
         galleryElement.appendChild(frame);
-        galleryElement.appendChild(createElement('div', 'fauna-gallery__position', (index + 1) + ' de ' + gallery.length));
+        galleryElement.appendChild(createElement(
+            'p',
+            'fauna-gallery__caption',
+            photo.kind === 'individual'
+                ? 'Registro fotográfico do indivíduo – PMP · Identificador: ' + photo.individualId
+                : 'Imagem ilustrativa da espécie – não corresponde necessariamente ao indivíduo registrado.'
+        ));
 
         var credits = createElement('div', 'fauna-photo__credits');
-        credits.appendChild(createElement('span', '', 'Crédito do fotógrafo/observador: ' + photo.attribution + '. '));
+        if (photo.kind === 'individual') {
+            var details = [];
+            if (photo.attribution) {
+                details.push('Crédito: ' + photo.attribution);
+            }
+            if (photo.source) {
+                details.push('Fonte: ' + photo.source);
+            }
+            if (photo.license) {
+                details.push('Licença: ' + photo.license);
+            }
+            if (details.length) {
+                credits.appendChild(createElement('span', '', details.join(' · ')));
+            }
+            if (photo.sourceUrl) {
+                if (details.length) {
+                    credits.appendChild(document.createTextNode(' · '));
+                }
+                var source = createElement('a', '', 'Fonte original');
+                source.href = photo.sourceUrl;
+                source.target = '_blank';
+                source.rel = 'noopener noreferrer';
+                credits.appendChild(source);
+            }
+        } else {
+            credits.appendChild(createElement('span', '', 'Crédito do fotógrafo/observador: ' + photo.attribution + '. '));
 
-        var source = createElement('a', '', 'Observação original no iNaturalist');
-        source.href = photo.observationUrl;
-        source.target = '_blank';
-        source.rel = 'noopener noreferrer';
-        credits.appendChild(source);
-        credits.appendChild(document.createTextNode(' · '));
+            var observation = createElement('a', '', 'Observação original no iNaturalist');
+            observation.href = photo.observationUrl;
+            observation.target = '_blank';
+            observation.rel = 'noopener noreferrer';
+            credits.appendChild(observation);
+            credits.appendChild(document.createTextNode(' · '));
 
-        credits.appendChild(createElement('span', '', 'Licença: ' + photo.license.label));
+            credits.appendChild(createElement('span', '', 'Licença: ' + photo.license.label));
+        }
 
         container.appendChild(galleryElement);
         container.appendChild(credits);
         image.src = photo.imageUrl;
     }
 
-    function renderGallery(container, species) {
+    function renderGallery(container, species, properties) {
+        var individualGallery = getAuthorizedIndividualPhotos(properties || {});
+        if (individualGallery) {
+            if (!individualGallery.photos.length) {
+                showPhotoFallback(container, 'Registro fotográfico autorizado indisponível para este indivíduo.');
+                return;
+            }
+
+            function selectIndividualIndex(index) {
+                var selectedIndex = (index + individualGallery.photos.length) % individualGallery.photos.length;
+                renderGallerySlide(
+                    container,
+                    individualGallery.photos,
+                    species,
+                    selectedIndex,
+                    selectIndividualIndex
+                );
+            }
+            selectIndividualIndex(0);
+            return;
+        }
+
         showPhotoFallback(container, species
-            ? 'Buscando fotografias verificadas...'
+            ? 'Buscando imagens ilustrativas verificadas...'
             : 'Fotografia ilustrativa indisponível para esta espécie.');
         if (isEmpty(species)) {
             return;
@@ -420,7 +551,7 @@
         var mediaColumn = createElement('div', 'fauna-record-modal__media');
         var photoContainer = makePhotoContainer(species, 'fauna-photo--details');
         mediaColumn.appendChild(photoContainer);
-        renderGallery(photoContainer, species);
+        renderGallery(photoContainer, species, properties);
         modalContent.appendChild(mediaColumn);
 
         var attributesColumn = createElement('div', 'fauna-record-modal__attributes');
@@ -490,7 +621,8 @@
             popup.appendChild(scientificName);
         }
 
-        popup.appendChild(makePhotoContainer(species, 'fauna-photo--popup'));
+        var photoContainer = makePhotoContainer(species, 'fauna-photo--popup');
+        popup.appendChild(photoContainer);
         var table = createElement('table', 'map-popup__table');
         addSummaryRow(table, 'Município', getValue(properties, ['Cidade', 'Município']));
         addSummaryRow(table, 'Data da ocorrência', getValue(properties, ['Data/Hora', 'Data']));
@@ -513,7 +645,7 @@
             var popupElement = event.popup.getElement();
             var photoContainer = popupElement && popupElement.querySelector('.fauna-photo--popup');
             if (photoContainer) {
-                renderGallery(photoContainer, species);
+                renderGallery(photoContainer, species, properties);
             }
         });
     }

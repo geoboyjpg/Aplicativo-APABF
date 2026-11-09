@@ -41,6 +41,7 @@
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
         <script src="js/leaflet.markercluster.js"></script>
+        <script src="data/fotos-individuos-autorizadas.js"></script>
         <script src="js/fauna-ocorrencias.js"></script>
         <script src="data/OcorrnciasdeFaunaindividual_1.js"></script>
         <script src="data/LimitesdaAPABF_2.js"></script>
@@ -149,7 +150,7 @@
         function style_OcorrnciasdeFaunaindividual_1_0() {
             return {
                 pane: 'pane_OcorrnciasdeFaunaindividual_1',
-                radius: 4.0,
+                radius: 5.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -183,10 +184,10 @@
         var cluster_OcorrnciasdeFaunaindividual_1 = new L.MarkerClusterGroup({
             showCoverageOnHover: false,
             maxClusterRadius: function (zoom) {
-                if (zoom >= 16) return 20;
-                if (zoom >= 13) return 28;
-                if (zoom >= 10) return 38;
-                return 45;
+                if (zoom >= 16) return 12;
+                if (zoom >= 13) return 20;
+                if (zoom >= 10) return 30;
+                return 38;
             },
             spiderfyOnMaxZoom: true,
             zoomToBoundsOnClick: true,
@@ -352,12 +353,19 @@
                     <h3>Pesquisa e filtros</h3>
                     <p>Os critérios preenchidos são combinados: um registro precisa corresponder a todos eles.</p>
                     <form id="fauna-filter-form" class="fauna-filter-form">
-                        <label for="fauna-filter-scientific">Nome científico</label>
-                        <input id="fauna-filter-scientific" name="scientific" type="search"
-                            placeholder="Parte do nome científico" autocomplete="off">
-                        <label for="fauna-filter-common">Nome popular</label>
-                        <input id="fauna-filter-common" name="common" type="search"
-                            placeholder="Parte do nome popular" autocomplete="off">
+                        <label for="fauna-filter-species">Buscar espécie</label>
+                        <div class="fauna-species-search">
+                            <input id="fauna-filter-species" name="species" type="search"
+                                role="combobox" aria-autocomplete="list"
+                                aria-controls="fauna-species-suggestions" aria-expanded="false"
+                                placeholder="Nome popular ou científico" autocomplete="off">
+                            <button id="fauna-filter-species-clear" class="fauna-species-search__clear"
+                                type="button" aria-label="Limpar busca de espécie" title="Limpar busca"
+                                hidden>×</button>
+                            <ul id="fauna-species-suggestions" class="fauna-species-suggestions"
+                                role="listbox" aria-label="Espécies encontradas" hidden></ul>
+                        </div>
+                        <p class="fauna-filter-hint">Digite parte do nome ou escolha uma sugestão; pressione Enter para pesquisar.</p>
                         <label for="fauna-filter-class">Grupo taxonômico (classe)</label>
                         <select id="fauna-filter-class" name="taxonomicClass">
                             <option value="">Todas as classes</option>
@@ -379,6 +387,10 @@
                         <label for="fauna-filter-segment">Trecho</label>
                         <select id="fauna-filter-segment" name="segment">
                             <option value="">Todos os trechos</option>
+                        </select>
+                        <label for="fauna-filter-institution">Instituição Executora</label>
+                        <select id="fauna-filter-institution" name="institution">
+                            <option value="">Todas as instituições executoras</option>
                         </select>
                         <label for="fauna-filter-condition">Condição / estado de vida</label>
                         <select id="fauna-filter-condition" name="condition">
