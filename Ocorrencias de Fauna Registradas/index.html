@@ -43,7 +43,7 @@
         <script src="js/leaflet.markercluster.js"></script>
         <script src="data/fotos-individuos-autorizadas.js"></script>
         <script src="js/fauna-ocorrencias.js"></script>
-        <script src="data/OcorrnciasdeFaunaindividual_1.js"></script>
+        <script src="data/ocorrencias-fauna-2015-2025.js"></script>
         <script src="data/LimitesdaAPABF_2.js"></script>
         <script>
         var map = L.map('map', {
@@ -183,6 +183,9 @@
         });
         var cluster_OcorrnciasdeFaunaindividual_1 = new L.MarkerClusterGroup({
             showCoverageOnHover: false,
+            chunkedLoading: true,
+            chunkInterval: 200,
+            chunkDelay: 50,
             maxClusterRadius: function (zoom) {
                 if (zoom >= 16) return 12;
                 if (zoom >= 13) return 20;
@@ -193,7 +196,9 @@
             zoomToBoundsOnClick: true,
             spiderfyDistanceMultiplier: 2
         });
-        cluster_OcorrnciasdeFaunaindividual_1.addLayer(layer_OcorrnciasdeFaunaindividual_1);
+        cluster_OcorrnciasdeFaunaindividual_1.addLayers(
+            layer_OcorrnciasdeFaunaindividual_1.getLayers()
+        );
 
         bounds_group.addLayer(layer_OcorrnciasdeFaunaindividual_1);
         cluster_OcorrnciasdeFaunaindividual_1.addTo(map);
@@ -353,19 +358,32 @@
                     <h3>Pesquisa e filtros</h3>
                     <p>Os critérios preenchidos são combinados: um registro precisa corresponder a todos eles.</p>
                     <form id="fauna-filter-form" class="fauna-filter-form">
-                        <label for="fauna-filter-species">Buscar espécie</label>
+                    <label for="fauna-filter-species">Buscar por nome científico</label>
                         <div class="fauna-species-search">
                             <input id="fauna-filter-species" name="species" type="search"
                                 role="combobox" aria-autocomplete="list"
                                 aria-controls="fauna-species-suggestions" aria-expanded="false"
-                                placeholder="Nome popular ou científico" autocomplete="off">
+                            placeholder="Digite o nome científico" autocomplete="off">
                             <button id="fauna-filter-species-clear" class="fauna-species-search__clear"
-                                type="button" aria-label="Limpar busca de espécie" title="Limpar busca"
+                            type="button" aria-label="Limpar busca por nome científico" title="Limpar busca"
                                 hidden>×</button>
                             <ul id="fauna-species-suggestions" class="fauna-species-suggestions"
-                                role="listbox" aria-label="Espécies encontradas" hidden></ul>
+                            role="listbox" aria-label="Nomes científicos encontrados" hidden></ul>
                         </div>
-                        <p class="fauna-filter-hint">Digite parte do nome ou escolha uma sugestão; pressione Enter para pesquisar.</p>
+                    <p class="fauna-filter-hint">Digite parte do nome científico ou escolha uma sugestão.</p>
+                    <label for="fauna-filter-common-name">Buscar por nome popular</label>
+                    <div class="fauna-species-search">
+                        <input id="fauna-filter-common-name" name="commonName" type="search"
+                            role="combobox" aria-autocomplete="list"
+                            aria-controls="fauna-common-name-suggestions" aria-expanded="false"
+                            placeholder="Digite o nome popular" autocomplete="off">
+                        <button id="fauna-filter-common-name-clear" class="fauna-species-search__clear"
+                            type="button" aria-label="Limpar busca por nome popular" title="Limpar busca"
+                            hidden>×</button>
+                        <ul id="fauna-common-name-suggestions" class="fauna-species-suggestions"
+                            role="listbox" aria-label="Nomes populares encontrados" hidden></ul>
+                    </div>
+                    <p class="fauna-filter-hint">Digite parte do nome popular ou escolha uma sugestão.</p>
                         <label for="fauna-filter-class">Grupo taxonômico (classe)</label>
                         <select id="fauna-filter-class" name="taxonomicClass">
                             <option value="">Todas as classes</option>
@@ -458,6 +476,7 @@
         </div>
 
         <script src="../nav.js" data-base=".."></script>
+        <script src="js/fauna-buscas.js"></script>
         <script src="js/fauna-mapa-interface.js"></script>
     </body>
 </html>

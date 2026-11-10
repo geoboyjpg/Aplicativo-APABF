@@ -231,27 +231,32 @@
     }
 
     function getAuthorizedIndividualPhotos(properties) {
+        var occurrenceId = getValue(properties, ['Identificador da ocorrência']);
         var individualId = getValue(properties, ['Identificador do indivíduo']);
-        var manifest = global.FaunaIndividualPhotos;
-        if (!individualId || !manifest ||
-            !Object.prototype.hasOwnProperty.call(manifest, individualId)) {
+        var manifest = global.FaunaOccurrencePhotos;
+        if (!occurrenceId || !individualId || !manifest ||
+            !Object.prototype.hasOwnProperty.call(manifest, occurrenceId)) {
             return null;
         }
 
-        var entries = Array.isArray(manifest[individualId]) ? manifest[individualId] : [];
+        var entries = Array.isArray(manifest[occurrenceId]) ? manifest[occurrenceId] : [];
         var authorizedEntries = entries.filter(function (entry) {
-            return entry && entry.authorized === true;
+            return entry && entry.authorized === true &&
+                String(entry.occurrenceId || '') === occurrenceId &&
+                String(entry.individualId || '') === individualId;
         });
         if (!authorizedEntries.length) {
             return null;
         }
 
         return {
+            occurrenceId: occurrenceId,
             individualId: individualId,
             photos: authorizedEntries.map(function (entry, index) {
                 return {
                     photoId: String(entry.photoId || index),
                     kind: 'individual',
+                    occurrenceId: occurrenceId,
                     individualId: individualId,
                     imageUrl: safeAuthorizedUrl(entry.url),
                     attribution: String(entry.credit || '').trim(),
@@ -362,9 +367,21 @@
                 'div',
                 'fauna-photo__placeholder fauna-gallery__error',
                 photo.kind === 'individual'
-                    ? 'O registro fotográfico do indivíduo não pôde ser carregado.'
+                    ? 'Não foi possível carregar a fotografia do SIMBA. O arquivo pode não existir ou o servidor pode ter negado o acesso.'
                     : 'Esta imagem ilustrativa não pôde ser carregada.'
             );
+            if (photo.kind === 'individual') {
+                var retryButton = createElement(
+                    'button',
+                    'map-ui-button map-ui-button--secondary',
+                    'Tentar novamente'
+                );
+                retryButton.type = 'button';
+                retryButton.addEventListener('click', function () {
+                    selectIndex(index);
+                });
+                unavailable.appendChild(retryButton);
+            }
             frame.appendChild(unavailable);
         }, { once: true });
         imageLink.href = photo.imageUrl;
@@ -409,18 +426,16 @@
             'p',
             'fauna-gallery__caption',
             photo.kind === 'individual'
-                ? 'Registro fotográfico do indivíduo – PMP · Identificador: ' + photo.individualId
+                ? 'Fotografia do indivíduo – SIMBA/PMP · Ocorrência: ' + photo.occurrenceId +
+                    ' · Indivíduo: ' + photo.individualId
                 : 'Imagem ilustrativa da espécie – não corresponde necessariamente ao indivíduo registrado.'
         ));
 
         var credits = createElement('div', 'fauna-photo__credits');
         if (photo.kind === 'individual') {
-            var details = [];
+            var details = ['Fonte: ' + (photo.source || 'SIMBA/PMP')];
             if (photo.attribution) {
                 details.push('Crédito: ' + photo.attribution);
-            }
-            if (photo.source) {
-                details.push('Fonte: ' + photo.source);
             }
             if (photo.license) {
                 details.push('Licença: ' + photo.license);
@@ -428,15 +443,19 @@
             if (details.length) {
                 credits.appendChild(createElement('span', '', details.join(' · ')));
             }
+            credits.appendChild(document.createTextNode(' · '));
+            var source = createElement('a', '', 'Origem da fotografia');
+            source.href = photo.sourceUrl || photo.imageUrl;
+            source.target = '_blank';
+            source.rel = 'noopener noreferrer';
+            credits.appendChild(source);
             if (photo.sourceUrl) {
-                if (details.length) {
-                    credits.appendChild(document.createTextNode(' · '));
-                }
-                var source = createElement('a', '', 'Fonte original');
-                source.href = photo.sourceUrl;
-                source.target = '_blank';
-                source.rel = 'noopener noreferrer';
-                credits.appendChild(source);
+                credits.appendChild(document.createTextNode(' · '));
+                var imageFile = createElement('a', '', 'Arquivo da imagem');
+                imageFile.href = photo.imageUrl;
+                imageFile.target = '_blank';
+                imageFile.rel = 'noopener noreferrer';
+                credits.appendChild(imageFile);
             }
         } else {
             credits.appendChild(createElement('span', '', 'Crédito do fotógrafo/observador: ' + photo.attribution + '. '));
@@ -456,28 +475,7 @@
         image.src = photo.imageUrl;
     }
 
-    function renderGallery(container, species, properties) {
-        var individualGallery = getAuthorizedIndividualPhotos(properties || {});
-        if (individualGallery) {
-            if (!individualGallery.photos.length) {
-                showPhotoFallback(container, 'Registro fotográfico autorizado indisponível para este indivíduo.');
-                return;
-            }
-
-            function selectIndividualIndex(index) {
-                var selectedIndex = (index + individualGallery.photos.length) % individualGallery.photos.length;
-                renderGallerySlide(
-                    container,
-                    individualGallery.photos,
-                    species,
-                    selectedIndex,
-                    selectIndividualIndex
-                );
-            }
-            selectIndividualIndex(0);
-            return;
-        }
-
+    function renderGallery(container, species) {
         showPhotoFallback(container, species
             ? 'Buscando imagens ilustrativas verificadas...'
             : 'Fotografia ilustrativa indisponível para esta espécie.');
@@ -502,6 +500,108 @@
         });
     }
 
+    function renderIndividualPhotoSection(properties) {
+        var individualGallery = getAuthorizedIndividualPhotos(properties);
+        if (!individualGallery || !individualGallery.photos.length) {
+            return null;
+        }
+
+        var section = createElement('section', 'fauna-individual-photos');
+        var heading = createElement(
+            'h3',
+            'fauna-media-section-title',
+            'Registro fotográfico do indivíduo – SIMBA'
+        );
+        section.appendChild(heading);
+        section.appendChild(createElement(
+            'p',
+            'fauna-individual-photos__identity',
+            'Ocorrência: ' + individualGallery.occurrenceId +
+                ' · Indivíduo: ' + individualGallery.individualId
+        ));
+
+        var viewButton = createElement('button', 'map-ui-button map-ui-button--primary', 'Ver fotografia');
+        viewButton.type = 'button';
+        section.appendChild(viewButton);
+
+        var confirmation = createElement('div', 'fauna-individual-photos__confirmation');
+        confirmation.hidden = true;
+        confirmation.setAttribute('role', 'group');
+        confirmation.setAttribute('aria-label', 'Confirmação para visualizar fotografia do SIMBA');
+        confirmation.appendChild(createElement(
+            'p',
+            'fauna-individual-photos__warning',
+            'Algumas fotografias podem apresentar animais mortos, feridos, em decomposição ou submetidos a procedimentos de atendimento e análise. Deseja visualizar a imagem?'
+        ));
+        var confirmationActions = createElement('div', 'fauna-individual-photos__actions');
+        var confirmButton = createElement(
+            'button',
+            'map-ui-button map-ui-button--primary',
+            'Visualizar fotografia'
+        );
+        confirmButton.type = 'button';
+        var cancelButton = createElement(
+            'button',
+            'map-ui-button map-ui-button--secondary',
+            'Cancelar'
+        );
+        cancelButton.type = 'button';
+        confirmationActions.appendChild(confirmButton);
+        confirmationActions.appendChild(cancelButton);
+        confirmation.appendChild(confirmationActions);
+        section.appendChild(confirmation);
+
+        var viewer = createElement('div', 'fauna-individual-photos__viewer');
+        viewer.hidden = true;
+        var hideButton = createElement(
+            'button',
+            'map-ui-button map-ui-button--secondary fauna-individual-photos__hide',
+            'Ocultar fotografia'
+        );
+        hideButton.type = 'button';
+        viewer.appendChild(hideButton);
+        var galleryContainer = createElement('div', 'fauna-photo fauna-photo--individual-details');
+        galleryContainer.setAttribute('aria-live', 'polite');
+        viewer.appendChild(galleryContainer);
+        section.appendChild(viewer);
+
+        viewButton.addEventListener('click', function () {
+            viewButton.hidden = true;
+            confirmation.hidden = false;
+            confirmButton.focus();
+        });
+        cancelButton.addEventListener('click', function () {
+            confirmation.hidden = true;
+            viewButton.hidden = false;
+            viewButton.focus();
+        });
+        confirmButton.addEventListener('click', function () {
+            confirmation.hidden = true;
+            viewer.hidden = false;
+
+            function selectIndividualIndex(index) {
+                var selectedIndex = (index + individualGallery.photos.length) % individualGallery.photos.length;
+                renderGallerySlide(
+                    galleryContainer,
+                    individualGallery.photos,
+                    '',
+                    selectedIndex,
+                    selectIndividualIndex
+                );
+            }
+            selectIndividualIndex(0);
+            hideButton.focus();
+        });
+        hideButton.addEventListener('click', function () {
+            galleryContainer.textContent = '';
+            viewer.hidden = true;
+            viewButton.hidden = false;
+            viewButton.focus();
+        });
+
+        return section;
+    }
+
     function makePhotoContainer(species, className) {
         var container = createElement('div', 'fauna-photo ' + className);
         container.setAttribute('aria-live', 'polite');
@@ -509,12 +609,88 @@
         return container;
     }
 
+    var pendingDetailRequests = Object.create(null);
+
+    function loadOccurrenceDetails(properties) {
+        var year = String(properties.__detailsYear || '');
+        var occurrenceId = getValue(properties, ['Identificador da ocorrência']);
+        if (!/^(?:20\d{2}|sem-data)$/.test(year) || !occurrenceId) {
+            return Promise.reject(new Error('O registro não possui uma referência válida para os detalhes.'));
+        }
+
+        function readDetails() {
+            var data = global.FaunaOccurrenceDetailsData || {};
+            var yearData = data[year];
+            if (!yearData || !Array.isArray(yearData.fields) || !yearData.records) {
+                throw new Error('Os detalhes completos do ano ' + year + ' não foram carregados.');
+            }
+            var values = yearData.records[occurrenceId];
+            if (!Array.isArray(values) || values.length !== yearData.fields.length) {
+                throw new Error('Os detalhes da ocorrência ' + occurrenceId + ' não foram encontrados.');
+            }
+            var fullProperties = {};
+            yearData.fields.forEach(function (field, index) {
+                fullProperties[field] = values[index];
+            });
+            return fullProperties;
+        }
+
+        if (global.FaunaOccurrenceDetailsData && global.FaunaOccurrenceDetailsData[year]) {
+            return Promise.resolve().then(readDetails);
+        }
+        if (!pendingDetailRequests[year]) {
+            pendingDetailRequests[year] = new Promise(function (resolve, reject) {
+                var script = document.createElement('script');
+                script.src = 'data/fauna-detalhes-' + year + '.js';
+                script.async = true;
+                script.onload = function () {
+                    script.remove();
+                    resolve();
+                };
+                script.onerror = function () {
+                    script.remove();
+                    reject(new Error('Não foi possível carregar os detalhes das ocorrências de ' + year + '.'));
+                };
+                document.head.appendChild(script);
+            }).then(function () {
+                delete pendingDetailRequests[year];
+            }, function (error) {
+                delete pendingDetailRequests[year];
+                throw error;
+            });
+        }
+        return pendingDetailRequests[year].then(readDetails);
+    }
+
     function openDetails(feature, returnFocus) {
+        if (returnFocus) {
+            returnFocus.disabled = true;
+            returnFocus.textContent = 'Carregando detalhes…';
+        }
+        loadOccurrenceDetails(feature.properties || {}).then(function (properties) {
+            if (returnFocus) {
+                returnFocus.disabled = false;
+                returnFocus.textContent = 'Ver mais informações';
+            }
+            renderDetails(properties, returnFocus);
+        }).catch(function (error) {
+            console.error('Falha ao carregar os detalhes da ocorrência.', error);
+            if (returnFocus) {
+                returnFocus.disabled = false;
+                returnFocus.textContent = 'Ver mais informações';
+                var status = returnFocus.parentNode.querySelector('.fauna-occurrence-popup__details-status');
+                if (status) {
+                    status.textContent = 'Não foi possível carregar os detalhes. Tente novamente.';
+                }
+            }
+        });
+    }
+
+    function renderDetails(properties, returnFocus) {
         if (activeModal) {
             activeModal.close();
         }
 
-        var properties = feature.properties || {};
         var species = getSpecies(properties);
         var commonName = getCommonName(properties);
         var overlay = createElement('div', 'map-popup-overlay fauna-record-overlay');
@@ -549,9 +725,18 @@
         }
         var modalContent = createElement('div', 'fauna-record-modal__content');
         var mediaColumn = createElement('div', 'fauna-record-modal__media');
+        var individualPhotoSection = renderIndividualPhotoSection(properties);
+        if (individualPhotoSection) {
+            mediaColumn.appendChild(individualPhotoSection);
+        }
+        mediaColumn.appendChild(createElement(
+            'h3',
+            'fauna-media-section-title',
+            'Fotografias ilustrativas da espécie – iNaturalist'
+        ));
         var photoContainer = makePhotoContainer(species, 'fauna-photo--details');
         mediaColumn.appendChild(photoContainer);
-        renderGallery(photoContainer, species, properties);
+        renderGallery(photoContainer, species);
         modalContent.appendChild(mediaColumn);
 
         var attributesColumn = createElement('div', 'fauna-record-modal__attributes');
@@ -638,6 +823,9 @@
             openDetails(feature, detailsButton);
         });
         actions.appendChild(detailsButton);
+        var detailsStatus = createElement('p', 'fauna-occurrence-popup__details-status');
+        detailsStatus.setAttribute('role', 'status');
+        actions.appendChild(detailsStatus);
         popup.appendChild(actions);
 
         layer.bindPopup(popup, { maxWidth: 360, maxHeight: 450, autoPan: true });
@@ -645,7 +833,7 @@
             var popupElement = event.popup.getElement();
             var photoContainer = popupElement && popupElement.querySelector('.fauna-photo--popup');
             if (photoContainer) {
-                renderGallery(photoContainer, species, properties);
+                renderGallery(photoContainer, species);
             }
         });
     }

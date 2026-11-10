@@ -1,5 +1,6 @@
-window.FaunaIndividualPhotos = Object.create(null);
+window.FaunaOccurrencePhotos = Object.create(null);
 
-// The occurrence export has photo filenames, not URLs; never infer public image paths from them.
-// Use the individual identifier as the key and add only authorized photo records:
-// { authorized: true, url, credit, source, sourceUrl, license }.
+// Empty until an authorized source establishes an exact occurrence-to-image association.
+// The export's Fotos values are filenames, not verified SIMBA URLs or occurrence mappings.
+// Key by occurrence ID; require matching occurrenceId and individualId on every entry:
+// { authorized: true, occurrenceId, individualId, url, credit, source, sourceUrl, license }.

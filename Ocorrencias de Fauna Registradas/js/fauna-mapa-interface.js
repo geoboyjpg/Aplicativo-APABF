@@ -28,14 +28,6 @@
         return target;
     }
 
-    function normalize(value) {
-        return String(value || '')
-            .trim()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase('pt-BR');
-    }
-
     function valuesFor(properties, fields) {
         return fields.map(function (field) {
             var value = properties[field];
@@ -80,83 +72,12 @@
         return null;
     }
 
-    function buildSpeciesSuggestions(records) {
-        var entries = Object.create(null);
-        records.forEach(function (record) {
-            var scientificNames = valuesFor(record.properties, filterFields.species);
-            var commonNames = valuesFor(record.properties, filterFields.common);
-            var scientificName = scientificNames[0] || '';
-            var commonName = commonNames[0] || '';
-            var key = normalize(scientificName) || normalize(commonName);
-            if (!key) {
-                return;
-            }
-
-            var entry = entries[key];
-            if (!entry) {
-                entry = {
-                    scientificName: scientificName,
-                    commonName: commonName,
-                    scientificNames: Object.create(null),
-                    commonNames: Object.create(null),
-                    searchTerms: Object.create(null)
-                };
-                entries[key] = entry;
-            }
-            scientificNames.forEach(function (name) {
-                entry.scientificNames[normalize(name)] = name;
-                entry.searchTerms[normalize(name)] = name;
-            });
-            commonNames.forEach(function (name) {
-                entry.commonNames[normalize(name)] = name;
-                entry.searchTerms[normalize(name)] = name;
-            });
-        });
-
-        return Object.keys(entries).map(function (key) {
-            var entry = entries[key];
-            var commonNames = Object.keys(entry.commonNames).map(function (name) {
-                return entry.commonNames[name];
-            });
-            var scientificNames = Object.keys(entry.scientificNames).map(function (name) {
-                return entry.scientificNames[name];
-            });
-            var commonName = commonNames[0] || entry.commonName;
-            var scientificName = entry.scientificName || scientificNames[0] || '';
-            return {
-                label: commonName && scientificName
-                    ? commonName + ' — ' + scientificName
-                    : commonName || scientificName,
-                commonName: commonName,
-                scientificName: scientificName,
-                scientificNames: scientificNames.map(normalize),
-                commonNames: commonNames.map(normalize),
-                searchTerms: Object.keys(entry.searchTerms).map(function (name) {
-                    return normalize(entry.searchTerms[name]);
-                })
-            };
-        }).sort(function (left, right) {
-            return left.label.localeCompare(right.label, 'pt-BR', { sensitivity: 'base' });
-        });
-    }
-
-    function matchesSpeciesSuggestion(properties, suggestion) {
-        var speciesNames = valuesFor(properties, filterFields.species).map(normalize);
-        if (suggestion.scientificNames.length) {
-            return speciesNames.some(function (name) {
-                return suggestion.scientificNames.indexOf(name) !== -1;
-            });
-        }
-        return valuesFor(properties, filterFields.common).some(function (name) {
-            return suggestion.commonNames.indexOf(normalize(name)) !== -1;
-        });
-    }
-
     function initialize() {
         var map = global.map;
         var sourceLayer = global.layer_OcorrnciasdeFaunaindividual_1;
         var cluster = global.cluster_OcorrnciasdeFaunaindividual_1;
         var collection = global.json_OcorrnciasdeFaunaindividual_1;
+        var faunaSearch = global.FaunaSearch;
         var sidebar = element('sidebar');
         var sidebarToggle = element('sidebarToggle');
         var sidebarClose = element('sidebarClose');
@@ -168,11 +89,9 @@
         var filterForm = element('fauna-filter-form');
         var filterStatus = element('fauna-filter-status');
         var clearFiltersButton = element('fauna-filter-clear');
-        var speciesSearch = element('fauna-filter-species');
-        var speciesSearchClear = element('fauna-filter-species-clear');
-        var speciesSuggestionsList = element('fauna-species-suggestions');
 
-        if (!map || !sourceLayer || !cluster || !collection || !Array.isArray(collection.features)) {
+        if (!map || !sourceLayer || !cluster || !collection || !Array.isArray(collection.features)
+            || !faunaSearch) {
             throw new Error('O mapa ou a base de ocorrências não foi inicializado corretamente.');
         }
 
@@ -218,104 +137,31 @@
         populateSelect('fauna-filter-stage', filterFields.developmentStage);
         populateSelect('fauna-filter-threatened', filterFields.threatened);
 
-        var speciesSuggestions = buildSpeciesSuggestions(renderedRecords);
-        var selectedSpeciesSuggestion = null;
-        var activeSuggestionIndex = -1;
-
-        function hideSpeciesSuggestions() {
-            speciesSuggestionsList.hidden = true;
-            speciesSearch.setAttribute('aria-expanded', 'false');
-            speciesSearch.removeAttribute('aria-activedescendant');
-            activeSuggestionIndex = -1;
-        }
-
-        function setActiveSuggestion(index) {
-            var options = speciesSuggestionsList.querySelectorAll('[role="option"]:not([aria-disabled="true"])');
-            if (!options.length) {
-                activeSuggestionIndex = -1;
-                speciesSearch.removeAttribute('aria-activedescendant');
-                return;
-            }
-            activeSuggestionIndex = (index + options.length) % options.length;
-            options.forEach(function (option, optionIndex) {
-                var active = optionIndex === activeSuggestionIndex;
-                option.classList.toggle('is-active', active);
-                option.setAttribute('aria-selected', active ? 'true' : 'false');
-                if (active) {
-                    speciesSearch.setAttribute('aria-activedescendant', option.id);
-                    option.scrollIntoView({ block: 'nearest' });
-                }
-            });
-        }
-
-        function chooseSpeciesSuggestion(suggestion) {
-            selectedSpeciesSuggestion = suggestion;
-            speciesSearch.value = suggestion.label;
-            speciesSearchClear.hidden = false;
-            hideSpeciesSuggestions();
-            applyFilters();
-        }
-
-        function updateSpeciesSuggestions() {
-            var query = normalize(speciesSearch.value);
-            speciesSearchClear.hidden = !speciesSearch.value;
-            selectedSpeciesSuggestion = null;
-            activeSuggestionIndex = -1;
-            speciesSuggestionsList.textContent = '';
-            speciesSearch.removeAttribute('aria-activedescendant');
-            if (!query) {
-                hideSpeciesSuggestions();
-                return;
-            }
-
-            var matches = speciesSuggestions.filter(function (suggestion) {
-                return suggestion.searchTerms.some(function (term) {
-                    return term.includes(query);
-                });
-            }).slice(0, 8);
-            if (!matches.length) {
-                var emptyOption = document.createElement('li');
-                emptyOption.className = 'fauna-species-suggestion fauna-species-suggestion--empty';
-                emptyOption.setAttribute('role', 'option');
-                emptyOption.setAttribute('aria-disabled', 'true');
-                emptyOption.textContent = 'Nenhuma espécie encontrada.';
-                speciesSuggestionsList.appendChild(emptyOption);
-            } else {
-                matches.forEach(function (suggestion, index) {
-                    var option = document.createElement('li');
-                    option.className = 'fauna-species-suggestion';
-                    option.id = 'fauna-species-option-' + index;
-                    option.setAttribute('role', 'option');
-                    option.setAttribute('aria-selected', 'false');
-                    if (suggestion.commonName) {
-                        var common = document.createElement('span');
-                        common.className = 'fauna-species-suggestion__common';
-                        common.textContent = suggestion.commonName;
-                        option.appendChild(common);
-                    }
-                    if (suggestion.scientificName) {
-                        var scientific = document.createElement('span');
-                        scientific.className = 'fauna-species-suggestion__scientific';
-                        scientific.textContent = suggestion.scientificName;
-                        option.appendChild(scientific);
-                    }
-                    option.addEventListener('mousedown', function (event) {
-                        event.preventDefault();
-                    });
-                    option.addEventListener('click', function () {
-                        chooseSpeciesSuggestion(suggestion);
-                    });
-                    speciesSuggestionsList.appendChild(option);
-                });
-            }
-            speciesSuggestionsList.hidden = false;
-            speciesSearch.setAttribute('aria-expanded', 'true');
-        }
+        var speciesSearch = faunaSearch.createAutocomplete({
+            input: element('fauna-filter-species'),
+            clearButton: element('fauna-filter-species-clear'),
+            list: element('fauna-species-suggestions'),
+            records: renderedRecords,
+            fields: filterFields.species,
+            emptyMessage: 'Nenhum nome científico encontrado.',
+            idPrefix: 'fauna-species',
+            onChange: applyFilters
+        });
+        var commonNameSearch = faunaSearch.createAutocomplete({
+            input: element('fauna-filter-common-name'),
+            clearButton: element('fauna-filter-common-name-clear'),
+            list: element('fauna-common-name-suggestions'),
+            records: renderedRecords,
+            fields: filterFields.common,
+            emptyMessage: 'Nenhum nome popular encontrado.',
+            idPrefix: 'fauna-common-name',
+            onChange: applyFilters
+        });
 
         function readFilters() {
             return {
-                speciesQuery: normalize(speciesSearch.value),
-                speciesSuggestion: selectedSpeciesSuggestion,
+                species: speciesSearch.getFilter(),
+                commonName: commonNameSearch.getFilter(),
                 taxonomicClass: element('fauna-filter-class').value,
                 dateFrom: dateKey(element('fauna-filter-date-from').value),
                 dateTo: dateKey(element('fauna-filter-date-to').value),
@@ -339,16 +185,8 @@
         }
 
         function matchesRecord(properties, filters) {
-            if (filters.speciesSuggestion) {
-                if (!matchesSpeciesSuggestion(properties, filters.speciesSuggestion)) {
-                    return false;
-                }
-            } else if (filters.speciesQuery && !valuesFor(
-                properties,
-                filterFields.species.concat(filterFields.common)
-            ).some(function (value) {
-                return normalize(value).includes(filters.speciesQuery);
-            })) {
+            if (!faunaSearch.matches(properties, filterFields.species, filters.species)
+                || !faunaSearch.matches(properties, filterFields.common, filters.commonName)) {
                 return false;
             }
             if (!matchesAny(properties, filterFields.taxonomicClass, filters.taxonomicClass)
@@ -508,52 +346,14 @@
 
         filterForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            hideSpeciesSuggestions();
+            speciesSearch.hide();
+            commonNameSearch.hide();
             applyFilters();
-        });
-        speciesSearch.addEventListener('input', updateSpeciesSuggestions);
-        speciesSearch.addEventListener('blur', hideSpeciesSuggestions);
-        speciesSearch.addEventListener('keydown', function (event) {
-            if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                if (speciesSuggestionsList.hidden) {
-                    updateSpeciesSuggestions();
-                }
-                setActiveSuggestion(activeSuggestionIndex + 1);
-            } else if (event.key === 'ArrowUp') {
-                if (!speciesSuggestionsList.hidden) {
-                    event.preventDefault();
-                    setActiveSuggestion(activeSuggestionIndex <= 0
-                        ? speciesSuggestionsList.querySelectorAll('[role="option"]:not([aria-disabled="true"])').length - 1
-                        : activeSuggestionIndex - 1);
-                }
-            } else if (event.key === 'Enter') {
-                var options = speciesSuggestionsList.querySelectorAll('[role="option"]:not([aria-disabled="true"])');
-                if (activeSuggestionIndex >= 0 && options[activeSuggestionIndex]) {
-                    event.preventDefault();
-                    options[activeSuggestionIndex].click();
-                } else {
-                    event.preventDefault();
-                    hideSpeciesSuggestions();
-                    applyFilters();
-                }
-            } else if (event.key === 'Escape') {
-                hideSpeciesSuggestions();
-            }
-        });
-        speciesSearchClear.addEventListener('click', function () {
-            speciesSearch.value = '';
-            selectedSpeciesSuggestion = null;
-            speciesSearchClear.hidden = true;
-            hideSpeciesSuggestions();
-            applyFilters();
-            speciesSearch.focus();
         });
         clearFiltersButton.addEventListener('click', function () {
             filterForm.reset();
-            selectedSpeciesSuggestion = null;
-            speciesSearchClear.hidden = true;
-            hideSpeciesSuggestions();
+            speciesSearch.clear();
+            commonNameSearch.clear();
             updateMap(renderedRecords);
             fitOverview();
         });
