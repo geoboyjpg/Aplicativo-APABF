@@ -10,20 +10,60 @@ test('finds valid endpoints for every original trail without altering its geomet
     const sourcePath = path.join(
         __dirname,
         '..',
-        'Trilha Caminhos da Baleia Franca',
-        'data',
-        'TrilhaCaminhosdaBaleiaFranca_2.js'
+        'dados',
+        'trilhas_apabf.geojson'
     );
-    const context = {};
-    require('node:vm').runInNewContext(fs.readFileSync(sourcePath, 'utf8'), context);
-    const features = context.json_TrilhaCaminhosdaBaleiaFranca_2.features;
+    const collection = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+    const features = collection.features;
     assert.equal(features.length, 66);
+    assert.deepEqual(features.map(function (feature) {
+        return feature.properties.fid;
+    }), Array.from({ length: 66 }, function (_, index) {
+        return String(index + 1);
+    }));
     features.forEach(function (feature) {
         assert.ok(
             navigation.geometryEndpoints(feature.geometry).length >= 2,
             'Trilha sem dois extremos válidos: ' + feature.properties.fid
         );
     });
+});
+
+test('prepared GeoJSON retains every original attribute and 3D vertex', function () {
+    const originalPath = path.join(__dirname, '..', 'dados', 'trilhas_apabf.original.geojson');
+    const preparedPath = path.join(__dirname, '..', 'dados', 'trilhas_apabf.geojson');
+    const original = JSON.parse(fs.readFileSync(originalPath, 'utf8'));
+    const prepared = JSON.parse(fs.readFileSync(preparedPath, 'utf8'));
+
+    assert.equal(prepared.type, 'FeatureCollection');
+    assert.equal(prepared.crs, undefined);
+    assert.equal(prepared.features.length, original.features.length);
+    prepared.features.forEach(function (feature, index) {
+        const source = original.features[index];
+        assert.equal(feature.properties.fid, String(source.properties.fid));
+        assert.equal(feature.properties.ID, String(source.properties.ID));
+        ['Nome', 'Distância', 'Município'].forEach(function (property) {
+            assert.equal(feature.properties[property], source.properties[property]);
+        });
+        assert.deepEqual(feature.geometry, source.geometry);
+    });
+});
+
+test('loads the trail layer from GeoJSON and waits for it before initializing the interface', function () {
+    const html = fs.readFileSync(
+        path.join(__dirname, '..', 'Trilha Caminhos da Baleia Franca', 'index.html'),
+        'utf8'
+    );
+    const interfaceSource = fs.readFileSync(
+        path.join(__dirname, '..', 'Trilha Caminhos da Baleia Franca', 'js', 'trilhas-interface.js'),
+        'utf8'
+    );
+
+    assert.match(html, /fetch\('\.\.\/dados\/trilhas_apabf\.geojson'\)/);
+    assert.match(html, /trailDataReady\.catch/);
+    assert.match(html, /new L\.geoJson\(collection/);
+    assert.doesNotMatch(html, /<script src="data\/TrilhaCaminhosdaBaleiaFranca_2\.js"><\/script>/);
+    assert.match(interfaceSource, /trailDataReady\.then\(initializeWithTrailData\)/);
 });
 
 test('selects the closest real endpoint across disconnected MultiLineString parts', function () {

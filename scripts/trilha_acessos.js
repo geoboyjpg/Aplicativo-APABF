@@ -2,14 +2,12 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE_FILE = path.join(
     ROOT,
-    'Trilha Caminhos da Baleia Franca',
-    'data',
-    'TrilhaCaminhosdaBaleiaFranca_2.js'
+    'dados',
+    'trilhas_apabf.geojson'
 );
 const DEFAULT_OUTPUT = path.join(
     ROOT,
@@ -61,9 +59,7 @@ function parseOptions(args) {
 }
 
 function readTrailCollection(filePath) {
-    const context = {};
-    vm.runInNewContext(fs.readFileSync(filePath, 'utf8'), context, { filename: filePath });
-    const collection = context.json_TrilhaCaminhosdaBaleiaFranca_2;
+    const collection = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     if (!collection || collection.type !== 'FeatureCollection' || !Array.isArray(collection.features)) {
         throw new Error('A fonte geográfica não contém uma FeatureCollection válida.');
     }

@@ -8,12 +8,7 @@ const processor = require('../scripts/trilha_acessos');
 const routing = require('../Trilha Caminhos da Baleia Franca/js/trilha-acessos');
 
 const ROOT = path.resolve(__dirname, '..');
-const SOURCE = path.join(
-    ROOT,
-    'Trilha Caminhos da Baleia Franca',
-    'data',
-    'TrilhaCaminhosdaBaleiaFranca_2.js'
-);
+const SOURCE = path.join(ROOT, 'dados', 'trilhas_apabf.geojson');
 const MAP_HTML = path.join(ROOT, 'Trilha Caminhos da Baleia Franca', 'index.html');
 const ACCESS_DATA = path.join(ROOT, 'Trilha Caminhos da Baleia Franca', 'data', 'acessos-trilhas.geojson');
 const RUNTIME_ACCESS_DATA = path.join(ROOT, 'Trilha Caminhos da Baleia Franca', 'data', 'acessos-trilhas-web.geojson');
@@ -25,10 +20,7 @@ const FONT_AWESOME = path.join(
 );
 
 function readCollection() {
-    const source = fs.readFileSync(SOURCE, 'utf8');
-    const context = {};
-    require('node:vm').runInNewContext(source, context);
-    return context.json_TrilhaCaminhosdaBaleiaFranca_2;
+    return JSON.parse(fs.readFileSync(SOURCE, 'utf8'));
 }
 
 test('extracts the first and last endpoints for all 66 trail features', function () {

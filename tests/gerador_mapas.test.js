@@ -48,6 +48,11 @@ test('generator catalog references available geographic sources and real feature
     assert.ok(Array.isArray(loaded.definitions));
     assert.ok(loaded.definitions.some(function (item) { return item.id === 'limite-apabf'; }));
     assert.ok(loaded.definitions.some(function (item) { return item.id === 'zoneamento'; }));
+    const trails = loaded.definitions.find(function (item) { return item.id === 'trilhas'; });
+    assert.equal(trails.url, 'dados/trilhas_apabf.geojson');
+    assert.equal(trails.format, 'geojson');
+    assert.equal(trails.globalName, undefined);
+    assert.equal(loadLayerData(loaded.context, trails).features.length, 66);
 
     loaded.definitions.forEach(function (definition) {
         const data = loadLayerData(loaded.context, definition);

@@ -35,15 +35,17 @@ function readYearDetails(year) {
     return JSON.parse(source.slice(source.indexOf(assignment) + assignment.length).trim().replace(/;\s*$/, ''));
 }
 
-test('fauna occurrence map reuses the shared map UI and is available under Services', function () {
+test('fauna occurrence map reuses the shared map UI and is available from the homepage', function () {
     const mapPage = fs.readFileSync(MAP_PAGE, 'utf8');
+    const homepage = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
     const servicesPage = fs.readFileSync(path.join(ROOT, 'servicos.html'), 'utf8');
 
     assert.match(mapPage, /<body class="map-ui">/);
     assert.match(mapPage, /href="\.\.\/map-components\.css"/);
     assert.match(mapPage, /src="js\/fauna-ocorrencias\.js"/);
-    assert.match(servicesPage, /Ocorrências de Fauna do PMP/);
-    assert.match(servicesPage, /href="Ocorrencias de Fauna Registradas\/index\.html"/);
+    assert.match(homepage, /Ocorrências de Fauna/);
+    assert.match(homepage, /href="Ocorrencias%20de%20Fauna%20Registradas\/index\.html"/);
+    assert.doesNotMatch(servicesPage, /Ocorrências de Fauna do PMP|href="Ocorrencias de Fauna Registradas\/index\.html"/);
 });
 
 test('fauna map uses the shared navigation and welcome modal patterns', function () {

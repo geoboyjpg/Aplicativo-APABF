@@ -276,12 +276,12 @@ test('all local panorama records point to existing files and unique valid locati
     assert.equal(locais.find((local) => local.id === 'porto-imbituba').panoramaPath, null);
 });
 
-test('the game is linked from Services and not from the homepage cards', function () {
+test('the game is linked from the homepage quick links and not from Services', function () {
     const homepage = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
     const services = fs.readFileSync(path.join(ROOT, 'servicos.html'), 'utf8');
 
-    assert.doesNotMatch(homepage, /href="desafio-360\.html"/);
-    assert.match(services, /href="desafio-360\.html"/);
+    assert.match(homepage, /href="desafio-360\.html" class="secondary-link"[^>]*>[\s\S]*?Jogo 360°/);
+    assert.doesNotMatch(services, /href="desafio-360\.html"/);
 });
 
 test('immersive layout keeps the panorama interactive behind a click-through tutorial and result panel', function () {

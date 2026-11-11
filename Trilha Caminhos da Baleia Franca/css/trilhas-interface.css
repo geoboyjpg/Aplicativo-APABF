@@ -455,6 +455,24 @@ body.map-ui {
     margin-bottom: 0;
 }
 
+.trail-data-error {
+    position: fixed;
+    z-index: 1100;
+    top: 16px;
+    left: 50%;
+    max-width: min(32rem, calc(100vw - 32px));
+    padding: 12px 16px;
+    color: #842029;
+    background: #f8d7da;
+    border: 1px solid #f1aeb5;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    transform: translateX(-50%);
+}
+
 @media (max-width: 700px) {
     .sidebar-toggle {
         width: 38px;

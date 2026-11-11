@@ -28,6 +28,7 @@
     <body class="map-ui">
         <div id="map">
         </div>
+        <div id="trail-data-error" class="trail-data-error" role="alert" aria-live="assertive" hidden></div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -40,7 +41,6 @@
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
         <script src="data/LimitesAPABF_1.js"></script>
-        <script src="data/TrilhaCaminhosdaBaleiaFranca_2.js"></script>
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
@@ -244,34 +244,64 @@
         map.createPane('pane_TrilhaCaminhosdaBaleiaFranca_2');
         map.getPane('pane_TrilhaCaminhosdaBaleiaFranca_2').style.zIndex = 402;
         map.getPane('pane_TrilhaCaminhosdaBaleiaFranca_2').style['mix-blend-mode'] = 'normal';
-        var layer_TrilhaCaminhosdaBaleiaFranca_2 = new L.geoJson(json_TrilhaCaminhosdaBaleiaFranca_2, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_TrilhaCaminhosdaBaleiaFranca_2',
-            layerName: 'layer_TrilhaCaminhosdaBaleiaFranca_2',
-            pane: 'pane_TrilhaCaminhosdaBaleiaFranca_2',
-            onEachFeature: pop_TrilhaCaminhosdaBaleiaFranca_2,
-            style: style_TrilhaCaminhosdaBaleiaFranca_2_0,
+        var json_TrilhaCaminhosdaBaleiaFranca_2;
+        var layer_TrilhaCaminhosdaBaleiaFranca_2;
+        var trailDataReady = fetch('../dados/trilhas_apabf.geojson')
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Servidor respondeu com HTTP ' + response.status + '.');
+                }
+                return response.json();
+            })
+            .then(function (collection) {
+                if (!collection || collection.type !== 'FeatureCollection'
+                    || !Array.isArray(collection.features) || !collection.features.length) {
+                    throw new Error('O arquivo não contém uma FeatureCollection com trilhas.');
+                }
+                var identifiers = new Set();
+                collection.features.forEach(function (feature) {
+                    var fid = feature && feature.properties && feature.properties.fid;
+                    if (!feature || feature.type !== 'Feature' || !feature.geometry
+                        || fid === null || fid === undefined || !String(fid).trim()) {
+                        throw new Error('Foi encontrada uma feição sem geometria ou identificador.');
+                    }
+                    var key = String(fid);
+                    if (identifiers.has(key)) {
+                        throw new Error('Identificador de trilha duplicado: ' + key);
+                    }
+                    identifiers.add(key);
+                });
+                json_TrilhaCaminhosdaBaleiaFranca_2 = collection;
+                layer_TrilhaCaminhosdaBaleiaFranca_2 = new L.geoJson(collection, {
+                    attribution: '',
+                    interactive: true,
+                    dataVar: 'json_TrilhaCaminhosdaBaleiaFranca_2',
+                    layerName: 'layer_TrilhaCaminhosdaBaleiaFranca_2',
+                    pane: 'pane_TrilhaCaminhosdaBaleiaFranca_2',
+                    onEachFeature: pop_TrilhaCaminhosdaBaleiaFranca_2,
+                    style: style_TrilhaCaminhosdaBaleiaFranca_2_0,
+                });
+                bounds_group.addLayer(layer_TrilhaCaminhosdaBaleiaFranca_2);
+                map.addLayer(layer_TrilhaCaminhosdaBaleiaFranca_2);
+                var overlaysTree = [
+                {label: '<b>Trilhas da APABF</b>', children: [
+                    {label: '<img src="legend/TrilhaCaminhosdaBaleiaFranca_2.png" /> Percursos', layer: layer_TrilhaCaminhosdaBaleiaFranca_2},]},
+                {label: '<b>APABF</b>', children: [
+                    {label: '<img src="legend/LimitesAPABF_1.png" /> Limites APABF', layer: layer_LimitesAPABF_1},]},
+                    {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+                var lay = L.control.layers.tree(null, overlaysTree, {
+                    collapsed: true,
+                });
+                lay.addTo(map);
+                setBounds();
+                return collection;
+            });
+        trailDataReady.catch(function (error) {
+            var errorMessage = document.getElementById('trail-data-error');
+            errorMessage.textContent = 'Não foi possível carregar as trilhas. Atualize a página e tente novamente.';
+            errorMessage.hidden = false;
+            console.error('Falha ao carregar os dados das trilhas.', error);
         });
-        bounds_group.addLayer(layer_TrilhaCaminhosdaBaleiaFranca_2);
-        map.addLayer(layer_TrilhaCaminhosdaBaleiaFranca_2);
-        var overlaysTree = [
-        {label: '<b>Trilhas da APABF</b>', children: [
-            {label: '<img src="legend/TrilhaCaminhosdaBaleiaFranca_2.png" /> Percursos', layer: layer_TrilhaCaminhosdaBaleiaFranca_2},]},
-        {label: '<b>APABF</b>', children: [
-            {label: '<img src="legend/LimitesAPABF_1.png" /> Limites APABF', layer: layer_LimitesAPABF_1},]},
-            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
-        var lay = L.control.layers.tree(null, overlaysTree,{
-            //namedToggle: true,
-            //selectorBack: false,
-            //closedSymbol: '&#8862; &#x1f5c0;',
-            //openedSymbol: '&#8863; &#x1f5c1;',
-            //collapseAll: 'Collapse all',
-            //expandAll: 'Expand all',
-            collapsed: true,
-        });
-        lay.addTo(map);
-        setBounds();
         </script>
 
         <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Abrir painel de informações">

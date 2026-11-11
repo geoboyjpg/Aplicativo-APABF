@@ -20,7 +20,7 @@
             });
     }
 
-    function initialize() {
+    function initializeWithTrailData() {
         var map = global.map;
         var leaflet = global.L;
         var collection = global.json_TrilhaCaminhosdaBaleiaFranca_2;
@@ -509,6 +509,21 @@
         map.fitBounds(overviewBounds, { padding: [32, 32], maxZoom: 13 });
         map.invalidateSize();
 
+    }
+
+    function initialize() {
+        var trailDataReady = global.trailDataReady;
+        if (!trailDataReady || typeof trailDataReady.then !== 'function') {
+            throw new Error('A promessa de carregamento dos dados das trilhas não foi inicializada.');
+        }
+        trailDataReady.then(initializeWithTrailData).catch(function (error) {
+            var errorMessage = document.getElementById('trail-data-error');
+            if (errorMessage.hidden) {
+                errorMessage.textContent = 'Não foi possível inicializar a interface das trilhas.';
+                errorMessage.hidden = false;
+                console.error('A interface das trilhas não pôde ser inicializada.', error);
+            }
+        });
     }
 
     if (document.readyState === 'loading') {

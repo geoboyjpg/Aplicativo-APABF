@@ -80,10 +80,9 @@
         {
             id: 'trilhas',
             name: 'Trilhas Caminhos da Baleia Franca',
-            source: 'Trilha Caminhos da Baleia Franca — dados publicados no aplicativo',
-            url: 'Trilha Caminhos da Baleia Franca/data/TrilhaCaminhosdaBaleiaFranca_2.js',
-            format: 'script',
-            globalName: 'json_TrilhaCaminhosdaBaleiaFranca_2',
+            source: 'Base de dados geográficos da APABF',
+            url: 'dados/trilhas_apabf.geojson',
+            format: 'geojson',
             geometry: 'line',
             color: '#d65a31',
             stroke: '#9c3215',
