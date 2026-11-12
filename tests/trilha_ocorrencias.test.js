@@ -13,6 +13,70 @@ function readJson(filePath) {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function parseElements(markup) {
+    const voidElements = new Set([
+        'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+        'link', 'meta', 'param', 'source', 'track', 'wbr'
+    ]);
+    const elements = new Map();
+    const stack = [];
+
+    Array.from(markup.matchAll(/<\/?[a-z][^>]*>/gi)).forEach(function (match) {
+        const token = match[0];
+        const tagMatch = /^<\/?([a-z][\w:-]*)/i.exec(token);
+        const tagName = tagMatch[1].toLowerCase();
+        if (token.startsWith('</')) {
+            for (let index = stack.length - 1; index >= 0; index -= 1) {
+                if (stack[index].tagName === tagName) {
+                    stack.length = index;
+                    break;
+                }
+            }
+            return;
+        }
+
+        const idMatch = /\bid=["']([^"']+)["']/i.exec(token);
+        const classMatch = /\bclass=["']([^"']*)["']/i.exec(token);
+        const element = {
+            tagName: tagName,
+            id: idMatch ? idMatch[1] : '',
+            className: classMatch ? classMatch[1] : '',
+            parent: stack.length ? stack[stack.length - 1] : null
+        };
+        if (element.id) {
+            elements.set(element.id, element);
+        }
+        if (!voidElements.has(tagName) && !/\/\s*>$/.test(token)) {
+            stack.push(element);
+        }
+    });
+
+    return elements;
+}
+
+test('trail and occurrence tabs are sibling panels and all sidebar tabs remain addressable', function () {
+    const html = fs.readFileSync(path.join(MAP_ROOT, 'index.html'), 'utf8');
+    const interfaceSource = fs.readFileSync(path.join(MAP_ROOT, 'js', 'trilhas-interface.js'), 'utf8');
+    const sidebarStart = html.indexOf('<div class="sidebar-content">');
+    const sidebarEnd = html.indexOf('</aside>', sidebarStart);
+    assert.ok(sidebarStart !== -1 && sidebarEnd > sidebarStart, 'sidebar content markup must be present');
+    const panels = parseElements(html.slice(sidebarStart, sidebarEnd));
+    const trailPanel = panels.get('tab-trilhas');
+    const occurrencePanel = panels.get('tab-ocorrencias');
+
+    assert.ok(trailPanel);
+    assert.ok(occurrencePanel);
+    assert.equal(trailPanel.parent, occurrencePanel.parent);
+    assert.equal(trailPanel.parent.tagName, 'div');
+    assert.equal(trailPanel.parent.className, 'sidebar-content');
+
+    ['info', 'ajuda', 'trilhas', 'ocorrencias'].forEach(function (tab) {
+        assert.ok(html.includes('data-tab="' + tab + '"'), 'missing sidebar tab button: ' + tab);
+        assert.ok(panels.has('tab-' + tab), 'missing sidebar panel: tab-' + tab);
+    });
+    assert.match(interfaceSource, /content\.id === 'tab-' \+ button\.dataset\.tab/);
+});
+
 test('occurrence layer and catalog load independently from the existing trail interface', function () {
     const html = fs.readFileSync(path.join(MAP_ROOT, 'index.html'), 'utf8');
     const moduleSource = fs.readFileSync(path.join(MAP_ROOT, 'js', 'trilha-ocorrencias.js'), 'utf8');

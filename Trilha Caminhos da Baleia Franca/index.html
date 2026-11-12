@@ -371,30 +371,6 @@
                             </a>
                         </div>
                     </section>
-                    <section id="tab-ocorrencias" class="tab-content" role="tabpanel">
-                        <h4>Ocorrências das trilhas</h4>
-                        <p>Consulte ocorrências cadastradas nos percursos. Os filtros desta seção não alteram a pesquisa de trilhas.</p>
-                        <form id="occurrence-filters" class="occurrence-filters">
-                            <label for="occurrence-filter-trail">Trilha</label>
-                            <select id="occurrence-filter-trail"></select>
-                            <label for="occurrence-filter-category">Categoria</label>
-                            <select id="occurrence-filter-category"></select>
-                            <label for="occurrence-filter-situation">Situação</label>
-                            <select id="occurrence-filter-situation"></select>
-                            <label for="occurrence-filter-date-from">Identificadas a partir de</label>
-                            <input id="occurrence-filter-date-from" type="date">
-                            <label for="occurrence-filter-date-to">Identificadas até</label>
-                            <input id="occurrence-filter-date-to" type="date">
-                            <button id="occurrence-filter-reset" class="occurrence-filter-reset" type="button">
-                                Limpar filtros
-                            </button>
-                        </form>
-                        <p id="occurrence-status" class="occurrence-status" role="status" aria-live="polite">
-                            Carregando ocorrências…
-                        </p>
-                        <h5 class="occurrence-legend-title">Símbolos das situações</h5>
-                        <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda das situações"></ul>
-                    </section>
                     <button id="restore-overview" class="trail-overview-button" type="button">
                         <i class="fas fa-map" aria-hidden="true"></i> Voltar à visão geral
                     </button>
@@ -411,6 +387,30 @@
                             <tbody id="trail-results"></tbody>
                         </table>
                     </div>
+                </section>
+                <section id="tab-ocorrencias" class="tab-content" role="tabpanel">
+                    <h4>Ocorrências das trilhas</h4>
+                    <p>Consulte ocorrências cadastradas nos percursos. Os filtros desta seção não alteram a pesquisa de trilhas.</p>
+                    <form id="occurrence-filters" class="occurrence-filters">
+                        <label for="occurrence-filter-trail">Trilha</label>
+                        <select id="occurrence-filter-trail"></select>
+                        <label for="occurrence-filter-category">Categoria</label>
+                        <select id="occurrence-filter-category"></select>
+                        <label for="occurrence-filter-situation">Situação</label>
+                        <select id="occurrence-filter-situation"></select>
+                        <label for="occurrence-filter-date-from">Identificadas a partir de</label>
+                        <input id="occurrence-filter-date-from" type="date">
+                        <label for="occurrence-filter-date-to">Identificadas até</label>
+                        <input id="occurrence-filter-date-to" type="date">
+                        <button id="occurrence-filter-reset" class="occurrence-filter-reset" type="button">
+                            Limpar filtros
+                        </button>
+                    </form>
+                    <p id="occurrence-status" class="occurrence-status" role="status" aria-live="polite">
+                        Carregando ocorrências…
+                    </p>
+                    <h5 class="occurrence-legend-title">Símbolos das situações</h5>
+                    <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda das situações"></ul>
                 </section>
             </div>
         </aside>
