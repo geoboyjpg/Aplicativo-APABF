@@ -54,6 +54,37 @@ function parseElements(markup) {
     return elements;
 }
 
+function createMockElement(tagName) {
+    return {
+        tagName: tagName,
+        children: [],
+        options: [],
+        dataset: {},
+        style: {
+            setProperty: function () {}
+        },
+        classList: {
+            add: function () {}
+        },
+        addEventListener: function () {},
+        appendChild: function (child) {
+            this.children.push(child);
+            if (this.tagName === 'select') {
+                this.options.push(child);
+            }
+        },
+        append: function () {
+            this.children.push.apply(this.children, arguments);
+        },
+        replaceChildren: function () {
+            this.children = [];
+            this.options = [];
+        },
+        setAttribute: function () {},
+        reset: function () {}
+    };
+}
+
 test('trail and occurrence tabs are sibling panels and all sidebar tabs remain addressable', function () {
     const html = fs.readFileSync(path.join(MAP_ROOT, 'index.html'), 'utf8');
     const interfaceSource = fs.readFileSync(path.join(MAP_ROOT, 'js', 'trilhas-interface.js'), 'utf8');
@@ -75,6 +106,129 @@ test('trail and occurrence tabs are sibling panels and all sidebar tabs remain a
         assert.ok(panels.has('tab-' + tab), 'missing sidebar panel: tab-' + tab);
     });
     assert.match(interfaceSource, /content\.id === 'tab-' \+ button\.dataset\.tab/);
+});
+
+test('runtime catalog validation accepts all seven categories and five situations', function () {
+    const catalog = readJson(path.join(ROOT, 'dados', 'catalogo_ocorrencias.json'));
+
+    assert.doesNotThrow(function () {
+        occurrences.validateCatalog(catalog);
+    });
+    assert.equal(catalog.categorias.length, 7);
+    assert.equal(catalog.situacoes.length, 5);
+    assert.ok(catalog.categorias.every(function (category) {
+        return category.chave && category.nome && category.ativo === true;
+    }));
+    assert.ok(catalog.situacoes.every(function (situation) {
+        return situation.chave && situation.rotulo && situation.ativo === true;
+    }));
+});
+
+test('initialization fills category, situation and trail selects from the loaded files', async function () {
+    const collection = readJson(path.join(ROOT, 'dados', 'ocorrencias_trilhas.geojson'));
+    const catalog = readJson(path.join(ROOT, 'dados', 'catalogo_ocorrencias.json'));
+    const trails = readJson(path.join(ROOT, 'dados', 'trilhas_apabf.geojson'));
+    const elements = new Map();
+    [
+        ['occurrence-status', 'p'],
+        ['occurrence-filters', 'form'],
+        ['occurrence-filter-trail', 'select'],
+        ['occurrence-filter-category', 'select'],
+        ['occurrence-filter-situation', 'select'],
+        ['occurrence-filter-date-from', 'input'],
+        ['occurrence-filter-date-to', 'input'],
+        ['occurrence-filter-reset', 'button'],
+        ['occurrence-status-legend', 'ul']
+    ].forEach(function (entry) {
+        elements.set(entry[0], createMockElement(entry[1]));
+    });
+    const previousDocument = global.document;
+    global.document = {
+        getElementById: function (id) {
+            return elements.get(id);
+        },
+        createElement: createMockElement,
+        createTextNode: function (text) {
+            return { textContent: text };
+        }
+    };
+    const requestedPaths = [];
+
+    try {
+        occurrences.initialize({
+            map: {
+                createPane: function () {},
+                getPane: function () {
+                    return { style: {} };
+                },
+                addLayer: function () {}
+            },
+            L: {
+                featureGroup: function () {
+                    return {
+                        clearLayers: function () {},
+                        addLayer: function () {}
+                    };
+                }
+            },
+            fetch: function (url) {
+                requestedPaths.push(url);
+                const data = url.endsWith('ocorrencias_trilhas.geojson')
+                    ? collection
+                    : url.endsWith('catalogo_ocorrencias.json')
+                        ? catalog
+                        : null;
+                return Promise.resolve({
+                    ok: data !== null,
+                    status: data === null ? 404 : 200,
+                    json: function () {
+                        return Promise.resolve(data);
+                    }
+                });
+            },
+            trailDataReady: Promise.resolve(trails)
+        });
+        await new Promise(function (resolve) {
+            setImmediate(resolve);
+        });
+
+        assert.deepEqual(requestedPaths, [
+            '../dados/ocorrencias_trilhas.geojson',
+            '../dados/catalogo_ocorrencias.json'
+        ]);
+        assert.equal(elements.get('occurrence-filter-trail').options.length, trails.features.length + 1);
+        assert.equal(elements.get('occurrence-filter-category').options.length, catalog.categorias.length + 1);
+        assert.equal(elements.get('occurrence-filter-situation').options.length, catalog.situacoes.length + 1);
+        assert.equal(elements.get('occurrence-filter-category').options[0].textContent, 'Todas as categorias');
+        assert.equal(elements.get('occurrence-filter-situation').options[0].textContent, 'Todas as situações');
+        assert.equal(elements.get('occurrence-status').textContent, 'Nenhuma ocorrência cadastrada.');
+        assert.equal(elements.get('occurrence-status-legend').children.length, catalog.situacoes.length);
+    } finally {
+        if (previousDocument === undefined) {
+            delete global.document;
+        } else {
+            global.document = previousDocument;
+        }
+    }
+});
+
+test('trail filter options use the loaded trail fid and name and retain a fallback', function () {
+    const trails = readJson(path.join(ROOT, 'dados', 'trilhas_apabf.geojson'));
+    const options = occurrences.buildTrailOptions(trails, []);
+    const fallback = occurrences.buildTrailOptions(null, [
+        { properties: { trilha_fid: '8' } },
+        { properties: { trilha_fid: '8' } }
+    ]);
+
+    assert.equal(options.length, trails.features.length);
+    assert.equal(new Set(options.map(function (option) {
+        return option.chave;
+    })).size, options.length);
+    assert.deepEqual(options[0], {
+        chave: String(trails.features[0].properties.fid),
+        nome: trails.features[0].properties.Nome + ' (' + trails.features[0].properties.fid + ')'
+    });
+    assert.deepEqual(fallback, [{ chave: '8', nome: 'Trilha 8' }]);
 });
 
 test('occurrence layer and catalog load independently from the existing trail interface', function () {

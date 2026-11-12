@@ -132,6 +132,36 @@
         return isNonEmptyString(name) ? name.trim() : null;
     }
 
+    function buildTrailOptions(collection, records) {
+        var options = [];
+        var seen = new Set();
+        if (collection && Array.isArray(collection.features)) {
+            collection.features.forEach(function (feature) {
+                var properties = feature && feature.properties;
+                var id = properties && normalizeId(properties.fid);
+                if (!id || seen.has(id)) {
+                    return;
+                }
+                seen.add(id);
+                options.push({
+                    chave: id,
+                    nome: (isNonEmptyString(properties.Nome) ? properties.Nome.trim() : 'Trilha')
+                        + ' (' + id + ')'
+                });
+            });
+        }
+        if (!options.length) {
+            records.forEach(function (record) {
+                var id = normalizeId(record.properties.trilha_fid);
+                if (id && !seen.has(id)) {
+                    seen.add(id);
+                    options.push({ chave: id, nome: 'Trilha ' + id });
+                }
+            });
+        }
+        return options;
+    }
+
     function popupContent(record, trailCollection, visuals) {
         var properties = record.properties;
         var content = document.createElement('div');
@@ -227,37 +257,9 @@
         }
 
         function populateTrailFilter() {
-            var options = [];
-            var seen = new Set();
-            if (trailCollection && Array.isArray(trailCollection.features)) {
-                trailCollection.features.forEach(function (feature) {
-                    var properties = feature && feature.properties;
-                    var id = properties && normalizeId(properties.fid);
-                    if (!id || seen.has(id)) {
-                        return;
-                    }
-                    seen.add(id);
-                    options.push({
-                        id: id,
-                        label: (isNonEmptyString(properties.Nome) ? properties.Nome.trim() : 'Trilha')
-                            + ' (' + id + ')'
-                    });
-                });
-            }
-            if (!options.length) {
-                records.forEach(function (record) {
-                    var id = normalizeId(record.properties.trilha_fid);
-                    if (id && !seen.has(id)) {
-                        seen.add(id);
-                        options.push({ id: id, label: 'Trilha ' + id });
-                    }
-                });
-            }
             appendOptions(
                 document.getElementById('occurrence-filter-trail'),
-                options.map(function (option) {
-                    return { chave: option.id, nome: option.label };
-                }),
+                buildTrailOptions(trailCollection, records),
                 'chave',
                 'nome',
                 'Todas as trilhas'
@@ -405,6 +407,7 @@
     }
 
     return {
+        buildTrailOptions: buildTrailOptions,
         filterOccurrences: filterOccurrences,
         getMarkerVisuals: getMarkerVisuals,
         initialize: initialize,

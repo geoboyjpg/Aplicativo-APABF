@@ -78,7 +78,7 @@
       "rotulo": "Pendente de avaliação",
       "identificacao_visual": {
         "cor": "#4B5563",
-        "icone": "circle-question"
+        "icone": "fa-circle-question"
       },
       "ativo": true
     },
@@ -87,7 +87,7 @@
       "rotulo": "Necessita intervenção",
       "identificacao_visual": {
         "cor": "#B91C1C",
-        "icone": "triangle-exclamation"
+        "icone": "fa-triangle-exclamation"
       },
       "ativo": true
     },
@@ -96,7 +96,7 @@
       "rotulo": "Em atendimento",
       "identificacao_visual": {
         "cor": "#B45309",
-        "icone": "screwdriver-wrench"
+        "icone": "fa-screwdriver-wrench"
       },
       "ativo": true
     },
@@ -105,7 +105,7 @@
       "rotulo": "Resolvida",
       "identificacao_visual": {
         "cor": "#15803D",
-        "icone": "circle-check"
+        "icone": "fa-circle-check"
       },
       "ativo": true
     },
@@ -114,7 +114,7 @@
       "rotulo": "Não requer intervenção",
       "identificacao_visual": {
         "cor": "#1D4ED8",
-        "icone": "circle-minus"
+        "icone": "fa-circle-minus"
       },
       "ativo": true
     }
