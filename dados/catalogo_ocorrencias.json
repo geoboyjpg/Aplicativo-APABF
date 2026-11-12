@@ -1,0 +1,122 @@
+{
+  "versao": 1,
+  "categorias": [
+    {
+      "chave": "erosao_solo",
+      "nome": "Erosão do solo",
+      "descricao": "Erosão, sulcos ou perda de solo no percurso da trilha.",
+      "identificacao_visual": {
+        "cor": "#92400E",
+        "icone": "fa-exclamation-circle"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "obstrucao_vegetacao",
+      "nome": "Obstrução por vegetação",
+      "descricao": "Vegetação que dificulta ou impede a passagem pela trilha.",
+      "identificacao_visual": {
+        "cor": "#166534",
+        "icone": "fa-leaf"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "problemas_sinalizacao",
+      "nome": "Problemas de sinalização",
+      "descricao": "Sinalização ausente, danificada, ilegível ou incorreta.",
+      "identificacao_visual": {
+        "cor": "#1D4ED8",
+        "icone": "fa-sign"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "problemas_acesso",
+      "nome": "Problemas de acesso",
+      "descricao": "Dificuldade ou impedimento de acesso à trilha.",
+      "identificacao_visual": {
+        "cor": "#6D28D9",
+        "icone": "fa-door-open"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "situacao_risco",
+      "nome": "Situação de risco",
+      "descricao": "Condição que possa representar risco às pessoas ou ao ambiente.",
+      "identificacao_visual": {
+        "cor": "#B91C1C",
+        "icone": "fa-exclamation-triangle"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "necessidade_manutencao",
+      "nome": "Necessidade de manutenção",
+      "descricao": "Necessidade de reparo ou cuidado na infraestrutura da trilha.",
+      "identificacao_visual": {
+        "cor": "#0F766E",
+        "icone": "fa-tools"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "outros",
+      "nome": "Outros",
+      "descricao": "Ocorrência não contemplada pelas demais categorias.",
+      "identificacao_visual": {
+        "cor": "#374151",
+        "icone": "fa-ellipsis-h"
+      },
+      "ativo": true
+    }
+  ],
+  "situacoes": [
+    {
+      "chave": "pendente_avaliacao",
+      "rotulo": "Pendente de avaliação",
+      "identificacao_visual": {
+        "cor": "#4B5563",
+        "icone": "circle-question"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "necessita_intervencao",
+      "rotulo": "Necessita intervenção",
+      "identificacao_visual": {
+        "cor": "#B91C1C",
+        "icone": "triangle-exclamation"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "em_atendimento",
+      "rotulo": "Em atendimento",
+      "identificacao_visual": {
+        "cor": "#B45309",
+        "icone": "screwdriver-wrench"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "resolvida",
+      "rotulo": "Resolvida",
+      "identificacao_visual": {
+        "cor": "#15803D",
+        "icone": "circle-check"
+      },
+      "ativo": true
+    },
+    {
+      "chave": "nao_requer_intervencao",
+      "rotulo": "Não requer intervenção",
+      "identificacao_visual": {
+        "cor": "#1D4ED8",
+        "icone": "circle-minus"
+      },
+      "ativo": true
+    }
+  ]
+}

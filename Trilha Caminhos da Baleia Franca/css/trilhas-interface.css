@@ -178,6 +178,9 @@ body.map-ui {
 }
 
 .trail-search-input:focus-visible,
+.occurrence-filters select:focus-visible,
+.occurrence-filters input:focus-visible,
+.occurrence-filter-reset:focus-visible,
 .trail-locate-button:focus-visible,
 .trail-overview-button:focus-visible,
 .sidebar-toggle:focus-visible,
@@ -192,6 +195,137 @@ body.map-ui {
     margin: 6px 0 8px !important;
     color: #56636b;
     font-size: 12px !important;
+}
+
+.occurrence-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+    margin: 12px 0;
+}
+
+.occurrence-filters label {
+    margin-top: 5px;
+    color: #263238;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.occurrence-filters select,
+.occurrence-filters input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 9px;
+    color: #263238;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.occurrence-filter-reset {
+    justify-self: start;
+    min-height: 36px;
+    margin-top: 5px;
+    padding: 7px 10px;
+    color: #125f5f;
+    background: #fff;
+    border: 1px solid #d5e1e5;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 600 13px var(--map-font-family, Arial, Helvetica, sans-serif);
+}
+
+.occurrence-status {
+    min-height: 1.3em;
+    margin: 8px 0 !important;
+    color: #56636b;
+    font-size: 12px !important;
+}
+
+.occurrence-status[data-state="error"] {
+    color: #842029;
+}
+
+.occurrence-legend-title {
+    margin: 16px 0 7px;
+    color: #263238;
+    font-size: 13px;
+}
+
+.occurrence-status-legend {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.occurrence-status-legend li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    font-size: 12px;
+}
+
+.occurrence-status-legend i {
+    width: 18px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.occurrence-marker-icon,
+.occurrence-marker-icon.leaflet-div-icon {
+    background: transparent;
+    border: 0;
+}
+
+.occurrence-marker {
+    position: relative;
+    display: flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    color: var(--occurrence-category-color);
+    background: #fff;
+    border: 3px solid var(--occurrence-situation-color);
+    border-radius: 50%;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.55);
+    font-size: 15px;
+}
+
+.occurrence-marker__category {
+    line-height: 1;
+}
+
+.occurrence-marker__situation {
+    position: absolute;
+    top: -5px;
+    right: -7px;
+    display: flex;
+    width: 17px;
+    height: 17px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--occurrence-situation-color);
+    border: 1px solid #fff;
+    border-radius: 50%;
+    font-size: 9px;
+}
+
+.occurrence-popup p {
+    margin: 0 0 7px;
+    line-height: 1.4;
+}
+
+.occurrence-popup p:last-child {
+    margin-bottom: 0;
 }
 
 .trail-selection-details {
