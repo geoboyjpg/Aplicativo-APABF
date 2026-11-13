@@ -466,6 +466,11 @@
 
         trails.forEach(function (trail) {
             trail.layer.on('click', function () {
+                var occurrenceModule = global.TrilhaOcorrencias;
+                if (occurrenceModule && typeof occurrenceModule.isPickingLocation === 'function'
+                    && occurrenceModule.isPickingLocation()) {
+                    return;
+                }
                 setHighlight(trail);
             });
         });

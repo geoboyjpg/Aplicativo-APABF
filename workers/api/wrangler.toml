@@ -6,3 +6,8 @@ preview_urls = false
 
 [vars]
 APP_ORIGIN = "https://geoboyjpg.github.io"
+
+[[ratelimits]]
+name = "OCCURRENCE_POST_LIMITER"
+namespace_id = "1002"
+simple = { limit = 10, period = 60 }

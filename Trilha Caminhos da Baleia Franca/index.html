@@ -372,26 +372,70 @@
                 <section id="tab-ocorrencias" class="tab-content" role="tabpanel">
                     <h4>Ocorrências das trilhas</h4>
                     <p>Consulte ocorrências cadastradas nos percursos. Os filtros desta seção não alteram a pesquisa de trilhas.</p>
-                    <form id="occurrence-filters" class="occurrence-filters">
-                        <label for="occurrence-filter-trail">Trilha</label>
-                        <select id="occurrence-filter-trail"></select>
-                        <label for="occurrence-filter-category">Categoria</label>
-                        <select id="occurrence-filter-category"></select>
-                        <label for="occurrence-filter-situation">Situação</label>
-                        <select id="occurrence-filter-situation"></select>
-                        <label for="occurrence-filter-date-from">Identificadas a partir de</label>
-                        <input id="occurrence-filter-date-from" type="date">
-                        <label for="occurrence-filter-date-to">Identificadas até</label>
-                        <input id="occurrence-filter-date-to" type="date">
-                        <button id="occurrence-filter-reset" class="occurrence-filter-reset" type="button">
-                            Limpar filtros
-                        </button>
-                    </form>
-                    <p id="occurrence-status" class="occurrence-status" role="status" aria-live="polite">
-                        Carregando ocorrências…
-                    </p>
-                    <h5 class="occurrence-legend-title">Símbolos das situações</h5>
-                    <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda das situações"></ul>
+                    <button id="occurrence-open-form" class="occurrence-action-button" type="button">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar ocorrência
+                    </button>
+                    <p id="occurrence-action-status" class="occurrence-status" role="status" aria-live="polite"></p>
+                    <div id="occurrence-query-view">
+                        <form id="occurrence-filters" class="occurrence-filters">
+                            <label for="occurrence-filter-trail">Trilha</label>
+                            <select id="occurrence-filter-trail"></select>
+                            <label for="occurrence-filter-category">Categoria</label>
+                            <select id="occurrence-filter-category"></select>
+                            <label for="occurrence-filter-situation">Situação</label>
+                            <select id="occurrence-filter-situation"></select>
+                            <label for="occurrence-filter-date-from">Identificadas a partir de</label>
+                            <input id="occurrence-filter-date-from" type="date">
+                            <label for="occurrence-filter-date-to">Identificadas até</label>
+                            <input id="occurrence-filter-date-to" type="date">
+                            <button id="occurrence-filter-reset" class="occurrence-filter-reset" type="button">
+                                Limpar filtros
+                            </button>
+                        </form>
+                        <p id="occurrence-status" class="occurrence-status" role="status" aria-live="polite">
+                            Carregando ocorrências…
+                        </p>
+                        <h5 class="occurrence-legend-title">Símbolos das situações</h5>
+                        <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda das situações"></ul>
+                    </div>
+                    <section id="occurrence-registration-view" class="occurrence-registration-view" hidden>
+                        <h5>Nova ocorrência</h5>
+                        <p>Preencha os dados e marque no mapa o local onde a ocorrência foi identificada.</p>
+                        <form id="occurrence-registration-form" class="occurrence-registration-form">
+                            <label for="occurrence-registration-trail">Trilha <span aria-hidden="true">*</span></label>
+                            <select id="occurrence-registration-trail" required disabled>
+                                <option value="">Carregando trilhas…</option>
+                            </select>
+                            <label for="occurrence-registration-category">Categoria <span aria-hidden="true">*</span></label>
+                            <select id="occurrence-registration-category" required>
+                                <option value="">Carregando categorias…</option>
+                            </select>
+                            <label for="occurrence-registration-description">Descrição</label>
+                            <textarea id="occurrence-registration-description" rows="4" maxlength="2000"
+                                placeholder="Descreva o que foi observado (opcional)."></textarea>
+                            <label for="occurrence-registration-date">Data de identificação <span aria-hidden="true">*</span></label>
+                            <input id="occurrence-registration-date" type="date" required>
+                            <div class="occurrence-location-control">
+                                <span class="occurrence-form-label">Localização <span aria-hidden="true">*</span></span>
+                                <button id="occurrence-pick-location" class="occurrence-pick-location" type="button"
+                                    aria-pressed="false">
+                                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                                    Marcar localização no mapa
+                                </button>
+                                <p id="occurrence-location-status" class="occurrence-location-status"
+                                    role="status" aria-live="polite">Nenhuma localização selecionada.</p>
+                            </div>
+                            <div class="occurrence-form-actions">
+                                <button id="occurrence-submit" class="occurrence-action-button" type="submit">
+                                    Enviar cadastro
+                                </button>
+                                <button id="occurrence-cancel-form" class="occurrence-cancel-button" type="button">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <p id="occurrence-form-status" class="occurrence-status" role="status" aria-live="polite"></p>
+                        </form>
+                    </section>
                 </section>
             </div>
         </aside>

@@ -180,7 +180,13 @@ body.map-ui {
 .trail-search-input:focus-visible,
 .occurrence-filters select:focus-visible,
 .occurrence-filters input:focus-visible,
+.occurrence-registration-form select:focus-visible,
+.occurrence-registration-form input:focus-visible,
+.occurrence-registration-form textarea:focus-visible,
+.occurrence-registration-form button:focus-visible,
 .occurrence-filter-reset:focus-visible,
+.occurrence-action-button:focus-visible,
+.occurrence-cancel-button:focus-visible,
 .trail-locate-button:focus-visible,
 .trail-overview-button:focus-visible,
 .sidebar-toggle:focus-visible,
@@ -236,6 +242,127 @@ body.map-ui {
     border-radius: 6px;
     cursor: pointer;
     font: 600 13px var(--map-font-family, Arial, Helvetica, sans-serif);
+}
+
+.occurrence-action-button,
+.occurrence-pick-location,
+.occurrence-cancel-button {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid #d5e1e5;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 600 13px var(--map-font-family, Arial, Helvetica, sans-serif);
+}
+
+.occurrence-action-button,
+.occurrence-pick-location {
+    color: #fff;
+    background: #125f5f;
+    border-color: #125f5f;
+}
+
+.occurrence-action-button:disabled,
+.occurrence-pick-location:disabled,
+.occurrence-cancel-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.occurrence-registration-view {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f7fafb;
+    border: 1px solid #d5e1e5;
+    border-radius: 8px;
+}
+
+.occurrence-registration-view[hidden],
+#occurrence-query-view[hidden] {
+    display: none;
+}
+
+.occurrence-registration-view h5 {
+    margin: 0 0 6px;
+    color: #125f5f;
+    font-size: 15px;
+}
+
+.occurrence-registration-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+}
+
+.occurrence-registration-form label,
+.occurrence-form-label {
+    margin-top: 5px;
+    color: #263238;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.occurrence-registration-form select,
+.occurrence-registration-form input,
+.occurrence-registration-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 9px;
+    color: #263238;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.occurrence-registration-form textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.occurrence-location-control {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.occurrence-location-status {
+    min-height: 1.3em;
+    margin: 0 !important;
+    color: #56636b;
+    font-size: 12px !important;
+}
+
+.occurrence-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 7px;
+}
+
+.occurrence-cancel-button {
+    color: #125f5f;
+    background: #fff;
+}
+
+.occurrence-registration-form .occurrence-status {
+    margin: 0 !important;
+}
+
+.occurrence-status[data-state="success"] {
+    color: #146c43;
+}
+
+.leaflet-container.occurrence-location-picking,
+.leaflet-container.occurrence-location-picking .leaflet-interactive {
+    cursor: crosshair;
 }
 
 .occurrence-status {

@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --var APP_ORIGIN:http://localhost:8000",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "node --test"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.2.0"
