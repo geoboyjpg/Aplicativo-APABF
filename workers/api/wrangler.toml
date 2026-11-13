@@ -1,0 +1,8 @@
+name = "apabf-trilhas-api"
+main = "src/index.js"
+compatibility_date = "2026-11-13"
+workers_dev = true
+preview_urls = false
+
+[vars]
+APP_ORIGIN = "https://geoboyjpg.github.io"

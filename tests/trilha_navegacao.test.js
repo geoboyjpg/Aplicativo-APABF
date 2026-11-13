@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const navigation = require('../Trilha Caminhos da Baleia Franca/js/trilha-navegacao');
+const trailData = require('../Trilha Caminhos da Baleia Franca/js/trilha-dados');
 
 test('finds valid endpoints for every original trail without altering its geometry', function () {
     const sourcePath = path.join(
@@ -59,11 +60,123 @@ test('loads the trail layer from GeoJSON and waits for it before initializing th
         'utf8'
     );
 
-    assert.match(html, /fetch\('\.\.\/dados\/trilhas_apabf\.geojson'\)/);
+    assert.match(html, /<script src="js\/trilha-dados\.js"><\/script>/);
+    assert.match(html, /TrilhaDados\.load\(/);
+    assert.match(html, /apiUrl: 'https:\/\/apabf-trilhas-api\.gerhard-henrique23\.workers\.dev\/api\/trilhas'/);
+    assert.match(html, /fallbackUrl: '\.\.\/dados\/trilhas_apabf\.geojson'/);
     assert.match(html, /trailDataReady\.catch/);
     assert.match(html, /new L\.geoJson\(collection/);
     assert.doesNotMatch(html, /<script src="data\/TrilhaCaminhosdaBaleiaFranca_2\.js"><\/script>/);
     assert.match(interfaceSource, /trailDataReady\.then\(initializeWithTrailData\)/);
+});
+
+test('loads API GeoJSON first and preserves its collection and 3D geometry', async function () {
+    const collection = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'dados', 'trilhas_apabf.geojson'),
+        'utf8'
+    ));
+    const requestedUrls = [];
+
+    const loaded = await trailData.load({
+        apiUrl: 'https://api.example.test/api/trilhas',
+        fallbackUrl: '../dados/trilhas_apabf.geojson',
+        fetch: async function (url) {
+            requestedUrls.push(url);
+            return { ok: true, json: async function () { return collection; } };
+        },
+        logger: { warn: function () { assert.fail('API válida não deve acionar o fallback.'); } }
+    });
+
+    assert.deepEqual(requestedUrls, ['https://api.example.test/api/trilhas']);
+    assert.equal(loaded, collection);
+    assert.equal(loaded.features.length, 66);
+    assert.equal(loaded.features[0].geometry.coordinates[0][0].length, 3);
+});
+
+test('falls back to local GeoJSON when the API fails or returns invalid data', async function () {
+    const localCollection = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'dados', 'trilhas_apabf.geojson'),
+        'utf8'
+    ));
+    const invalidCollection = JSON.parse(JSON.stringify(localCollection));
+    invalidCollection.features[0].geometry.coordinates[0][0] = [-49, -28];
+    const requestedUrls = [];
+    const warnings = [];
+
+    const loaded = await trailData.load({
+        apiUrl: 'https://api.example.test/api/trilhas',
+        fallbackUrl: '../dados/trilhas_apabf.geojson',
+        fetch: async function (url) {
+            requestedUrls.push(url);
+            if (url === 'https://api.example.test/api/trilhas') {
+                return { ok: true, json: async function () { return invalidCollection; } };
+            }
+            return { ok: true, json: async function () { return localCollection; } };
+        },
+        logger: { warn: function (message, error) { warnings.push({ message: message, error: error }); } }
+    });
+
+    assert.deepEqual(requestedUrls, [
+        'https://api.example.test/api/trilhas',
+        '../dados/trilhas_apabf.geojson'
+    ]);
+    assert.equal(loaded, localCollection);
+    assert.equal(loaded.features.length, 66);
+    assert.match(warnings[0].message, /utilizando o GeoJSON local/);
+    assert.match(warnings[0].error.message, /coordenada XYZ inválida/);
+});
+
+test('uses local GeoJSON when the API request returns an HTTP error', async function () {
+    const localCollection = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'dados', 'trilhas_apabf.geojson'),
+        'utf8'
+    ));
+    const requestedUrls = [];
+
+    const loaded = await trailData.load({
+        apiUrl: 'https://api.example.test/api/trilhas',
+        fallbackUrl: '../dados/trilhas_apabf.geojson',
+        fetch: async function (url) {
+            requestedUrls.push(url);
+            return url === 'https://api.example.test/api/trilhas'
+                ? { ok: false, status: 503 }
+                : { ok: true, json: async function () { return localCollection; } };
+        },
+        logger: { warn: function () {} }
+    });
+
+    assert.deepEqual(requestedUrls, [
+        'https://api.example.test/api/trilhas',
+        '../dados/trilhas_apabf.geojson'
+    ]);
+    assert.equal(loaded, localCollection);
+});
+
+test('uses local GeoJSON when the API request cannot reach the server', async function () {
+    const localCollection = JSON.parse(fs.readFileSync(
+        path.join(__dirname, '..', 'dados', 'trilhas_apabf.geojson'),
+        'utf8'
+    ));
+    const requestedUrls = [];
+
+    const loaded = await trailData.load({
+        apiUrl: 'https://api.example.test/api/trilhas',
+        fallbackUrl: '../dados/trilhas_apabf.geojson',
+        fetch: async function (url) {
+            requestedUrls.push(url);
+            if (url === 'https://api.example.test/api/trilhas') {
+                throw new Error('Network unavailable');
+            }
+            return { ok: true, json: async function () { return localCollection; } };
+        },
+        logger: { warn: function () {} }
+    });
+
+    assert.deepEqual(requestedUrls, [
+        'https://api.example.test/api/trilhas',
+        '../dados/trilhas_apabf.geojson'
+    ]);
+    assert.equal(loaded, localCollection);
 });
 
 test('selects the closest real endpoint across disconnected MultiLineString parts', function () {
