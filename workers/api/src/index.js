@@ -102,7 +102,7 @@ async function readJsonBody(request) {
 
 async function readMultipartBody(request) {
   const contentType = request.headers.get('Content-Type') || '';
-  if (!/^multipart\/form-data\s*;/i.test(contentType)) {
+  if (contentType.split(';', 1)[0].trim().toLowerCase() !== 'multipart/form-data') {
     throw new RequestError(415, 'Envie os dados como multipart/form-data.');
   }
   const bytes = await readBodyBytes(request, MAX_MULTIPART_BODY_BYTES);
@@ -137,6 +137,21 @@ async function readMultipartBody(request) {
     input: validateOccurrenceInput(body),
     photos: await validatePhotoFiles(files, thumbnails)
   };
+}
+
+async function readOccurrenceBody(request) {
+  const contentType = request.headers.get('Content-Type') || '';
+  const mediaType = contentType.split(';', 1)[0].trim().toLowerCase();
+  if (mediaType === 'application/json') {
+    return {
+      input: validateOccurrenceInput(await readJsonBody(request)),
+      photos: []
+    };
+  }
+  if (mediaType === 'multipart/form-data') {
+    return readMultipartBody(request);
+  }
+  throw new RequestError(415, 'Envie os dados como application/json ou multipart/form-data.');
 }
 
 async function checkPostRateLimit(request, env, origin) {
@@ -249,14 +264,9 @@ export function createWorker(databaseFactory = createDatabase) {
       let photos = [];
       if (url.pathname === OCCURRENCES_PATH && request.method === 'POST') {
         try {
-          const contentType = request.headers.get('Content-Type') || '';
-          if (/^multipart\/form-data\s*;/i.test(contentType)) {
-            const multipart = await readMultipartBody(request);
-            input = multipart.input;
-            photos = multipart.photos;
-          } else {
-            input = validateOccurrenceInput(await readJsonBody(request));
-          }
+          const parsed = await readOccurrenceBody(request);
+          input = parsed.input;
+          photos = parsed.photos;
           if (photos.length && (!env.OCCURRENCE_PHOTOS
               || typeof env.OCCURRENCE_PHOTOS.put !== 'function')) {
             return jsonResponse({ error: 'O armazenamento de fotografias não está configurado.' }, 503, corsOrigin);

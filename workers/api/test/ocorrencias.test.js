@@ -51,6 +51,49 @@ function createEnvironment(sql, limiter = { limit: async () => ({ success: true 
   };
 }
 
+function jpegFile(size = 4) {
+  const bytes = new Uint8Array(size);
+  bytes.set([0xff, 0xd8, 0xff]);
+  return new Blob([bytes], { type: 'image/jpeg' });
+}
+
+function webpFile() {
+  return new Blob([
+    Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
+  ], { type: 'image/webp' });
+}
+
+function multipartOccurrenceRequest(files) {
+  const form = new FormData();
+  form.append('occurrence', JSON.stringify(validPayload));
+  files.forEach((file, index) => {
+    form.append('photo', file, `foto-${index + 1}.jpg`);
+    form.append('thumbnail', webpFile(), `miniatura-${index + 1}.webp`);
+  });
+  return new Request('https://api.example.test/api/ocorrencias', {
+    method: 'POST',
+    headers: {
+      Origin: APP_ORIGIN,
+      'CF-Connecting-IP': '192.0.2.13'
+    },
+    body: form
+  });
+}
+
+function photoBucket(objects, failAtPut) {
+  let putCount = 0;
+  return {
+    put: async (key, body, options) => {
+      putCount += 1;
+      if (putCount === failAtPut) {
+        throw new Error('R2 upload failed');
+      }
+      objects.set(key, { body, options });
+    },
+    delete: async (key) => objects.delete(key)
+  };
+}
+
 test('validates required occurrence fields and allows an omitted description', function () {
   const input = validateOccurrenceInput({
     ...validPayload,
@@ -225,35 +268,17 @@ test('multipart occurrence creation stores photo and thumbnail under generated R
   const sql = createSql([occurrenceRow]);
   const objects = new Map();
   const app = createWorker(() => sql);
-  const form = new FormData();
-  form.append('occurrence', JSON.stringify(validPayload));
-  form.append('photo', new Blob([
-    Uint8Array.from([0xff, 0xd8, 0xff, 0x00])
-  ], { type: 'image/jpeg' }), 'user-supplied-name.jpg');
-  form.append('thumbnail', new Blob([
-    Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
-  ], { type: 'image/webp' }), 'thumbnail.webp');
+  const request = multipartOccurrenceRequest([jpegFile()]);
   const response = await app.fetch(
-    new Request('https://api.example.test/api/ocorrencias', {
-      method: 'POST',
-      headers: {
-        Origin: APP_ORIGIN,
-        'CF-Connecting-IP': '192.0.2.13'
-      },
-      body: form
-    }),
+    request,
     {
       ...createEnvironment(sql),
-      OCCURRENCE_PHOTOS: {
-        put: async (key, body, options) => {
-          objects.set(key, { body, options });
-        },
-        delete: async (key) => objects.delete(key)
-      }
+      OCCURRENCE_PHOTOS: photoBucket(objects)
     }
   );
   const body = await response.json();
 
+  assert.match(request.headers.get('Content-Type'), /^multipart\/form-data; boundary=/);
   assert.equal(response.status, 201);
   assert.equal(body.properties.fotografias.length, 1);
   assert.match(body.properties.fotografias[0].url, /\/api\/ocorrencias\/42\/fotografias\/[0-9a-f-]{36}$/);
@@ -261,6 +286,67 @@ test('multipart occurrence creation stores photo and thumbnail under generated R
   assert.ok(Array.from(objects.keys()).every((key) => key.startsWith('ocorrencias/42/')));
   assert.ok(Array.from(objects.keys()).every((key) => !key.includes('user-supplied-name')));
   assert.ok(sql.calls.some((call) => call.query.includes('ocorrencias_trilhas_fotografias')));
+});
+
+test('multipart occurrence creation accepts five photographs', async function () {
+  const sql = createSql([occurrenceRow]);
+  const objects = new Map();
+  const app = createWorker(() => sql);
+  const response = await app.fetch(
+    multipartOccurrenceRequest([jpegFile(), jpegFile(), jpegFile(), jpegFile(), jpegFile()]),
+    {
+      ...createEnvironment(sql),
+      OCCURRENCE_PHOTOS: photoBucket(objects)
+    }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.properties.fotografias.length, 5);
+  assert.equal(objects.size, 10);
+  assert.equal(sql.calls.filter((call) => call.query.includes('INSERT INTO public.ocorrencias_trilhas_fotografias')).length, 5);
+});
+
+test('rejects oversized and unsupported photo files before inserting an occurrence', async function () {
+  for (const [file, expectedStatus, expectedMessage] of [
+    [jpegFile(5 * 1024 * 1024 + 1), 413, /até 5 MB/],
+    [new Blob(['not a permitted image'], { type: 'image/gif' }), 400, /JPEG, PNG ou WebP válida/]
+  ]) {
+    let databaseCreated = false;
+    const app = createWorker(() => {
+      databaseCreated = true;
+      return createSql([occurrenceRow]);
+    });
+    const response = await app.fetch(
+      multipartOccurrenceRequest([file]),
+      {
+        ...createEnvironment(null),
+        OCCURRENCE_PHOTOS: photoBucket(new Map())
+      }
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, expectedStatus);
+    assert.match(body.error, expectedMessage);
+    assert.equal(databaseCreated, false);
+  }
+});
+
+test('compensates occurrence metadata and R2 objects when a later upload fails', async function () {
+  const sql = createSql([occurrenceRow]);
+  const objects = new Map();
+  const app = createWorker(() => sql);
+  const response = await app.fetch(
+    multipartOccurrenceRequest([jpegFile(), jpegFile()]),
+    {
+      ...createEnvironment(sql),
+      OCCURRENCE_PHOTOS: photoBucket(objects, 3)
+    }
+  );
+
+  assert.equal(response.status, 500);
+  assert.equal(objects.size, 0);
+  assert.ok(sql.calls.some((call) => /DELETE FROM public\.ocorrencias_trilhas/.test(call.query)));
 });
 
 test('returns no inserted feature when a trail identifier is absent or ambiguous', async function () {

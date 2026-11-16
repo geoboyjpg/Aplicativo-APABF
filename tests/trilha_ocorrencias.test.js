@@ -688,6 +688,12 @@ test('occurrences load from the API without local-data fallback and preserve tra
     assert.match(html, /<script src="js\/trilha-ocorrencias\.js"><\/script>/);
     assert.match(moduleSource, /fetchJson\('\.\.\/dados\/catalogo_ocorrencias\.json'\)/);
     assert.match(moduleSource, /API_BASE_URL \+ '\/api\/ocorrencias'/);
+    assert.match(moduleSource, /new global\.FormData\(\)/);
+    const multipartSubmission = moduleSource.match(
+        /if \(selectedPhotos\.length\) \{([\s\S]*?)\} else \{/
+    )[1];
+    assert.match(multipartSubmission, /requestOptions\.body = formData/);
+    assert.doesNotMatch(multipartSubmission, /Content-Type/);
     assert.doesNotMatch(moduleSource, /fetchJson\('\.\.\/dados\/ocorrencias_trilhas\.geojson'\)/);
     assert.match(moduleSource, /leaflet\.featureGroup\(\)/);
     assert.match(moduleSource, /map\.addLayer\(occurrenceLayer\)/);
