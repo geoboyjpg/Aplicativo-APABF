@@ -17,6 +17,7 @@ const geometry = {
 const occurrenceRow = {
   ocorrencia_id: '42',
   trilha_fid: 1,
+  trilha_nome: 'Praia do Rosa',
   categoria: 'erosao_solo',
   descricao: 'Trecho com erosão.',
   data_identificacao: '2026-11-13',
@@ -218,9 +219,11 @@ test('GET photo route serves only the object returned from registered photo meta
 test('inserts with parameters, server-assigned pending status, and database defaults', async function () {
   const sql = createSql([occurrenceRow]);
   const input = validateOccurrenceInput(validPayload);
-  const feature = await createOccurrence(sql, input);
+  const created = await createOccurrence(sql, input);
   const call = sql.calls[0];
 
+  assert.equal(created.trailName, 'Praia do Rosa');
+  const feature = created.feature;
   assert.equal(feature.type, 'Feature');
   assert.equal(feature.properties.situacao, 'pendente_avaliacao');
   assert.match(call.query, /INSERT INTO public\.ocorrencias_trilhas/);
@@ -285,7 +288,11 @@ test('multipart occurrence creation stores photo and thumbnail under generated R
   assert.equal(objects.size, 2);
   assert.ok(Array.from(objects.keys()).every((key) => key.startsWith('ocorrencias/42/')));
   assert.ok(Array.from(objects.keys()).every((key) => !key.includes('user-supplied-name')));
+  assert.ok(Array.from(objects.keys()).every((key) =>
+    /ocorrencias\/42\/praia-do-rosa_\d{4}-\d{2}-\d{2}_\d{6}_[0-9a-f-]{36}(?:-miniatura)?\.(?:jpg|webp)$/.test(key)
+  ));
   assert.ok(sql.calls.some((call) => call.query.includes('ocorrencias_trilhas_fotografias')));
+  assert.ok(sql.calls.some((call) => call.values.includes('foto-1.jpg')));
 });
 
 test('multipart occurrence creation accepts five photographs', async function () {
@@ -351,9 +358,9 @@ test('compensates occurrence metadata and R2 objects when a later upload fails',
 
 test('returns no inserted feature when a trail identifier is absent or ambiguous', async function () {
   const sql = createSql([]);
-  const feature = await createOccurrence(sql, validateOccurrenceInput(validPayload));
+  const created = await createOccurrence(sql, validateOccurrenceInput(validPayload));
 
-  assert.equal(feature, null);
+  assert.equal(created, null);
 });
 
 test('keeps GET /api/trilhas operational with its existing GeoJSON contract', async function () {

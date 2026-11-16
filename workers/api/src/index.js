@@ -310,20 +310,22 @@ export function createWorker(databaseFactory = createDatabase) {
           return jsonResponse(collection, 200, corsOrigin);
         }
 
-        const feature = await createOccurrence(sql, input);
-        if (!feature) {
+        const created = await createOccurrence(sql, input);
+        if (!created) {
           return jsonResponse(
             { error: 'A trilha informada não existe ou seu identificador não é único.' },
             422,
             corsOrigin
           );
         }
+        const feature = created.feature;
         if (photos.length) {
           feature.properties.fotografias = await saveOccurrencePhotos(
             sql,
             env.OCCURRENCE_PHOTOS,
             feature.properties.ocorrencia_id,
-            photos
+            photos,
+            created.trailName
           );
         }
         return jsonResponse(feature, 201, corsOrigin);

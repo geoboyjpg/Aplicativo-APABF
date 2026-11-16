@@ -75,21 +75,41 @@ export async function validatePhotoFiles(files, thumbnails) {
   return validated;
 }
 
+function safeTrailSlug(name, occurrenceId) {
+  const slug = String(name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+    .replace(/-+$/g, '');
+  return slug || `trilha-${occurrenceId}`;
+}
+
+function uploadTimestamp(date) {
+  const iso = date.toISOString();
+  return `${iso.slice(0, 10)}_${iso.slice(11, 19).replace(/:/g, '')}`;
+}
+
 function photoUrls(occurrenceId, photoId) {
   const base = `/api/ocorrencias/${encodeURIComponent(occurrenceId)}/fotografias/${photoId}`;
   return { url: base, miniatura_url: `${base}/miniatura` };
 }
 
-export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos) {
+export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, trailName) {
   const storedKeys = [];
   const records = [];
+  const slug = safeTrailSlug(trailName, occurrenceId);
+  const timestamp = uploadTimestamp(new Date());
 
   try {
     for (const photo of photos) {
       const photoId = crypto.randomUUID();
-      const originalKey = `ocorrencias/${occurrenceId}/${photoId}.${photo.image.type.extension}`;
+      const fileStem = `${slug}_${timestamp}_${photoId}`;
+      const originalKey = `ocorrencias/${occurrenceId}/${fileStem}.${photo.image.type.extension}`;
       const thumbnailKey = photo.thumbnail
-        ? `ocorrencias/${occurrenceId}/${photoId}-miniatura.${photo.thumbnail.type.extension}`
+        ? `ocorrencias/${occurrenceId}/${fileStem}-miniatura.${photo.thumbnail.type.extension}`
         : null;
 
       storedKeys.push(originalKey);

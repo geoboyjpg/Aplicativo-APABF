@@ -493,6 +493,17 @@
                 }
             });
         });
+        global.TrilhasInterface = {
+            closeSidebar: closeSidebar,
+            openOccurrences: function () {
+                var button = document.querySelector('.tab-button[data-tab="ocorrencias"]');
+                if (!button) {
+                    throw new Error('A aba de ocorrências não foi encontrada.');
+                }
+                openSidebar();
+                button.click();
+            }
+        };
         searchInput.addEventListener('input', filterTrails);
         document.getElementById('restore-overview').addEventListener('click', restoreOverview);
         findAccessButton.addEventListener('click', requestDirections);

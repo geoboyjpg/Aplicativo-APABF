@@ -111,9 +111,15 @@ function createMockElement(tagName) {
         },
         setAttribute: function (name, value) {
             this.attributes[name] = String(value);
+            if (name === 'src') {
+                this.src = String(value);
+            }
         },
         removeAttribute: function (name) {
             delete this.attributes[name];
+            if (name === 'src') {
+                this.src = '';
+            }
         },
         click: function () {},
         reset: function () {
@@ -128,9 +134,46 @@ function createMockElement(tagName) {
             (listeners.get(type) || []).forEach(function (handler) {
                 handler(Object.assign({
                     target: element,
-                    preventDefault: function () {}
+                    preventDefault: function () {},
+                    stopPropagation: function () {}
                 }, event || {}));
             });
+        },
+        getAttribute: function (name) {
+            if (name === 'src' && this.src) {
+                return this.src;
+            }
+            return this.attributes[name] || null;
+        },
+        querySelectorAll: function (selector) {
+            const matches = [];
+            function visit(node) {
+                if (!node.children) {
+                    return;
+                }
+                node.children.forEach(function (child) {
+                    if (selector === 'img[data-photo-url]' && child.tagName === 'img'
+                        && child.dataset.photoUrl) {
+                        matches.push(child);
+                    }
+                    visit(child);
+                });
+            }
+            visit(this);
+            return matches;
+        },
+        cloneNode: function (deep) {
+            const clone = createMockElement(this.tagName);
+            clone.className = this.className;
+            clone.dataset = Object.assign({}, this.dataset);
+            clone.attributes = Object.assign({}, this.attributes);
+            clone.textContent = this.textContent;
+            if (deep) {
+                this.children.forEach(function (child) {
+                    clone.appendChild(child.cloneNode(true));
+                });
+            }
+            return clone;
         },
         listenerCount: function (type) {
             return (listeners.get(type) || []).length;
@@ -208,6 +251,7 @@ function createInterfaceHarness(settings) {
         ['occurrence-photo-previews', 'ul'],
         ['occurrence-photo-status', 'p'],
         ['occurrence-pick-location', 'button'],
+        ['occurrence-get-location', 'button'],
         ['occurrence-submit', 'button'],
         ['occurrence-cancel-form', 'button']
     ];
@@ -219,6 +263,9 @@ function createInterfaceHarness(settings) {
         getElementById: function (id) {
             return elements.get(id);
         },
+        querySelector: function () {
+            return null;
+        },
         createElement: createMockElement,
         createTextNode: function (text) {
             return { textContent: text };
@@ -226,10 +273,12 @@ function createInterfaceHarness(settings) {
     };
 
     const layers = new Set();
+    const markers = [];
     const mapHandlers = new Map();
     const mapContainer = createMockElement('div');
     const map = {
         panes: new Map(),
+        zoom: 12,
         createPane: function (name) {
             this.panes.set(name, { style: {} });
         },
@@ -248,6 +297,12 @@ function createInterfaceHarness(settings) {
         getContainer: function () {
             return mapContainer;
         },
+        getZoom: function () {
+            return this.zoom;
+        },
+        setView: function (latlng, zoom) {
+            this.view = { latlng: latlng, zoom: zoom };
+        },
         on: function (type, handler) {
             const handlers = mapHandlers.get(type) || [];
             handlers.push(handler);
@@ -261,12 +316,52 @@ function createInterfaceHarness(settings) {
     };
 
     function createMarker() {
-        return {
-            bindTooltip: function () {},
-            bindPopup: function () {},
-            on: function () {},
-            setPopupContent: function () {}
+        const markerHandlers = new Map();
+        const marker = {
+            handlers: markerHandlers,
+            popupContent: null,
+            popupOpen: false,
+            bindPopup: function (content) {
+                this.popupContent = content;
+                return this;
+            },
+            on: function (type, handler) {
+                const handlers = markerHandlers.get(type) || [];
+                handlers.push(handler);
+                markerHandlers.set(type, handlers);
+                return this;
+            },
+            setPopupContent: function (content) {
+                this.popupContent = content;
+                return this;
+            },
+            openPopup: function () {
+                this.popupOpen = true;
+                (markerHandlers.get('popupopen') || []).forEach(function (handler) {
+                    handler();
+                });
+                return this;
+            },
+            closePopup: function () {
+                this.popupOpen = false;
+                return this;
+            },
+            unbindPopup: function () {
+                this.popupContent = null;
+                return this;
+            },
+            isPopupOpen: function () {
+                return this.popupOpen;
+            },
+            click: function () {
+                this.openPopup();
+                (markerHandlers.get('click') || []).forEach(function (handler) {
+                    handler();
+                });
+            }
         };
+        markers.push(marker);
+        return marker;
     }
 
     const leaflet = {
@@ -286,7 +381,7 @@ function createInterfaceHarness(settings) {
         marker: createMarker,
         circleMarker: createMarker,
         divIcon: function (icon) {
-            return icon;
+            return { options: icon };
         }
     };
     const trails = readJson(path.join(ROOT, 'dados', 'trilhas_apabf.geojson'));
@@ -305,7 +400,11 @@ function createInterfaceHarness(settings) {
             }
             if (url === apiUrl) {
                 if (requestOptions && requestOptions.method === 'POST') {
-                    const body = requestOptions.body ? JSON.parse(requestOptions.body) : null;
+                    const body = requestOptions.body
+                        ? JSON.parse(typeof requestOptions.body === 'string'
+                            ? requestOptions.body
+                            : requestOptions.body.get('occurrence'))
+                        : null;
                     const result = typeof options.postResponse === 'function'
                         ? options.postResponse(body)
                         : options.postResponse || defaultPostFeature;
@@ -319,7 +418,17 @@ function createInterfaceHarness(settings) {
             return Promise.resolve(createResponse({ error: 'Not found' }, 404));
         },
         trailDataReady: Promise.resolve(trails),
-        json_TrilhaCaminhosdaBaleiaFranca_2: trails
+        json_TrilhaCaminhosdaBaleiaFranca_2: trails,
+        TrilhasInterface: {
+            closeSidebar: function () {
+                app.sidebarOpen = false;
+            },
+            openOccurrences: function () {
+                app.sidebarOpen = true;
+                app.occurrenceTabOpen = true;
+            }
+        },
+        navigator: options.navigator
     };
     occurrences.initialize(app);
 
@@ -329,6 +438,7 @@ function createInterfaceHarness(settings) {
         map: map,
         mapContainer: mapContainer,
         mapHandlers: mapHandlers,
+        markers: markers,
         layers: layers,
         requests: requests,
         apiUrl: apiUrl,
@@ -354,6 +464,11 @@ function getOccurrenceLayer(harness) {
     return Array.from(harness.layers).find(function (layer) {
         return Array.isArray(layer.layers);
     });
+}
+
+function confirmLatestLocation(harness) {
+    const marker = harness.markers[harness.markers.length - 1];
+    marker.popupContent.children[0].dispatch('click');
 }
 
 test('trail and occurrence tabs are sibling panels and all sidebar tabs remain addressable', function () {
@@ -434,7 +549,10 @@ test('initialization fills category, situation and trail selects from the loaded
         assert.equal(harness.elements.get('occurrence-filter-category').options[0].textContent, 'Todas as categorias');
         assert.equal(harness.elements.get('occurrence-filter-situation').options[0].textContent, 'Todas as situações');
         assert.equal(harness.elements.get('occurrence-status').textContent, 'Nenhuma ocorrência cadastrada.');
-        assert.equal(harness.elements.get('occurrence-status-legend').children.length, catalog.situacoes.length);
+        assert.equal(
+            harness.elements.get('occurrence-status-legend').children.length,
+            catalog.categorias.length + catalog.situacoes.length
+        );
         assert.match(harness.elements.get('occurrence-registration-date').value, /^\d{4}-\d{2}-\d{2}$/);
     } finally {
         harness.restoreDocument();
@@ -484,38 +602,152 @@ test('opens the registration form, pre-fills the date, and blocks incomplete sub
     }
 });
 
-test('selects, cancels and replaces a map location without registering duplicate click handlers', async function () {
+test('confirms, replaces and cancels temporary map locations without losing the form', async function () {
     const harness = createInterfaceHarness();
     try {
         await harness.flush();
         harness.elements.get('occurrence-open-form').dispatch('click');
+        harness.elements.get('occurrence-registration-description').value = 'Campo preservado';
         const pickButton = harness.elements.get('occurrence-pick-location');
 
         pickButton.dispatch('click');
         assert.equal(occurrences.isPickingLocation(), true);
         assert.equal(harness.mapContainer.classList.contains('occurrence-location-picking'), true);
         assert.match(harness.elements.get('occurrence-location-status').textContent, /Aguardando clique/);
+        assert.equal(harness.app.sidebarOpen, false);
+        const markerCount = harness.markers.length;
+        harness.map.fire('click', {
+            latlng: { lat: -28.9, lng: -49.3 },
+            originalEvent: { target: { closest: function () { return true; } } }
+        });
+        assert.equal(harness.markers.length, markerCount);
         harness.map.fire('click', { latlng: { lat: -28.8, lng: -49.2 } });
-        assert.equal(occurrences.isPickingLocation(), false);
-        assert.equal(harness.mapContainer.classList.contains('occurrence-location-picking'), false);
-        assert.match(harness.elements.get('occurrence-location-status').textContent, /-28\.80000, -49\.20000/);
+        assert.equal(occurrences.isPickingLocation(), true);
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /Ponto provisório/);
         assert.equal(harness.layers.size, 2);
+        let candidate = harness.markers[harness.markers.length - 1];
+        assert.equal(candidate.popupOpen, true);
+        assert.equal(candidate.popupContent.children[0].textContent, 'Selecionar localização');
 
-        pickButton.dispatch('click');
-        pickButton.dispatch('click');
-        assert.equal(occurrences.isPickingLocation(), false);
-        assert.match(harness.elements.get('occurrence-location-status').textContent, /marcação cancelada/i);
-        assert.equal(harness.layers.size, 2);
-
-        pickButton.dispatch('click');
         harness.map.fire('click', { latlng: { lat: -28.7, lng: -49.1 } });
         assert.equal(harness.layers.size, 2);
+        candidate = harness.markers[harness.markers.length - 1];
+        candidate.popupContent.children[0].dispatch('click');
+        assert.equal(occurrences.isPickingLocation(), false);
+        assert.equal(harness.mapContainer.classList.contains('occurrence-location-picking'), false);
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /-28\.70000, -49\.10000/);
+        assert.equal(harness.app.sidebarOpen, true);
+        assert.equal(harness.app.occurrenceTabOpen, true);
+        assert.equal(harness.elements.get('occurrence-registration-description').value, 'Campo preservado');
+
+        pickButton.dispatch('click');
+        assert.equal(harness.app.sidebarOpen, false);
+        harness.map.fire('click', { latlng: { lat: -28.7, lng: -49.1 } });
+        candidate = harness.markers[harness.markers.length - 1];
+        candidate.popupContent.children[1].dispatch('click');
+        assert.equal(occurrences.isPickingLocation(), false);
+        assert.equal(harness.layers.size, 2);
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /-28\.70000, -49\.10000/);
         assert.equal(harness.mapHandlers.get('click').length, 1);
         assert.equal(harness.elements.get('occurrence-pick-location').attributes['aria-pressed'], 'false');
 
         harness.elements.get('occurrence-cancel-form').dispatch('click');
         assert.equal(harness.layers.size, 1);
         assert.equal(harness.elements.get('occurrence-query-view').hidden, false);
+    } finally {
+        harness.restoreDocument();
+    }
+});
+
+test('GPS collection is explicit, fills coordinates, reports precision and maps geolocation errors', async function () {
+    const calls = [];
+    const harness = createInterfaceHarness({
+        navigator: {
+            geolocation: {
+                getCurrentPosition: function (success, error, options) {
+                    calls.push({ success: success, error: error, options: options });
+                }
+            }
+        }
+    });
+    try {
+        await harness.flush();
+        assert.equal(calls.length, 0);
+        harness.elements.get('occurrence-open-form').dispatch('click');
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].options.enableHighAccuracy, true);
+        calls[0].success({ coords: { latitude: -28.8, longitude: -49.2, accuracy: 18 } });
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /Precisão aproximada: 18 m/);
+        assert.deepEqual(harness.map.view, { latlng: [-28.8, -49.2], zoom: 15 });
+
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        calls[1].error({ code: 1 });
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /Permissão de localização negada/);
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        calls[2].error({ code: 2 });
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /GPS indisponível/);
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        calls[3].error({ code: 3 });
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /Tempo excedido/);
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        calls[4].success({ coords: { latitude: -28.8, longitude: -49.2, accuracy: 150 } });
+        assert.equal(harness.elements.get('occurrence-location-status').dataset.state, 'warning');
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /Baixa precisão/);
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        calls[5].success({ coords: { latitude: -28.8, longitude: -49.2, accuracy: 18 } });
+        harness.elements.get('occurrence-registration-trail').value =
+            String(readJson(TRAILS_PATH).features[0].properties.fid);
+        harness.elements.get('occurrence-registration-category').value = 'erosao_solo';
+        harness.elements.get('occurrence-registration-date').value = '2026-04-10';
+        harness.elements.get('occurrence-registration-form').dispatch('submit');
+        await harness.flush();
+        const request = harness.requests.find(function (entry) {
+            return entry.options.method === 'POST';
+        });
+        assert.deepEqual(JSON.parse(request.options.body).coordinates, [-49.2, -28.8]);
+    } finally {
+        harness.restoreDocument();
+    }
+});
+
+test('GPS button reports when geolocation is unsupported', async function () {
+    const harness = createInterfaceHarness();
+    try {
+        await harness.flush();
+        harness.elements.get('occurrence-get-location').dispatch('click');
+        assert.match(harness.elements.get('occurrence-location-status').textContent, /não oferece suporte/i);
+    } finally {
+        harness.restoreDocument();
+    }
+});
+
+test('occurrence marker opens its popup and lazily activates private photo thumbnails', async function () {
+    const feature = makeOccurrenceFeature('42', 1, [-49.2, -28.8]);
+    feature.properties.fotografias = [{
+        foto_id: '12345678-1234-1234-1234-123456789abc',
+        url: '/api/ocorrencias/42/fotografias/12345678-1234-1234-1234-123456789abc',
+        miniatura_url: '/api/ocorrencias/42/fotografias/12345678-1234-1234-1234-123456789abc/miniatura'
+    }];
+    const harness = createInterfaceHarness({
+        occurrences: { type: 'FeatureCollection', features: [feature] }
+    });
+    try {
+        await harness.flush();
+        const marker = getOccurrenceLayer(harness).layers[0];
+        assert.equal(marker.popupContent.tagName, 'div');
+        assert.equal(typeof marker.popupContent.querySelectorAll, 'function');
+        marker.click();
+        const thumbnails = marker.popupContent.querySelectorAll('img[data-photo-url]');
+        assert.equal(thumbnails.length, 1);
+        assert.match(thumbnails[0].src, /\/api\/ocorrencias\/42\/fotografias\/.*\/miniatura$/);
+        assert.equal(marker.popupOpen, true);
+        thumbnails[0].onerror();
+        assert.match(thumbnails[0].src, /\/api\/ocorrencias\/42\/fotografias\/.*$/);
+        assert.doesNotMatch(thumbnails[0].src, /\/miniatura$/);
+        const styles = fs.readFileSync(path.join(MAP_ROOT, 'css', 'trilhas-interface.css'), 'utf8');
+        assert.match(styles, /object-fit:\s*contain/);
+        assert.match(styles, /height:\s*94dvh/);
     } finally {
         harness.restoreDocument();
     }
@@ -533,6 +765,7 @@ test('sends the API payload in longitude-latitude order and adds the confirmed m
         harness.elements.get('occurrence-registration-date').value = '2026-04-10';
         harness.elements.get('occurrence-pick-location').dispatch('click');
         harness.map.fire('click', { latlng: { lat: -28.8, lng: -49.2 } });
+        confirmLatestLocation(harness);
         harness.elements.get('occurrence-registration-form').dispatch('submit');
         await harness.flush();
 
@@ -573,6 +806,7 @@ test('updates a repeated occurrence ID instead of duplicating its marker', async
         harness.elements.get('occurrence-registration-date').value = '2026-04-10';
         harness.elements.get('occurrence-pick-location').dispatch('click');
         harness.map.fire('click', { latlng: { lat: -28.7, lng: -49.1 } });
+        confirmLatestLocation(harness);
         harness.elements.get('occurrence-registration-form').dispatch('submit');
         await harness.flush();
 
@@ -610,6 +844,7 @@ test('preserves active filters while updating the occurrence layer after a submi
         harness.elements.get('occurrence-registration-date').value = '2026-04-10';
         harness.elements.get('occurrence-pick-location').dispatch('click');
         harness.map.fire('click', { latlng: { lat: -28.7, lng: -49.1 } });
+        confirmLatestLocation(harness);
         harness.elements.get('occurrence-registration-form').dispatch('submit');
         await harness.flush();
 
@@ -650,6 +885,7 @@ test('presents POST HTTP errors without reporting success or leaving the form', 
         harness.elements.get('occurrence-registration-date').value = '2026-04-10';
         harness.elements.get('occurrence-pick-location').dispatch('click');
         harness.map.fire('click', { latlng: { lat: -28.8, lng: -49.2 } });
+        confirmLatestLocation(harness);
         harness.elements.get('occurrence-registration-form').dispatch('submit');
         await harness.flush();
 
@@ -759,7 +995,7 @@ test('trail association resolves by fid and popup includes the associated trail 
     assert.match(moduleSource, /\['Trilha relacionada'/);
 });
 
-test('marker symbols and colors come from the catalog and distinguish all situations accessibly', function () {
+test('marker symbols and colors come from the catalog and the legend covers categories and situations', function () {
     const catalog = readJson(path.join(ROOT, 'dados', 'catalogo_ocorrencias.json'));
     const categories = catalog.categorias.map(function (category) {
         return category.identificacao_visual.icone;
@@ -787,11 +1023,25 @@ test('marker symbols and colors come from the catalog and distinguish all situat
     });
     assert.match(moduleSource, /categorySymbol\.classList\.add\('fas', visuals\.categoryIcon\)/);
     assert.match(moduleSource, /situationSymbol\.classList\.add\('fas', visuals\.situationIcon\)/);
-    assert.match(moduleSource, /title: label/);
-    assert.match(moduleSource, /alt: label/);
+    assert.match(moduleSource, /catalog\.categorias\.forEach/);
+    assert.match(moduleSource, /catalog\.situacoes\.forEach/);
+    assert.doesNotMatch(moduleSource, /marker\.bindTooltip/);
+    assert.doesNotMatch(moduleSource, /title: label/);
     assert.match(styles, /occurrence-marker__category/);
     assert.match(styles, /occurrence-marker__situation/);
     assert.match(styles, /occurrence-status-legend/);
+});
+
+test('institutional trails landing page presents both initiatives and a centered responsive map link', function () {
+    const html = fs.readFileSync(path.join(ROOT, 'trilhas.html'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'institutional-pages.css'), 'utf8');
+
+    assert.match(html, /Caminhos da Baleia Franca/);
+    assert.match(html, /Rede Brasileira de Trilhas de Longo Curso/);
+    assert.match(html, /https:\/\/redetrilhas\.org\.br\/w3\//);
+    assert.match(html, /Acessar o mapa de trilhas/);
+    assert.match(styles, /justify-content:\s*center/);
+    assert.match(styles, /trails-overview-grid/);
 });
 
 test('empty occurrence collection reports no records and catalog drives all filter labels', function () {

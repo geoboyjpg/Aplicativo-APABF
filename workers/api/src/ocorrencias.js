@@ -177,7 +177,7 @@ export async function getOccurrences(sql) {
 export async function createOccurrence(sql, input) {
   const rows = await sql`
     WITH selected_trail AS (
-      SELECT ogc_fid
+      SELECT ogc_fid, nome
       FROM public.trilhas_apabf
       WHERE fid::text = ${input.trailId}
       LIMIT 2
@@ -213,6 +213,7 @@ export async function createOccurrence(sql, input) {
     SELECT
       inserted.ocorrencia_id,
       trail.fid AS trilha_fid,
+      trail.nome AS trilha_nome,
       inserted.categoria,
       inserted.descricao,
       inserted.data_identificacao,
@@ -224,5 +225,7 @@ export async function createOccurrence(sql, input) {
       ON trail.ogc_fid = inserted.trilha_ogc_fid
   `;
 
-  return rows.length === 1 ? toFeature(rows[0]) : null;
+  return rows.length === 1
+    ? { feature: toFeature(rows[0]), trailName: rows[0].trilha_nome }
+    : null;
 }

@@ -395,12 +395,12 @@
                         <p id="occurrence-status" class="occurrence-status" role="status" aria-live="polite">
                             Carregando ocorrências…
                         </p>
-                        <h5 class="occurrence-legend-title">Símbolos das situações</h5>
-                        <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda das situações"></ul>
+                        <h5 class="occurrence-legend-title">Legenda dos marcadores</h5>
+                        <ul id="occurrence-status-legend" class="occurrence-status-legend" aria-label="Legenda dos marcadores de ocorrências"></ul>
                     </div>
                     <section id="occurrence-registration-view" class="occurrence-registration-view" hidden>
                         <h5>Nova ocorrência</h5>
-                        <p>Preencha os dados e marque no mapa o local onde a ocorrência foi identificada.</p>
+                        <p>Preencha os dados e informe onde a ocorrência foi identificada.</p>
                         <form id="occurrence-registration-form" class="occurrence-registration-form">
                             <label for="occurrence-registration-trail">Trilha <span aria-hidden="true">*</span></label>
                             <select id="occurrence-registration-trail" required disabled>
@@ -440,6 +440,10 @@
                                     aria-pressed="false">
                                     <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                                     Marcar localização no mapa
+                                </button>
+                                <button id="occurrence-get-location" class="occurrence-cancel-button" type="button">
+                                    <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
+                                    Coletar minha localização
                                 </button>
                                 <p id="occurrence-location-status" class="occurrence-location-status"
                                     role="status" aria-live="polite">Nenhuma localização selecionada.</p>

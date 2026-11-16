@@ -210,19 +210,20 @@
 
         function showPhoto(index) {
             currentIndex = (index + photos.length) % photos.length;
+            var displayedIndex = currentIndex;
+            status.textContent = (currentIndex + 1) + ' de ' + photos.length;
             image.onerror = function () {
                 image.removeAttribute('src');
-                status.textContent = 'Imagem indisponível.';
+                status.textContent = 'Fotografia ' + (displayedIndex + 1) + ' indisponível.';
             };
             var imageUrl = photoApiUrl(photos[currentIndex].url);
             if (imageUrl) {
                 image.src = imageUrl;
             } else {
                 image.removeAttribute('src');
-                status.textContent = 'Imagem indisponível.';
+                status.textContent = 'Fotografia ' + (currentIndex + 1) + ' indisponível.';
             }
             image.alt = 'Fotografia ' + (currentIndex + 1) + ' de ' + photos.length;
-            status.textContent = (currentIndex + 1) + ' de ' + photos.length;
         }
 
         previous.addEventListener('click', function () {
@@ -289,15 +290,29 @@
                 var image = document.createElement('img');
                 image.alt = 'Miniatura da fotografia ' + (index + 1);
                 image.loading = 'lazy';
+                var unavailable = document.createElement('span');
+                unavailable.className = 'occurrence-gallery__unavailable';
+                unavailable.textContent = 'Foto indisponível';
+                unavailable.hidden = true;
                 image.dataset.photoUrl = photoApiUrl(photo.miniatura_url || photo.url)
                     ? photo.miniatura_url || photo.url
                     : '';
                 image.onerror = function () {
+                    var originalUrl = photoApiUrl(photo.url);
+                    var failedUrl = photoApiUrl(image.dataset.photoUrl);
+                    if (originalUrl && failedUrl && originalUrl !== failedUrl
+                        && image.dataset.fallbackTried !== 'true') {
+                        image.dataset.fallbackTried = 'true';
+                        image.dataset.photoUrl = photo.url;
+                        image.src = originalUrl;
+                        return;
+                    }
                     image.removeAttribute('src');
                     image.alt = 'Imagem indisponível';
                     button.disabled = true;
+                    unavailable.hidden = false;
                 };
-                button.appendChild(image);
+                button.append(image, unavailable);
                 button.disabled = !image.dataset.photoUrl || !photoApiUrl(photo.url);
                 button.addEventListener('click', function () {
                     if (!button.disabled) {
@@ -375,6 +390,7 @@
         var registrationDescription = document.getElementById('occurrence-registration-description');
         var registrationDate = document.getElementById('occurrence-registration-date');
         var locationButton = document.getElementById('occurrence-pick-location');
+        var gpsButton = document.getElementById('occurrence-get-location');
         var submitButton = document.getElementById('occurrence-submit');
         var cancelFormButton = document.getElementById('occurrence-cancel-form');
         var photoCameraButton = document.getElementById('occurrence-photo-camera');
@@ -385,6 +401,8 @@
         var photoStatus = document.getElementById('occurrence-photo-status');
         var occurrenceLayer = null;
         var locationMarker = null;
+        var candidateMarker = null;
+        var candidateCoordinates = null;
         var selectedCoordinates = null;
         var records = [];
         var trailCollection = global.json_TrilhaCaminhosdaBaleiaFranca_2 || null;
@@ -395,6 +413,7 @@
         var submitting = false;
         var selectedPhotos = [];
         var selectingPhotos = false;
+        var locationRequestVersion = 0;
 
         initializedMaps.add(map);
 
@@ -540,16 +559,33 @@
         function populateLegend() {
             var legend = document.getElementById('occurrence-status-legend');
             legend.replaceChildren();
-            catalog.situacoes.forEach(function (situation) {
+
+            function appendLegendItem(labelText, visuals) {
                 var item = document.createElement('li');
-                var symbol = document.createElement('i');
-                symbol.classList.add('fas', situation.identificacao_visual.icone);
-                symbol.style.color = situation.identificacao_visual.cor;
-                symbol.setAttribute('aria-hidden', 'true');
+                var marker = document.createElement('span');
+                marker.className = 'occurrence-legend-marker';
+                marker.setAttribute('aria-hidden', 'true');
+                marker.appendChild(createMarkerIcon(leaflet, visuals).options.html.cloneNode(true));
                 var label = document.createElement('span');
-                label.textContent = situation.rotulo;
-                item.append(symbol, label);
+                label.className = 'occurrence-legend-label';
+                label.textContent = labelText;
+                item.append(marker, label);
                 legend.appendChild(item);
+            }
+
+            var sampleCategory = catalog.categorias[0];
+            var sampleSituation = catalog.situacoes[0];
+            catalog.categorias.forEach(function (category) {
+                appendLegendItem(
+                    'Categoria: ' + category.nome,
+                    getMarkerVisuals(catalog, category.chave, sampleSituation.chave)
+                );
+            });
+            catalog.situacoes.forEach(function (situation) {
+                appendLegendItem(
+                    'Situação: ' + situation.rotulo,
+                    getMarkerVisuals(catalog, sampleCategory.chave, situation.chave)
+                );
             });
         }
 
@@ -583,27 +619,36 @@
         function createRecord(feature) {
             var properties = feature.properties;
             var visuals = getMarkerVisuals(catalog, properties.categoria, properties.situacao);
-            var label = visuals.categoryName + ' — ' + visuals.situationLabel;
+            var accessibleLabel = visuals.categoryName + ' — ' + visuals.situationLabel;
             var marker = leaflet.marker(
                 [feature.geometry.coordinates[1], feature.geometry.coordinates[0]],
                 {
                     pane: 'pane_ocorrencias_trilhas',
                     icon: createMarkerIcon(leaflet, visuals),
-                    title: label,
-                    alt: label,
                     riseOnHover: true
                 }
             );
-            var record = { feature: feature, properties: properties, marker: marker };
-            marker.bindTooltip(label);
-            var popup = popupContent(record, trailCollection, visuals);
-            marker.bindPopup(popup.content, { maxWidth: 360 });
-            marker.on('click', function () {
-                popup = popupContent(record, trailCollection, visuals);
-                marker.setPopupContent(popup.content);
+            var record = { feature: feature, properties: properties, marker: marker, popup: null };
+            marker.on('add', function () {
+                var iconElement = marker.getElement && marker.getElement();
+                if (iconElement) {
+                    iconElement.setAttribute('aria-label', accessibleLabel);
+                }
             });
+            record.refreshPopup = function () {
+                var popup = popupContent(record, trailCollection, visuals);
+                record.popup = popup;
+                marker.setPopupContent(popup.content);
+                if (marker.isPopupOpen && marker.isPopupOpen()) {
+                    popup.activatePhotos();
+                }
+            };
+            record.popup = popupContent(record, trailCollection, visuals);
+            marker.bindPopup(record.popup.content, { maxWidth: 360 });
             marker.on('popupopen', function () {
-                popup.activatePhotos();
+                if (record.popup) {
+                    record.popup.activatePhotos();
+                }
             });
             return record;
         }
@@ -646,6 +691,30 @@
             }
         }
 
+        function setRegistrationSidebar(open) {
+            var interfaceController = global.TrilhasInterface;
+            if (open && interfaceController
+                && typeof interfaceController.openOccurrences === 'function') {
+                interfaceController.openOccurrences();
+                return;
+            }
+            if (!open && interfaceController
+                && typeof interfaceController.closeSidebar === 'function') {
+                interfaceController.closeSidebar();
+                return;
+            }
+            var sidebarButton = document.getElementById(open ? 'sidebarToggle' : 'sidebarClose');
+            if (sidebarButton) {
+                sidebarButton.click();
+            }
+            if (open) {
+                var occurrencesTab = document.querySelector('.tab-button[data-tab="ocorrencias"]');
+                if (occurrencesTab) {
+                    occurrencesTab.click();
+                }
+            }
+        }
+
         function removeLocationMarker() {
             if (locationMarker) {
                 map.removeLayer(locationMarker);
@@ -653,8 +722,94 @@
             }
         }
 
+        function removeCandidateMarker() {
+            if (candidateMarker) {
+                map.removeLayer(candidateMarker);
+                candidateMarker = null;
+            }
+            candidateCoordinates = null;
+        }
+
+        function createLocationMarker(latlng) {
+            return leaflet.circleMarker(latlng, {
+                radius: 9,
+                color: '#125f5f',
+                weight: 3,
+                fillColor: '#fff',
+                fillOpacity: 1
+            });
+        }
+
         function formatCoordinates(coordinates) {
             return coordinates[1].toFixed(5) + ', ' + coordinates[0].toFixed(5);
+        }
+
+        function finishLocationSelection(reopenRegistration) {
+            locationRequestVersion += 1;
+            if (gpsButton) {
+                gpsButton.disabled = false;
+            }
+            setLocationPicking(false);
+            removeCandidateMarker();
+            if (selectedCoordinates) {
+                setStatus(
+                    locationStatus,
+                    'Localização mantida (latitude, longitude): '
+                        + formatCoordinates(selectedCoordinates) + '.',
+                    'ready'
+                );
+            } else {
+                setStatus(locationStatus, 'Marcação cancelada. Nenhuma localização selecionada.', '');
+            }
+            if (reopenRegistration) {
+                setRegistrationSidebar(true);
+            }
+        }
+
+        function confirmLocationSelection() {
+            if (!candidateCoordinates || !candidateMarker) {
+                return;
+            }
+            selectedCoordinates = candidateCoordinates.slice();
+            removeLocationMarker();
+            locationMarker = candidateMarker;
+            candidateMarker = null;
+            candidateCoordinates = null;
+            if (locationMarker.closePopup) {
+                locationMarker.closePopup();
+            }
+            if (locationMarker.unbindPopup) {
+                locationMarker.unbindPopup();
+            }
+            setLocationPicking(false);
+            setStatus(
+                locationStatus,
+                'Localização selecionada (latitude, longitude): '
+                    + formatCoordinates(selectedCoordinates) + '.',
+                'ready'
+            );
+            setRegistrationSidebar(true);
+        }
+
+        function createLocationChoicePopup() {
+            var popup = document.createElement('div');
+            popup.className = 'occurrence-location-choice';
+            var confirmButton = document.createElement('button');
+            confirmButton.type = 'button';
+            confirmButton.textContent = 'Selecionar localização';
+            confirmButton.addEventListener('click', function (event) {
+                event.stopPropagation();
+                confirmLocationSelection();
+            });
+            var cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.textContent = 'Cancelar';
+            cancelButton.addEventListener('click', function (event) {
+                event.stopPropagation();
+                finishLocationSelection(true);
+            });
+            popup.append(confirmButton, cancelButton);
+            return popup;
         }
 
         function handleMapClick(event) {
@@ -664,22 +819,90 @@
                 || event.latlng.lng < -180 || event.latlng.lng > 180) {
                 return;
             }
-            selectedCoordinates = [event.latlng.lng, event.latlng.lat];
-            removeLocationMarker();
-            locationMarker = leaflet.circleMarker(event.latlng, {
-                radius: 9,
-                color: '#125f5f',
-                weight: 3,
-                fillColor: '#fff',
-                fillOpacity: 1
+            var target = event.originalEvent && event.originalEvent.target;
+            if (target && typeof target.closest === 'function'
+                && target.closest('.leaflet-control, .leaflet-marker-icon, .leaflet-popup, .leaflet-interactive, button, a, input, textarea, select')) {
+                return;
+            }
+            removeCandidateMarker();
+            candidateCoordinates = [event.latlng.lng, event.latlng.lat];
+            candidateMarker = createLocationMarker(event.latlng);
+            candidateMarker.bindPopup(createLocationChoicePopup(), {
+                closeOnClick: false,
+                autoClose: false
             });
-            map.addLayer(locationMarker);
-            setLocationPicking(false);
+            map.addLayer(candidateMarker);
+            candidateMarker.openPopup();
             setStatus(
                 locationStatus,
-                'Localização selecionada (latitude, longitude): ' + formatCoordinates(selectedCoordinates) + '.',
-                'ready'
+                'Ponto provisório: ' + formatCoordinates(candidateCoordinates)
+                    + '. Confirme no mapa ou escolha outro ponto.',
+                'loading'
             );
+        }
+
+        function collectCurrentLocation() {
+            var geolocation = global.navigator && global.navigator.geolocation;
+            if (!geolocation || typeof geolocation.getCurrentPosition !== 'function') {
+                setStatus(locationStatus, 'Este dispositivo não oferece suporte à geolocalização.', 'error');
+                return;
+            }
+            var requestVersion = ++locationRequestVersion;
+            gpsButton.disabled = true;
+            setStatus(locationStatus, 'Obtendo localização do dispositivo…', 'loading');
+            geolocation.getCurrentPosition(function (position) {
+                if (requestVersion !== locationRequestVersion) {
+                    return;
+                }
+                gpsButton.disabled = false;
+                var latitude = position && position.coords && position.coords.latitude;
+                var longitude = position && position.coords && position.coords.longitude;
+                var accuracy = position && position.coords && position.coords.accuracy;
+                if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
+                    || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
+                    || !Number.isFinite(accuracy) || accuracy < 0) {
+                    setStatus(locationStatus, 'O dispositivo retornou uma localização inválida.', 'error');
+                    return;
+                }
+                selectedCoordinates = [longitude, latitude];
+                removeCandidateMarker();
+                removeLocationMarker();
+                locationMarker = createLocationMarker([latitude, longitude]);
+                map.addLayer(locationMarker);
+                if (typeof map.setView === 'function') {
+                    var zoom = typeof map.getZoom === 'function' && Number.isFinite(map.getZoom())
+                        ? Math.max(map.getZoom(), 15)
+                        : 15;
+                    map.setView([latitude, longitude], zoom);
+                }
+                var accuracyMessage = '. Precisão aproximada: ' + Math.round(accuracy) + ' m.';
+                if (accuracy > 100) {
+                    accuracyMessage += ' Baixa precisão; considere ajustar o ponto no mapa.';
+                }
+                setStatus(
+                    locationStatus,
+                    'Localização obtida (latitude, longitude): ' + formatCoordinates(selectedCoordinates)
+                        + accuracyMessage,
+                    accuracy > 100 ? 'warning' : 'ready'
+                );
+            }, function (error) {
+                if (requestVersion !== locationRequestVersion) {
+                    return;
+                }
+                gpsButton.disabled = false;
+                var message = error && error.code === 1
+                    ? 'Permissão de localização negada. Autorize o acesso ou marque o ponto no mapa.'
+                    : error && error.code === 2
+                        ? 'GPS indisponível. Tente novamente ou marque o ponto no mapa.'
+                        : error && error.code === 3
+                            ? 'Tempo excedido ao obter a localização. Tente novamente.'
+                            : 'Não foi possível obter a localização. Tente novamente ou marque o ponto no mapa.';
+                setStatus(locationStatus, message, 'error');
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 15000
+            });
         }
 
         function localToday() {
@@ -808,6 +1031,7 @@
         }
 
         function resetRegistration() {
+            locationRequestVersion += 1;
             registrationForm.reset();
             clearSelectedPhotos();
             registrationDate.value = localToday();
@@ -815,7 +1039,9 @@
             registrationTrail.value = '';
             registrationCategory.value = '';
             selectedCoordinates = null;
+            removeCandidateMarker();
             removeLocationMarker();
+            gpsButton.disabled = false;
             setLocationPicking(false);
             setStatus(locationStatus, 'Nenhuma localização selecionada.', '');
             setStatus(formStatus, '', '');
@@ -917,6 +1143,7 @@
             submitButton.disabled = true;
             cancelFormButton.disabled = true;
             locationButton.disabled = true;
+            gpsButton.disabled = true;
             photoCameraButton.disabled = true;
             photoGalleryButton.disabled = true;
             setStatus(formStatus, 'Enviando cadastro…', 'loading');
@@ -937,6 +1164,7 @@
                 submitButton.disabled = false;
                 cancelFormButton.disabled = false;
                 locationButton.disabled = false;
+                gpsButton.disabled = false;
                 photoCameraButton.disabled = false;
                 photoGalleryButton.disabled = false;
             });
@@ -961,16 +1189,12 @@
         });
         locationButton.addEventListener('click', function () {
             if (locationPicking) {
-                setLocationPicking(false);
-                setStatus(
-                    locationStatus,
-                    selectedCoordinates
-                        ? 'Marcação cancelada; a localização selecionada foi mantida.'
-                        : 'Marcação cancelada. Nenhuma localização selecionada.',
-                    ''
-                );
+                finishLocationSelection(false);
                 return;
             }
+            locationRequestVersion += 1;
+            gpsButton.disabled = false;
+            removeCandidateMarker();
             setLocationPicking(true);
             setStatus(
                 locationStatus,
@@ -979,7 +1203,9 @@
                     : 'Aguardando clique no mapa para definir a localização.',
                 'loading'
             );
+            setRegistrationSidebar(false);
         });
+        gpsButton.addEventListener('click', collectCurrentLocation);
         registrationForm.addEventListener('submit', handleSubmit);
         map.on('click', handleMapClick);
         setLocationPicking(false);
@@ -995,12 +1221,7 @@
                 populateTrailFilter();
                 populateRegistrationTrails();
                 records.forEach(function (record) {
-                    var visuals = getMarkerVisuals(
-                        catalog,
-                        record.properties.categoria,
-                        record.properties.situacao
-                    );
-                    record.marker.setPopupContent(popupContent(record, trailCollection, visuals));
+                    record.refreshPopup();
                 });
             }).catch(function () {
                 registrationTrail.disabled = true;

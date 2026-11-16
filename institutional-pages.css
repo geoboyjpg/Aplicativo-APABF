@@ -171,21 +171,82 @@
 }
 
 .institutional-page .trails-cta-wrap {
+    display: flex;
+    justify-content: center;
     margin-top: 24px;
 }
 
 .institutional-page .trails-cta {
+    box-sizing: border-box;
+    display: inline-flex;
+    width: fit-content;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto;
+    padding: 12px 22px;
     color: #ffffff;
     background: linear-gradient(135deg, #125f5f, #0d4f55);
-    border: 0;
+    border: 1px solid rgba(9, 47, 59, 0.18);
+    border-radius: 999px;
+    box-shadow: 0 5px 14px rgba(9, 47, 59, 0.16);
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.institutional-page .trails-cta:focus-visible {
+    outline: 3px solid rgba(8, 118, 165, 0.42);
+    outline-offset: 3px;
 }
 
 .institutional-page .trails-cta:hover {
     color: #ffffff;
     background: #092f3b;
+    box-shadow: 0 7px 18px rgba(9, 47, 59, 0.22);
+    transform: translateY(-1px);
+}
+
+.institutional-page .trails-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 36px);
+}
+
+.institutional-page .trails-overview-item {
+    min-width: 0;
+}
+
+.institutional-page .trails-overview-item + .trails-overview-item {
+    padding-left: clamp(16px, 2.5vw, 30px);
+    border-left: 1px solid #dce9e6;
+}
+
+.institutional-page .trails-overview-item h2 {
+    margin-top: 0;
 }
 
 @media (max-width: 600px) {
+    .institutional-page .trails-overview-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .institutional-page .trails-overview-item + .trails-overview-item {
+        padding: 20px 0 0;
+        border-top: 1px solid #dce9e6;
+        border-left: 0;
+    }
+
+    .institutional-page .trails-cta {
+        width: min(100%, 360px);
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
     .institutional-page .page-container {
         width: auto;
         max-width: 100%;
