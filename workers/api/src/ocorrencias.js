@@ -7,6 +7,7 @@ const CATEGORY_KEYS = new Set(
     .filter((category) => category.ativo)
     .map((category) => category.chave)
 );
+const SITUATION_KEYS = new Set(catalog.situacoes.map((situation) => situation.chave));
 
 export class OccurrenceInputError extends Error {
   constructor(message) {
@@ -80,6 +81,14 @@ export function validateOccurrenceInput(body) {
   };
 }
 
+export function validateOccurrenceUpdateInput(body) {
+  const input = validateOccurrenceInput(body);
+  if (typeof body.situacao !== 'string' || !SITUATION_KEYS.has(body.situacao)) {
+    throw new OccurrenceInputError('Selecione uma situação válida.');
+  }
+  return { ...input, situation: body.situacao };
+}
+
 function parseGeometry(value) {
   let geometry = value;
   if (typeof geometry === 'string') {
@@ -135,7 +144,7 @@ function toFeature(row) {
   };
 }
 
-export async function getOccurrences(sql) {
+export async function getOccurrences(sql, occurrenceId = null) {
   const rows = await sql`
     SELECT
       o.ocorrencia_id::text AS ocorrencia_id,
@@ -148,6 +157,7 @@ export async function getOccurrences(sql) {
         SELECT jsonb_agg(
           jsonb_build_object(
             'foto_id', f.foto_id::text,
+            'gerenciada', true,
             'url', '/api/ocorrencias/' || o.ocorrencia_id::text || '/fotografias/' || f.foto_id::text,
             'miniatura_url', CASE
               WHEN f.miniatura IS NULL THEN NULL
@@ -164,6 +174,7 @@ export async function getOccurrences(sql) {
     JOIN public.trilhas_apabf AS t
       ON t.ogc_fid = o.trilha_ogc_fid
     WHERE o.geom IS NOT NULL
+      AND (${occurrenceId}::text IS NULL OR o.ocorrencia_id::text = ${occurrenceId})
     ORDER BY o.criado_em DESC, o.ocorrencia_id DESC
   `;
 
@@ -172,6 +183,43 @@ export async function getOccurrences(sql) {
     name: 'ocorrencias_trilhas',
     features: rows.map(toFeature)
   };
+}
+
+export async function getOccurrencePhotoRecords(sql, occurrenceId) {
+  return sql`
+    SELECT
+      foto_id::text AS foto_id,
+      arquivo,
+      miniatura,
+      nome_original,
+      tipo_mime,
+      miniatura_tipo_mime,
+      tamanho_bytes
+    FROM public.ocorrencias_trilhas_fotografias
+    WHERE ocorrencia_id::text = ${occurrenceId}
+    ORDER BY data_upload, foto_id
+  `;
+}
+
+export async function getTrailName(sql, trailId) {
+  const rows = await sql`
+    SELECT nome
+    FROM public.trilhas_apabf
+    WHERE fid::text = ${trailId}
+    LIMIT 2
+  `;
+  return rows.length === 1 ? rows[0].nome : null;
+}
+
+export async function occurrenceExists(sql, occurrenceId) {
+  const rows = await sql`
+    SELECT EXISTS (
+      SELECT 1
+      FROM public.ocorrencias_trilhas
+      WHERE ocorrencia_id::text = ${occurrenceId}
+    ) AS exists
+  `;
+  return Boolean(rows[0]?.exists);
 }
 
 export async function createOccurrence(sql, input) {
@@ -228,4 +276,184 @@ export async function createOccurrence(sql, input) {
   return rows.length === 1
     ? { feature: toFeature(rows[0]), trailName: rows[0].trilha_nome }
     : null;
+}
+
+export async function updateOccurrence(
+  sql,
+  occurrenceId,
+  input,
+  keepPhotoIds,
+  keepLegacyPhotoIndexes,
+  newPhotos
+) {
+  const keepIds = JSON.stringify(keepPhotoIds);
+  const keepLegacyIndexes = keepLegacyPhotoIndexes === null
+    ? null
+    : JSON.stringify(keepLegacyPhotoIndexes);
+  const newPhotoRecords = JSON.stringify(newPhotos);
+  const rows = await sql`
+    WITH selected_trail AS (
+      SELECT ogc_fid
+      FROM public.trilhas_apabf
+      WHERE fid::text = ${input.trailId}
+      LIMIT 2
+    ),
+    updated AS (
+      UPDATE public.ocorrencias_trilhas AS occurrence
+      SET trilha_ogc_fid = selected_trail.ogc_fid,
+          geom = ST_SetSRID(ST_MakePoint(${input.longitude}, ${input.latitude}), 4326),
+          categoria = ${input.category},
+          descricao = ${input.description},
+          data_identificacao = ${input.date}::date,
+          situacao = ${input.situation},
+          fotos = CASE
+            WHEN ${keepLegacyIndexes}::jsonb IS NULL THEN occurrence.fotos
+            ELSE COALESCE((
+              SELECT jsonb_agg(legacy_photo.value ORDER BY legacy_photo.ordinality)
+              FROM jsonb_array_elements(COALESCE(occurrence.fotos, '[]'::jsonb))
+                WITH ORDINALITY AS legacy_photo(value, ordinality)
+              WHERE EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements_text(${keepLegacyIndexes}::jsonb) AS keep(photo_index)
+                WHERE keep.photo_index::integer = legacy_photo.ordinality - 1
+              )
+            ), '[]'::jsonb)
+          END
+      FROM selected_trail
+      WHERE occurrence.ocorrencia_id::text = ${occurrenceId}
+        AND (SELECT count(*) FROM selected_trail) = 1
+      RETURNING
+        occurrence.ocorrencia_id,
+        occurrence.trilha_ogc_fid,
+        occurrence.categoria,
+        occurrence.descricao,
+        to_char(occurrence.data_identificacao, 'YYYY-MM-DD') AS data_identificacao,
+        occurrence.situacao,
+        COALESCE(occurrence.fotos, '[]'::jsonb) AS fotografias,
+        ST_AsGeoJSON(occurrence.geom, 15, 0) AS geometry
+    ),
+    removed_photos AS (
+      DELETE FROM public.ocorrencias_trilhas_fotografias AS photo
+      USING updated
+      WHERE photo.ocorrencia_id = updated.ocorrencia_id
+        AND NOT EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements_text(${keepIds}::jsonb) AS keep(foto_id)
+          WHERE keep.foto_id = photo.foto_id::text
+        )
+      RETURNING photo.ocorrencia_id::text AS ocorrencia_id, photo.arquivo, photo.miniatura
+    ),
+    queued_cleanup AS (
+      INSERT INTO public.ocorrencias_trilhas_fotografias_cleanup (
+        ocorrencia_id,
+        arquivo
+      )
+      SELECT removed_photos.ocorrencia_id, object.arquivo
+      FROM removed_photos
+      CROSS JOIN LATERAL (
+        VALUES (removed_photos.arquivo), (removed_photos.miniatura)
+      ) AS object(arquivo)
+      WHERE object.arquivo IS NOT NULL
+      ON CONFLICT (arquivo) DO NOTHING
+      RETURNING arquivo
+    ),
+    cleanup_barrier AS (
+      SELECT count(*) FROM queued_cleanup
+    ),
+    inserted_photos AS (
+      INSERT INTO public.ocorrencias_trilhas_fotografias (
+        foto_id,
+        ocorrencia_id,
+        arquivo,
+        miniatura,
+        miniatura_tipo_mime,
+        nome_original,
+        tipo_mime,
+        tamanho_bytes
+      )
+      SELECT
+        new_photo.foto_id,
+        updated.ocorrencia_id,
+        new_photo.arquivo,
+        new_photo.miniatura,
+        new_photo.miniatura_tipo_mime,
+        new_photo.nome_original,
+        new_photo.tipo_mime,
+        new_photo.tamanho_bytes
+      FROM updated
+      CROSS JOIN cleanup_barrier
+      CROSS JOIN jsonb_to_recordset(${newPhotoRecords}::jsonb) AS new_photo(
+        foto_id uuid,
+        arquivo text,
+        miniatura text,
+        miniatura_tipo_mime text,
+        nome_original text,
+        tipo_mime text,
+        tamanho_bytes bigint
+      )
+      RETURNING foto_id
+    )
+    SELECT
+      updated.ocorrencia_id::text AS ocorrencia_id,
+      trail.fid AS trilha_fid,
+      trail.nome AS trilha_nome,
+      updated.categoria,
+      updated.descricao,
+      updated.data_identificacao,
+      updated.situacao,
+      updated.fotografias,
+      updated.geometry
+    FROM updated
+    JOIN public.trilhas_apabf AS trail
+      ON trail.ogc_fid = updated.trilha_ogc_fid
+  `;
+  return rows.length === 1 ? rows[0] : null;
+}
+
+export async function deleteOccurrence(sql, occurrenceId) {
+  const rows = await sql`
+    WITH target AS MATERIALIZED (
+      SELECT occurrence.ocorrencia_id
+      FROM public.ocorrencias_trilhas AS occurrence
+      WHERE occurrence.ocorrencia_id::text = ${occurrenceId}
+      FOR UPDATE
+    ),
+    photo_objects AS MATERIALIZED (
+      SELECT
+        target.ocorrencia_id::text AS ocorrencia_id,
+        photo.arquivo
+      FROM target
+      JOIN public.ocorrencias_trilhas_fotografias AS photo
+        ON photo.ocorrencia_id = target.ocorrencia_id
+      UNION
+      SELECT
+        target.ocorrencia_id::text AS ocorrencia_id,
+        photo.miniatura AS arquivo
+      FROM target
+      JOIN public.ocorrencias_trilhas_fotografias AS photo
+        ON photo.ocorrencia_id = target.ocorrencia_id
+      WHERE photo.miniatura IS NOT NULL
+    ),
+    queued_cleanup AS (
+      INSERT INTO public.ocorrencias_trilhas_fotografias_cleanup (
+        ocorrencia_id,
+        arquivo
+      )
+      SELECT ocorrencia_id, arquivo
+      FROM photo_objects
+      ON CONFLICT (arquivo) DO NOTHING
+      RETURNING arquivo
+    ),
+    cleanup_barrier AS (
+      SELECT count(*) FROM queued_cleanup
+    ),
+    deleted AS (
+      DELETE FROM public.ocorrencias_trilhas AS occurrence
+      USING target, cleanup_barrier
+      WHERE occurrence.ocorrencia_id = target.ocorrencia_id
+      RETURNING occurrence.ocorrencia_id::text AS ocorrencia_id
+    )
+    SELECT ocorrencia_id FROM deleted
+  `;
+  return rows.length === 1;
 }

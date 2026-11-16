@@ -226,6 +226,7 @@ function createInterfaceHarness(settings) {
     const ids = [
         ['occurrence-status', 'p'],
         ['occurrence-action-status', 'p'],
+        ['occurrence-cleanup-retry', 'button'],
         ['occurrence-form-status', 'p'],
         ['occurrence-location-status', 'p'],
         ['occurrence-filters', 'form'],
@@ -242,8 +243,14 @@ function createInterfaceHarness(settings) {
         ['occurrence-open-form', 'button'],
         ['occurrence-registration-trail', 'select'],
         ['occurrence-registration-category', 'select'],
+        ['occurrence-registration-situation', 'select'],
+        ['occurrence-situation-field', 'div'],
+        ['occurrence-form-title', 'h5'],
         ['occurrence-registration-description', 'textarea'],
         ['occurrence-registration-date', 'input'],
+        ['occurrence-existing-photos', 'div'],
+        ['occurrence-existing-photo-list', 'ul'],
+        ['occurrence-existing-photo-status', 'p'],
         ['occurrence-photo-camera', 'button'],
         ['occurrence-photo-gallery', 'button'],
         ['occurrence-photo-camera-input', 'input'],
@@ -415,8 +422,24 @@ function createInterfaceHarness(settings) {
                     options.getStatus || 200
                 ));
             }
+            if (url.startsWith(apiUrl + '/')) {
+                const result = typeof options.adminResponse === 'function'
+                    ? options.adminResponse(url, requestOptions || {})
+                    : options.adminResponse || {};
+                const status = typeof options.adminStatus === 'function'
+                    ? options.adminStatus(url, requestOptions || {})
+                    : options.adminStatus || 200;
+                return Promise.resolve(createResponse(result, status));
+            }
             return Promise.resolve(createResponse({ error: 'Not found' }, 404));
         },
+        prompt: function () {
+            return options.adminToken === null ? null : options.adminToken || 'test-admin-token-for-ui-tests';
+        },
+        confirm: function () {
+            return options.confirmDelete !== false;
+        },
+        FormData: global.FormData,
         trailDataReady: Promise.resolve(trails),
         json_TrilhaCaminhosdaBaleiaFranca_2: trails,
         TrilhasInterface: {
@@ -753,6 +776,124 @@ test('occurrence marker opens its popup and lazily activates private photo thumb
     }
 });
 
+test('edits an occurrence with authorization, removes photos individually and preserves map-selected coordinates', async function () {
+    const firstPhotoId = '12345678-1234-4234-8234-123456789abc';
+    const secondPhotoId = '22345678-1234-4234-8234-123456789abc';
+    const existing = makeOccurrenceFeature('42', 1, [-49.2, -28.8], {
+        description: 'Descrição original.',
+        category: 'erosao_solo'
+    });
+    existing.properties.situacao = 'pendente_avaliacao';
+    existing.properties.fotografias = [
+        {
+            foto_id: firstPhotoId,
+            gerenciada: true,
+            url: '/api/ocorrencias/42/fotografias/' + firstPhotoId,
+            miniatura_url: '/api/ocorrencias/42/fotografias/' + firstPhotoId + '/miniatura'
+        },
+        {
+            foto_id: secondPhotoId,
+            gerenciada: true,
+            url: '/api/ocorrencias/42/fotografias/' + secondPhotoId,
+            miniatura_url: '/api/ocorrencias/42/fotografias/' + secondPhotoId + '/miniatura'
+        }
+    ];
+    const updated = makeOccurrenceFeature('42', 1, [-49.1, -28.7], {
+        description: 'Descrição editada.',
+        category: 'problemas_acesso',
+        situation: 'em_atendimento'
+    });
+    updated.properties.fotografias = [existing.properties.fotografias[1]];
+    const harness = createInterfaceHarness({
+        occurrences: { type: 'FeatureCollection', features: [existing] },
+        adminResponse: function () {
+            return updated;
+        }
+    });
+    try {
+        const source = fs.readFileSync(path.join(MAP_ROOT, 'js', 'trilha-ocorrencias.js'), 'utf8');
+        assert.match(source, /global\.prompt\(/);
+        assert.doesNotMatch(source, /localStorage/);
+        await harness.flush();
+        const marker = getOccurrenceLayer(harness).layers[0];
+        marker.click();
+        const actions = marker.popupContent.children[marker.popupContent.children.length - 1];
+        actions.children[0].dispatch('click');
+
+        assert.equal(harness.elements.get('occurrence-registration-view').hidden, false);
+        assert.equal(harness.elements.get('occurrence-form-title').textContent, 'Editar ocorrência');
+        assert.equal(harness.elements.get('occurrence-registration-description').value, 'Descrição original.');
+        assert.equal(harness.elements.get('occurrence-registration-situation').value, 'pendente_avaliacao');
+        assert.equal(harness.elements.get('occurrence-existing-photo-list').children.length, 2);
+
+        harness.elements.get('occurrence-existing-photo-list').children[0].children[2].dispatch('click');
+        harness.elements.get('occurrence-pick-location').dispatch('click');
+        harness.map.fire('click', { latlng: { lat: -28.7, lng: -49.1 } });
+        confirmLatestLocation(harness);
+        assert.equal(harness.elements.get('occurrence-registration-description').value, 'Descrição original.');
+
+        harness.elements.get('occurrence-registration-form').dispatch('submit');
+        await harness.flush();
+        const patch = harness.requests.find(function (request) {
+            return request.options.method === 'PATCH';
+        });
+        const payload = JSON.parse(patch.options.body.get('occurrence'));
+        assert.equal(patch.url, harness.apiUrl + '/42');
+        assert.equal(patch.options.headers.Authorization, 'Bearer test-admin-token-for-ui-tests');
+        assert.deepEqual(payload.coordinates, [-49.1, -28.7]);
+        assert.deepEqual(payload.keep_photo_ids, [secondPhotoId]);
+        assert.deepEqual(payload.keep_legacy_photo_indexes, []);
+        assert.match(harness.elements.get('occurrence-action-status').textContent, /atualizada com sucesso/i);
+        assert.equal(harness.elements.get('occurrence-registration-view').hidden, true);
+    } finally {
+        harness.restoreDocument();
+    }
+});
+
+test('deletes through the protected API and offers a retry when R2 cleanup is pending', async function () {
+    const existing = makeOccurrenceFeature('42', 1, [-49.2, -28.8]);
+    const harness = createInterfaceHarness({
+        occurrences: { type: 'FeatureCollection', features: [existing] },
+        adminResponse: function (url, requestOptions) {
+            return requestOptions.method === 'DELETE'
+                ? { deleted: true, arquivos_pendentes: 1 }
+                : { limpeza: 'concluida', arquivos_pendentes: 0 };
+        },
+        adminStatus: function (url, requestOptions) {
+            return requestOptions.method === 'DELETE' ? 202 : 200;
+        }
+    });
+    try {
+        await harness.flush();
+        const marker = getOccurrenceLayer(harness).layers[0];
+        marker.click();
+        const actions = marker.popupContent.children[marker.popupContent.children.length - 1];
+        actions.children[1].dispatch('click');
+        await harness.flush();
+
+        const deletion = harness.requests.find(function (request) {
+            return request.options.method === 'DELETE';
+        });
+        assert.equal(deletion.url, harness.apiUrl + '/42');
+        assert.equal(deletion.options.headers.Authorization, 'Bearer test-admin-token-for-ui-tests');
+        assert.match(harness.elements.get('occurrence-action-status').textContent, /aguardam limpeza no R2/i);
+        assert.equal(harness.elements.get('occurrence-cleanup-retry').hidden, false);
+        assert.equal(getOccurrenceLayer(harness).layers.length, 0);
+
+        harness.elements.get('occurrence-cleanup-retry').dispatch('click');
+        await harness.flush();
+        const retry = harness.requests.find(function (request) {
+            return request.options.method === 'POST';
+        });
+        assert.equal(retry.url, harness.apiUrl + '/42/limpeza');
+        assert.equal(retry.options.headers.Authorization, 'Bearer test-admin-token-for-ui-tests');
+        assert.match(harness.elements.get('occurrence-action-status').textContent, /limpeza .*concluída/i);
+        assert.equal(harness.elements.get('occurrence-cleanup-retry').hidden, true);
+    } finally {
+        harness.restoreDocument();
+    }
+});
+
 test('sends the API payload in longitude-latitude order and adds the confirmed marker', async function () {
     const harness = createInterfaceHarness();
     try {
@@ -926,7 +1067,7 @@ test('occurrences load from the API without local-data fallback and preserve tra
     assert.match(moduleSource, /API_BASE_URL \+ '\/api\/ocorrencias'/);
     assert.match(moduleSource, /new global\.FormData\(\)/);
     const multipartSubmission = moduleSource.match(
-        /if \(selectedPhotos\.length\) \{([\s\S]*?)\} else \{/
+        /if \(selectedPhotos\.length \|\| isEditing\) \{([\s\S]*?)\} else \{/
     )[1];
     assert.match(multipartSubmission, /requestOptions\.body = formData/);
     assert.doesNotMatch(multipartSubmission, /Content-Type/);

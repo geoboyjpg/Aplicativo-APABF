@@ -12,6 +12,11 @@ name = "OCCURRENCE_POST_LIMITER"
 namespace_id = "1002"
 simple = { limit = 10, period = 60 }
 
+[[ratelimits]]
+name = "OCCURRENCE_ADMIN_LIMITER"
+namespace_id = "1003"
+simple = { limit = 10, period = 60 }
+
 [[r2_buckets]]
 binding = "OCCURRENCE_PHOTOS"
 bucket_name = "apabf-ocorrencias"

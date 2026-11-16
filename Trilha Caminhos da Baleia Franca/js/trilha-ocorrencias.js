@@ -248,7 +248,7 @@
         }
     }
 
-    function popupContent(record, trailCollection, visuals) {
+    function popupContent(record, trailCollection, visuals, handlers) {
         var properties = record.properties;
         var content = document.createElement('div');
         content.className = 'occurrence-popup';
@@ -324,6 +324,26 @@
             gallery.append(title, thumbnails);
             content.appendChild(gallery);
         }
+        var actions = document.createElement('div');
+        actions.className = 'occurrence-popup__actions';
+        var editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'occurrence-action-button';
+        editButton.textContent = 'Editar ocorrência';
+        editButton.addEventListener('click', function (event) {
+            event.stopPropagation();
+            handlers.edit(record);
+        });
+        var deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'occurrence-delete-button';
+        deleteButton.textContent = 'Excluir ocorrência';
+        deleteButton.addEventListener('click', function (event) {
+            event.stopPropagation();
+            handlers.remove(record);
+        });
+        actions.append(editButton, deleteButton);
+        content.appendChild(actions);
         return {
             content: content,
             activatePhotos: function () {
@@ -374,6 +394,7 @@
         var leaflet = global.L;
         var status = document.getElementById('occurrence-status');
         var actionStatus = document.getElementById('occurrence-action-status');
+        var cleanupRetryButton = document.getElementById('occurrence-cleanup-retry');
         var formStatus = document.getElementById('occurrence-form-status');
         var locationStatus = document.getElementById('occurrence-location-status');
         var filtersForm = document.getElementById('occurrence-filters');
@@ -387,6 +408,9 @@
         var registrationView = document.getElementById('occurrence-registration-view');
         var registrationTrail = document.getElementById('occurrence-registration-trail');
         var registrationCategory = document.getElementById('occurrence-registration-category');
+        var registrationSituation = document.getElementById('occurrence-registration-situation');
+        var situationField = document.getElementById('occurrence-situation-field');
+        var registrationTitle = document.getElementById('occurrence-form-title');
         var registrationDescription = document.getElementById('occurrence-registration-description');
         var registrationDate = document.getElementById('occurrence-registration-date');
         var locationButton = document.getElementById('occurrence-pick-location');
@@ -399,6 +423,9 @@
         var photoGalleryInput = document.getElementById('occurrence-photo-gallery-input');
         var photoPreviews = document.getElementById('occurrence-photo-previews');
         var photoStatus = document.getElementById('occurrence-photo-status');
+        var existingPhotosContainer = document.getElementById('occurrence-existing-photos');
+        var existingPhotoList = document.getElementById('occurrence-existing-photo-list');
+        var existingPhotoStatus = document.getElementById('occurrence-existing-photo-status');
         var occurrenceLayer = null;
         var locationMarker = null;
         var candidateMarker = null;
@@ -412,6 +439,9 @@
         var mutationVersion = 0;
         var submitting = false;
         var selectedPhotos = [];
+        var editingRecord = null;
+        var existingPhotoEntries = [];
+        var cleanupOccurrenceIds = [];
         var selectingPhotos = false;
         var locationRequestVersion = 0;
 
@@ -455,10 +485,14 @@
             if (error && error.status === 404) {
                 return action === 'load'
                     ? 'A consulta de ocorrências ainda não está disponível na API.'
+                    : action === 'edit' || action === 'admin'
+                        ? (error.message || 'A ocorrência não foi encontrada.')
                     : 'O cadastro ainda não está disponível na API. Tente novamente mais tarde.';
             }
             if (error && error.status === 429) {
-                return 'Muitos envios em pouco tempo. Aguarde um minuto e tente novamente.';
+                return action === 'admin'
+                    ? 'Muitas tentativas administrativas. Aguarde um minuto e tente novamente.'
+                    : 'Muitos envios em pouco tempo. Aguarde um minuto e tente novamente.';
             }
             if (error && error.status === 422) {
                 return error.message || 'A trilha selecionada não foi reconhecida pela API.';
@@ -471,7 +505,103 @@
             }
             return action === 'load'
                 ? 'Não foi possível carregar as ocorrências da API. Os filtros continuam disponíveis.'
+                : action === 'edit'
+                    ? 'Não foi possível atualizar a ocorrência. Verifique a conexão e tente novamente.'
                 : 'Não foi possível enviar o cadastro. Verifique sua conexão e tente novamente.';
+        }
+
+        function requestAdminToken() {
+            if (typeof global.prompt !== 'function') {
+                setStatus(actionStatus, 'A autorização administrativa não está disponível neste navegador.', 'error');
+                return null;
+            }
+            var token = global.prompt('Informe o token administrativo configurado no Worker:');
+            return typeof token === 'string' && token ? token : null;
+        }
+
+        function setCleanupRetry(occurrenceId, pendingCount) {
+            var existingIndex = cleanupOccurrenceIds.indexOf(occurrenceId);
+            if (pendingCount > 0) {
+                if (existingIndex !== -1) {
+                    cleanupOccurrenceIds.splice(existingIndex, 1);
+                }
+                cleanupOccurrenceIds.push(occurrenceId);
+            } else if (!pendingCount && existingIndex !== -1) {
+                cleanupOccurrenceIds.splice(existingIndex, 1);
+            }
+            if (cleanupRetryButton) {
+                cleanupRetryButton.hidden = !cleanupOccurrenceIds.length;
+                cleanupRetryButton.disabled = false;
+                cleanupRetryButton.textContent = cleanupOccurrenceIds.length > 1
+                    ? 'Tentar novamente a limpeza de fotografias pendentes (' + cleanupOccurrenceIds.length + ')'
+                    : 'Tentar novamente a limpeza das fotografias';
+            }
+        }
+
+        function retryPhotoCleanup() {
+            if (!cleanupOccurrenceIds.length) {
+                return;
+            }
+            var token = requestAdminToken();
+            if (!token) {
+                return;
+            }
+            var occurrenceId = cleanupOccurrenceIds[0];
+            cleanupRetryButton.disabled = true;
+            fetchJson(API_BASE_URL + '/api/ocorrencias/' + encodeURIComponent(occurrenceId) + '/limpeza', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token }
+            }).then(function (result) {
+                setCleanupRetry(occurrenceId, result.arquivos_pendentes || 0);
+                setStatus(
+                    actionStatus,
+                    result.arquivos_pendentes
+                        ? result.arquivos_pendentes + ' fotografia(s) ainda aguardam limpeza no R2.'
+                        : 'A limpeza das fotografias foi concluída.',
+                    result.arquivos_pendentes ? 'warning' : 'success'
+                );
+            }).catch(function (error) {
+                cleanupRetryButton.disabled = false;
+                setStatus(actionStatus, requestErrorMessage(error, 'admin'), 'error');
+            });
+        }
+
+        function deleteExistingOccurrence(record) {
+            if (typeof global.confirm !== 'function'
+                || !global.confirm('Excluir esta ocorrência e todas as fotografias associadas? A operação não pode ser desfeita.')) {
+                return;
+            }
+            var token = requestAdminToken();
+            if (!token) {
+                return;
+            }
+            var occurrenceId = record.properties.ocorrencia_id;
+            setStatus(actionStatus, 'Excluindo ocorrência e limpando fotografias…', 'loading');
+            fetchJson(API_BASE_URL + '/api/ocorrencias/' + encodeURIComponent(occurrenceId), {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + token }
+            }).then(function (result) {
+                records = records.filter(function (existing) {
+                    return existing.properties.ocorrencia_id !== occurrenceId;
+                });
+                mutationVersion += 1;
+                if (loadState === 'loading') {
+                    loadState = 'partial';
+                }
+                populateTrailFilter();
+                applyFilters();
+                setCleanupRetry(occurrenceId, result.arquivos_pendentes || 0);
+                setStatus(
+                    actionStatus,
+                    result.arquivos_pendentes
+                        ? 'Ocorrência excluída; ' + result.arquivos_pendentes
+                            + ' fotografia(s) aguardam limpeza no R2.'
+                        : 'Ocorrência e fotografias excluídas com sucesso.',
+                    result.arquivos_pendentes ? 'warning' : 'success'
+                );
+            }).catch(function (error) {
+                setStatus(actionStatus, requestErrorMessage(error, 'admin'), 'error');
+            });
         }
 
         function appendOptions(select, entries, keyField, labelField, placeholder) {
@@ -613,10 +743,17 @@
                 'nome',
                 'Selecione uma categoria'
             );
+            appendOptions(
+                registrationSituation,
+                catalog.situacoes,
+                'chave',
+                'rotulo',
+                'Selecione uma situação'
+            );
             populateLegend();
         }
 
-        function createRecord(feature) {
+        function createRecord(feature, actions) {
             var properties = feature.properties;
             var visuals = getMarkerVisuals(catalog, properties.categoria, properties.situacao);
             var accessibleLabel = visuals.categoryName + ' — ' + visuals.situationLabel;
@@ -636,14 +773,14 @@
                 }
             });
             record.refreshPopup = function () {
-                var popup = popupContent(record, trailCollection, visuals);
+                var popup = popupContent(record, trailCollection, visuals, actions);
                 record.popup = popup;
                 marker.setPopupContent(popup.content);
                 if (marker.isPopupOpen && marker.isPopupOpen()) {
                     popup.activatePhotos();
                 }
             };
-            record.popup = popupContent(record, trailCollection, visuals);
+            record.popup = popupContent(record, trailCollection, visuals, actions);
             marker.bindPopup(record.popup.content, { maxWidth: 360 });
             marker.on('popupopen', function () {
                 if (record.popup) {
@@ -655,7 +792,12 @@
 
         function replaceRecords(collection) {
             validateOccurrenceCollection(collection, catalog);
-            records = collection.features.map(createRecord);
+            records = collection.features.map(function (feature) {
+                return createRecord(feature, {
+                    edit: startEditing,
+                    remove: deleteExistingOccurrence
+                });
+            });
             populateTrailFilter();
             applyFilters();
         }
@@ -665,7 +807,10 @@
                 type: 'FeatureCollection',
                 features: [feature]
             }, catalog);
-            var record = createRecord(feature);
+            var record = createRecord(feature, {
+                edit: startEditing,
+                remove: deleteExistingOccurrence
+            });
             var index = records.findIndex(function (existing) {
                 return existing.properties.ocorrencia_id === feature.properties.ocorrencia_id;
             });
@@ -676,6 +821,123 @@
             }
             populateTrailFilter();
             applyFilters();
+        }
+
+        function renderExistingPhotos() {
+            existingPhotoList.replaceChildren();
+            existingPhotoEntries.forEach(function (entry, index) {
+                var item = document.createElement('li');
+                item.className = 'occurrence-existing-photo';
+                var image = document.createElement('img');
+                image.alt = 'Fotografia cadastrada ' + (index + 1);
+                image.loading = 'lazy';
+                var source = entry.photo.miniatura_url || entry.photo.url;
+                var sourceUrl = photoApiUrl(source);
+                var unavailable = document.createElement('span');
+                unavailable.className = 'occurrence-existing-photo__unavailable';
+                unavailable.textContent = 'Prévia indisponível';
+                unavailable.hidden = Boolean(sourceUrl);
+                if (sourceUrl) {
+                    image.src = sourceUrl;
+                    image.onerror = function () {
+                        var originalUrl = photoApiUrl(entry.photo.url);
+                        if (originalUrl && image.src !== originalUrl) {
+                            image.src = originalUrl;
+                        } else {
+                            image.removeAttribute('src');
+                            unavailable.hidden = false;
+                        }
+                    };
+                }
+                var toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.textContent = entry.kept ? 'Remover' : 'Manter';
+                toggle.setAttribute(
+                    'aria-label',
+                    (entry.kept ? 'Remover' : 'Manter') + ' fotografia cadastrada ' + (index + 1)
+                );
+                toggle.addEventListener('click', function () {
+                    entry.kept = !entry.kept;
+                    renderExistingPhotos();
+                    var keptCount = existingPhotoEntries.filter(function (photoEntry) {
+                        return photoEntry.kept;
+                    }).length;
+                    setStatus(existingPhotoStatus, keptCount + ' fotografia(s) existente(s) serão mantidas.', '');
+                });
+                if (!entry.kept) {
+                    item.dataset.removed = 'true';
+                }
+                item.append(image, unavailable, toggle);
+                existingPhotoList.appendChild(item);
+            });
+            existingPhotosContainer.hidden = existingPhotoEntries.length === 0;
+            var retained = existingPhotoEntries.filter(function (entry) {
+                return entry.kept;
+            }).length;
+            setStatus(
+                existingPhotoStatus,
+                existingPhotoEntries.length
+                    ? retained + ' fotografia(s) existente(s) serão mantidas.'
+                    : '',
+                ''
+            );
+        }
+
+        function startEditing(record) {
+            editingRecord = record;
+            var trailId = String(record.properties.trilha_fid);
+            if (!Array.from(registrationTrail.options).some(function (option) {
+                return option.value === trailId;
+            })) {
+                var trailOption = document.createElement('option');
+                trailOption.value = trailId;
+                trailOption.textContent = resolveTrailName(trailCollection, trailId) || 'Trilha ' + trailId;
+                registrationTrail.appendChild(trailOption);
+                registrationTrail.disabled = false;
+            }
+            registrationTrail.value = trailId;
+            var categoryExists = Array.from(registrationCategory.options).some(function (option) {
+                return option.value === record.properties.categoria;
+            });
+            if (!categoryExists) {
+                var category = catalog.categorias.find(function (item) {
+                    return item.chave === record.properties.categoria;
+                });
+                var option = document.createElement('option');
+                option.value = record.properties.categoria;
+                option.textContent = category ? category.nome : record.properties.categoria;
+                registrationCategory.appendChild(option);
+            }
+            registrationCategory.value = record.properties.categoria;
+            registrationSituation.value = record.properties.situacao;
+            registrationDescription.value = record.properties.descricao || '';
+            registrationDate.value = record.properties.data_identificacao;
+            selectedCoordinates = record.feature.geometry.coordinates.slice();
+            situationField.hidden = false;
+            registrationTitle.textContent = 'Editar ocorrência';
+            submitButton.textContent = 'Salvar alterações';
+            existingPhotoEntries = [];
+            var legacyIndex = 0;
+            (Array.isArray(record.properties.fotografias) ? record.properties.fotografias : [])
+                .forEach(function (photo) {
+                    var managed = photo && photo.gerenciada === true
+                        && isNonEmptyString(photo.foto_id);
+                    existingPhotoEntries.push({
+                        photo: photo && typeof photo === 'object' ? photo : { url: '' },
+                        managed: managed,
+                        photoId: managed ? photo.foto_id : null,
+                        legacyIndex: managed ? null : legacyIndex++,
+                        kept: true
+                    });
+                });
+            renderExistingPhotos();
+            queryView.hidden = true;
+            registrationView.hidden = false;
+            setStatus(formStatus, '', '');
+            setStatus(locationStatus, 'Localização atual: (latitude, longitude) '
+                + formatCoordinates(selectedCoordinates) + '.', 'ready');
+            setRegistrationSidebar(true);
+            registrationCategory.focus();
         }
 
         function setLocationPicking(active) {
@@ -983,7 +1245,10 @@
             if (!files.length || selectingPhotos) {
                 return;
             }
-            if (selectedPhotos.length + files.length > 5) {
+            var retainedExisting = existingPhotoEntries.filter(function (entry) {
+                return entry.kept;
+            }).length;
+            if (retainedExisting + selectedPhotos.length + files.length > 5) {
                 setStatus(photoStatus, 'É possível selecionar no máximo 5 fotografias.', 'error');
                 return;
             }
@@ -1034,10 +1299,18 @@
             locationRequestVersion += 1;
             registrationForm.reset();
             clearSelectedPhotos();
+            editingRecord = null;
+            existingPhotoEntries = [];
+            existingPhotoList.replaceChildren();
+            existingPhotosContainer.hidden = true;
+            situationField.hidden = true;
+            registrationTitle.textContent = 'Nova ocorrência';
+            submitButton.textContent = 'Enviar cadastro';
             registrationDate.value = localToday();
             registrationDescription.value = '';
             registrationTrail.value = '';
             registrationCategory.value = '';
+            registrationSituation.value = '';
             selectedCoordinates = null;
             removeCandidateMarker();
             removeLocationMarker();
@@ -1057,6 +1330,8 @@
         function showRegistration() {
             setStatus(actionStatus, '', '');
             setStatus(formStatus, '', '');
+            registrationTitle.textContent = editingRecord ? 'Editar ocorrência' : 'Nova ocorrência';
+            submitButton.textContent = editingRecord ? 'Salvar alterações' : 'Enviar cadastro';
             registrationDate.value = localToday();
             queryView.hidden = true;
             registrationView.hidden = false;
@@ -1109,8 +1384,15 @@
                 return;
             }
             if (!registrationTrail.value || !registrationCategory.value
-                || !isValidDate(registrationDate.value)) {
-                setStatus(formStatus, 'Informe a trilha, a categoria e uma data válida.', 'error');
+                || !isValidDate(registrationDate.value)
+                || (editingRecord && !registrationSituation.value)) {
+                setStatus(
+                    formStatus,
+                    editingRecord
+                        ? 'Informe a trilha, a categoria, a situação e uma data válida.'
+                        : 'Informe a trilha, a categoria e uma data válida.',
+                    'error'
+                );
                 return;
             }
             if (!selectedCoordinates
@@ -1119,6 +1401,11 @@
                 return;
             }
 
+            var isEditing = Boolean(editingRecord);
+            var adminToken = isEditing ? requestAdminToken() : null;
+            if (isEditing && !adminToken) {
+                return;
+            }
             var payload = {
                 trilha_fid: registrationTrail.value,
                 categoria: registrationCategory.value,
@@ -1126,8 +1413,28 @@
                 data_identificacao: registrationDate.value,
                 coordinates: selectedCoordinates.slice()
             };
-            var requestOptions = { method: 'POST' };
-            if (selectedPhotos.length) {
+            if (isEditing) {
+                payload.situacao = registrationSituation.value;
+                payload.keep_photo_ids = existingPhotoEntries
+                    .filter(function (entry) {
+                        return entry.kept && entry.managed;
+                    })
+                    .map(function (entry) {
+                        return entry.photoId;
+                    });
+                payload.keep_legacy_photo_indexes = existingPhotoEntries
+                    .filter(function (entry) {
+                        return entry.kept && !entry.managed;
+                    })
+                    .map(function (entry) {
+                        return entry.legacyIndex;
+                    });
+            }
+            var requestOptions = {
+                method: isEditing ? 'PATCH' : 'POST',
+                headers: isEditing ? { Authorization: 'Bearer ' + adminToken } : {}
+            };
+            if (selectedPhotos.length || isEditing) {
                 var formData = new global.FormData();
                 formData.append('occurrence', JSON.stringify(payload));
                 selectedPhotos.forEach(function (photo) {
@@ -1136,7 +1443,7 @@
                 });
                 requestOptions.body = formData;
             } else {
-                requestOptions.headers = { 'Content-Type': 'application/json' };
+                requestOptions.headers['Content-Type'] = 'application/json';
                 requestOptions.body = JSON.stringify(payload);
             }
             submitting = true;
@@ -1146,19 +1453,36 @@
             gpsButton.disabled = true;
             photoCameraButton.disabled = true;
             photoGalleryButton.disabled = true;
-            setStatus(formStatus, 'Enviando cadastro…', 'loading');
+            setStatus(formStatus, isEditing ? 'Salvando alterações…' : 'Enviando cadastro…', 'loading');
 
-            fetchJson(API_BASE_URL + '/api/ocorrencias', requestOptions).then(function (feature) {
+            var targetUrl = API_BASE_URL + '/api/ocorrencias' + (isEditing
+                ? '/' + encodeURIComponent(editingRecord.properties.ocorrencia_id)
+                : '');
+            fetchJson(targetUrl, requestOptions).then(function (feature) {
                 upsertRecord(feature);
                 mutationVersion += 1;
                 if (loadState === 'loading') {
                     loadState = 'partial';
                 }
-                setStatus(actionStatus, 'Ocorrência cadastrada com sucesso.', 'success');
+                var pendingCleanup = feature.limpeza_pendente || 0;
+                var occurrenceId = feature.properties.ocorrencia_id;
+                setCleanupRetry(occurrenceId, pendingCleanup);
                 showQuery();
+                setStatus(
+                    actionStatus,
+                    isEditing
+                        ? (pendingCleanup
+                            ? 'Ocorrência atualizada; ' + pendingCleanup + ' fotografia(s) aguardam limpeza no R2.'
+                            : 'Ocorrência atualizada com sucesso.')
+                        : 'Ocorrência cadastrada com sucesso.',
+                    pendingCleanup ? 'warning' : 'success'
+                );
             }).catch(function (error) {
-                console.error('Falha ao enviar o cadastro de ocorrência.', error);
-                setStatus(formStatus, requestErrorMessage(error, 'submit'), 'error');
+                console.error(
+                    isEditing ? 'Falha ao atualizar ocorrência.' : 'Falha ao enviar o cadastro de ocorrência.',
+                    error
+                );
+                setStatus(formStatus, requestErrorMessage(error, isEditing ? 'edit' : 'submit'), 'error');
             }).finally(function () {
                 submitting = false;
                 submitButton.disabled = false;
@@ -1183,6 +1507,7 @@
             addSelectedPhotos(event.target.files);
         });
         document.getElementById('occurrence-open-form').addEventListener('click', showRegistration);
+        cleanupRetryButton.addEventListener('click', retryPhotoCleanup);
         cancelFormButton.addEventListener('click', function () {
             showQuery();
             setStatus(actionStatus, '', '');

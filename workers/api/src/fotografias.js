@@ -87,9 +87,19 @@ function safeTrailSlug(name, occurrenceId) {
   return slug || `trilha-${occurrenceId}`;
 }
 
-function uploadTimestamp(date) {
-  const iso = date.toISOString();
-  return `${iso.slice(0, 10)}_${iso.slice(11, 19).replace(/:/g, '')}`;
+export function formatUploadTimestamp(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}_${values.hour}${values.minute}${values.second}`;
 }
 
 function photoUrls(occurrenceId, photoId) {
@@ -97,11 +107,11 @@ function photoUrls(occurrenceId, photoId) {
   return { url: base, miniatura_url: `${base}/miniatura` };
 }
 
-export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, trailName) {
+export async function uploadOccurrencePhotoObjects(bucket, occurrenceId, photos, trailName) {
   const storedKeys = [];
   const records = [];
   const slug = safeTrailSlug(trailName, occurrenceId);
-  const timestamp = uploadTimestamp(new Date());
+  const timestamp = formatUploadTimestamp(new Date());
 
   try {
     for (const photo of photos) {
@@ -109,7 +119,7 @@ export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, tr
       const fileStem = `${slug}_${timestamp}_${photoId}`;
       const originalKey = `ocorrencias/${occurrenceId}/${fileStem}.${photo.image.type.extension}`;
       const thumbnailKey = photo.thumbnail
-        ? `ocorrencias/${occurrenceId}/${fileStem}-miniatura.${photo.thumbnail.type.extension}`
+        ? `ocorrencias/${occurrenceId}/${fileStem}_thumb.${photo.thumbnail.type.extension}`
         : null;
 
       storedKeys.push(originalKey);
@@ -123,45 +133,190 @@ export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, tr
         });
       }
 
-      await sql`
-        INSERT INTO public.ocorrencias_trilhas_fotografias (
-          foto_id,
-          ocorrencia_id,
-          arquivo,
-          miniatura,
-          miniatura_tipo_mime,
-          nome_original,
-          tipo_mime,
-          tamanho_bytes
-        )
-        VALUES (
-          ${photoId},
-          ${occurrenceId},
-          ${originalKey},
-          ${thumbnailKey},
-          ${photo.thumbnail ? photo.thumbnail.type.mime : null},
-          ${String(photo.file.name || 'fotografia').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 255) || 'fotografia'},
-          ${photo.image.type.mime},
-          ${photo.image.bytes.byteLength}
-        )
-      `;
-      records.push({ foto_id: photoId, ...photoUrls(occurrenceId, photoId) });
+      records.push({
+        foto_id: photoId,
+        arquivo: originalKey,
+        miniatura: thumbnailKey,
+        miniatura_tipo_mime: photo.thumbnail ? photo.thumbnail.type.mime : null,
+        nome_original: String(photo.file.name || 'fotografia')
+          .replace(/[\u0000-\u001f\u007f]/g, '')
+          .slice(0, 255) || 'fotografia',
+        tipo_mime: photo.image.type.mime,
+        tamanho_bytes: photo.image.bytes.byteLength
+      });
     }
   } catch (error) {
-    const cleanupResults = await Promise.allSettled([
-      ...storedKeys.map((key) => bucket.delete(key)),
-      sql`DELETE FROM public.ocorrencias_trilhas WHERE ocorrencia_id::text = ${occurrenceId}`
-    ]);
-    if (cleanupResults.some((result) => result.status === 'rejected')) {
-      console.error('Falha ao compensar um envio incompleto de fotografias.', {
-        occurrenceId,
-        failedCleanups: cleanupResults.filter((result) => result.status === 'rejected').length
-      });
+    throw Object.assign(new Error('Não foi possível armazenar as fotografias no R2.'), {
+      cause: error,
+      storedKeys
+    });
+  }
+  return { records, storedKeys };
+}
+
+export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, trailName) {
+  let uploaded = { records: [], storedKeys: [] };
+  try {
+    uploaded = await uploadOccurrencePhotoObjects(bucket, occurrenceId, photos, trailName);
+    const records = JSON.stringify(uploaded.records);
+    await sql`
+      INSERT INTO public.ocorrencias_trilhas_fotografias (
+        foto_id,
+        ocorrencia_id,
+        arquivo,
+        miniatura,
+        miniatura_tipo_mime,
+        nome_original,
+        tipo_mime,
+        tamanho_bytes
+      )
+      SELECT
+        photo.foto_id,
+        ${occurrenceId},
+        photo.arquivo,
+        photo.miniatura,
+        photo.miniatura_tipo_mime,
+        photo.nome_original,
+        photo.tipo_mime,
+        photo.tamanho_bytes
+      FROM jsonb_to_recordset(${records}::jsonb) AS photo(
+        foto_id uuid,
+        arquivo text,
+        miniatura text,
+        miniatura_tipo_mime text,
+        nome_original text,
+        tipo_mime text,
+        tamanho_bytes bigint
+      )
+    `;
+  } catch (error) {
+    const keys = Array.from(new Set(
+      uploaded.storedKeys.length ? uploaded.storedKeys : error.storedKeys || []
+    ));
+    let cleanupQueued = keys.length === 0;
+    if (uploaded.records.length) {
+      try {
+        await enqueuePhotoCleanup(sql, occurrenceId, keys);
+        cleanupQueued = true;
+      } catch {
+        console.error('Não foi possível registrar a compensação das fotografias no Neon.', {
+          occurrenceId,
+          failedCount: keys.length
+        });
+      }
+    } else {
+      const results = await Promise.allSettled(keys.map((key) => bucket.delete(key)));
+      const failedKeys = keys.filter((key, index) => results[index].status === 'rejected');
+      cleanupQueued = failedKeys.length === 0;
+      if (failedKeys.length) {
+        try {
+          await enqueuePhotoCleanup(sql, occurrenceId, failedKeys);
+          cleanupQueued = true;
+        } catch {
+          console.error('Não foi possível registrar a limpeza pendente das fotografias.', {
+            occurrenceId,
+            failedCount: failedKeys.length
+          });
+        }
+      }
+    }
+
+    if (cleanupQueued) {
+      try {
+        await sql`
+          DELETE FROM public.ocorrencias_trilhas
+          WHERE ocorrencia_id::text = ${occurrenceId}
+        `;
+        if (keys.length) {
+          const cleanup = await processPhotoCleanup(sql, bucket, occurrenceId);
+          if (cleanup.pendingCount) {
+            console.error('A limpeza de fotografias permanece pendente após um envio incompleto.', {
+              occurrenceId,
+              pendingCount: cleanup.pendingCount
+            });
+          }
+        }
+      } catch (cleanupError) {
+        console.error('Falha ao compensar um envio incompleto de fotografias.', {
+          occurrenceId,
+          name: cleanupError instanceof Error ? cleanupError.name : 'UnknownError'
+        });
+      }
     }
     throw error;
   }
 
-  return records;
+  return uploaded.records.map((photo) => ({
+    foto_id: photo.foto_id,
+    ...photoUrls(occurrenceId, photo.foto_id)
+  }));
+}
+
+export async function enqueuePhotoCleanup(sql, occurrenceId, keys) {
+  const uniqueKeys = Array.from(new Set(keys.filter((key) => typeof key === 'string' && key)));
+  if (!uniqueKeys.length) {
+    return;
+  }
+  const payload = JSON.stringify(uniqueKeys.map((arquivo) => ({ arquivo })));
+  await sql`
+    INSERT INTO public.ocorrencias_trilhas_fotografias_cleanup (
+      ocorrencia_id,
+      arquivo
+    )
+    SELECT ${occurrenceId}, photo.arquivo
+    FROM jsonb_to_recordset(${payload}::jsonb) AS photo(arquivo text)
+    ON CONFLICT (arquivo) DO NOTHING
+  `;
+}
+
+export async function processPhotoCleanup(sql, bucket, occurrenceId) {
+  const rows = await sql`
+    SELECT cleanup_id::text AS cleanup_id, arquivo
+    FROM public.ocorrencias_trilhas_fotografias_cleanup AS cleanup
+    WHERE cleanup.ocorrencia_id = ${occurrenceId}
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.ocorrencias_trilhas_fotografias AS photo
+        WHERE photo.arquivo = cleanup.arquivo
+          OR photo.miniatura = cleanup.arquivo
+      )
+    ORDER BY cleanup.data_criacao, cleanup.cleanup_id
+    LIMIT 50
+  `;
+
+  for (const row of rows) {
+    try {
+      await bucket.delete(row.arquivo);
+      await sql`
+        DELETE FROM public.ocorrencias_trilhas_fotografias_cleanup
+        WHERE cleanup_id::text = ${row.cleanup_id}
+      `;
+    } catch (error) {
+      try {
+        await sql`
+          UPDATE public.ocorrencias_trilhas_fotografias_cleanup
+          SET tentativas = tentativas + 1,
+              ultimo_erro = ${error instanceof Error ? error.name : 'StorageError'},
+              ultima_tentativa = now()
+          WHERE cleanup_id::text = ${row.cleanup_id}
+        `;
+      } catch {
+        console.error('Falha ao registrar uma tentativa de limpeza pendente.', {
+          occurrenceId,
+          cleanupId: row.cleanup_id
+        });
+      }
+    }
+  }
+
+  const pendingRows = await sql`
+    SELECT count(*)::int AS quantidade
+    FROM public.ocorrencias_trilhas_fotografias_cleanup
+    WHERE ocorrencia_id = ${occurrenceId}
+  `;
+  return {
+    pendingCount: Number(pendingRows[0]?.quantidade || 0)
+  };
 }
 
 export async function getOccurrencePhoto(sql, bucket, occurrenceId, photoId, thumbnail = false) {
