@@ -1,7 +1,7 @@
 (function (root, factory) {
     'use strict';
 
-    var occurrences = factory();
+    var occurrences = factory(root);
     if (typeof module === 'object' && module.exports) {
         module.exports = occurrences;
     } else {
@@ -10,10 +10,14 @@
             occurrences.initialize(root);
         }
     }
-}(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function (global) {
     'use strict';
 
-    var API_BASE_URL = 'https://apabf-trilhas-api.gerhard-henrique23.workers.dev';
+    var isLocalHost = global && global.location
+        && (global.location.hostname === 'localhost' || global.location.hostname === '127.0.0.1');
+    var API_BASE_URL = isLocalHost
+        ? 'http://localhost:8787'
+        : 'https://apabf-trilhas-api.gerhard-henrique23.workers.dev';
     var initializedMaps = new WeakSet();
     var locationPicking = false;
 
@@ -175,6 +179,74 @@
         return options;
     }
 
+    function photoApiUrl(path) {
+        if (typeof path !== 'string'
+            || !/^\/api\/ocorrencias\/[A-Za-z0-9_-]+\/fotografias\/[0-9a-f-]{36}(?:\/miniatura)?$/i.test(path)) {
+            return null;
+        }
+        return API_BASE_URL + path;
+    }
+
+    function openPhotoViewer(photos, initialIndex) {
+        var dialog = document.createElement('dialog');
+        dialog.className = 'occurrence-photo-viewer';
+        dialog.setAttribute('aria-label', 'Galeria de fotografias');
+        var image = document.createElement('img');
+        var status = document.createElement('p');
+        var actions = document.createElement('div');
+        actions.className = 'occurrence-photo-viewer__actions';
+        var previous = document.createElement('button');
+        previous.type = 'button';
+        previous.textContent = 'Anterior';
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.textContent = 'Fechar';
+        var next = document.createElement('button');
+        next.type = 'button';
+        next.textContent = 'Próxima';
+        actions.append(previous, status, next, close);
+        dialog.append(image, actions);
+        var currentIndex = initialIndex;
+
+        function showPhoto(index) {
+            currentIndex = (index + photos.length) % photos.length;
+            image.onerror = function () {
+                image.removeAttribute('src');
+                status.textContent = 'Imagem indisponível.';
+            };
+            var imageUrl = photoApiUrl(photos[currentIndex].url);
+            if (imageUrl) {
+                image.src = imageUrl;
+            } else {
+                image.removeAttribute('src');
+                status.textContent = 'Imagem indisponível.';
+            }
+            image.alt = 'Fotografia ' + (currentIndex + 1) + ' de ' + photos.length;
+            status.textContent = (currentIndex + 1) + ' de ' + photos.length;
+        }
+
+        previous.addEventListener('click', function () {
+            showPhoto(currentIndex - 1);
+        });
+        next.addEventListener('click', function () {
+            showPhoto(currentIndex + 1);
+        });
+        close.addEventListener('click', function () {
+            dialog.close();
+            dialog.remove();
+        });
+        dialog.addEventListener('close', function () {
+            dialog.remove();
+        });
+        document.body.appendChild(dialog);
+        showPhoto(currentIndex);
+        if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+        } else {
+            dialog.setAttribute('open', '');
+        }
+    }
+
     function popupContent(record, trailCollection, visuals) {
         var properties = record.properties;
         var content = document.createElement('div');
@@ -196,7 +268,62 @@
             row.append(label, document.createTextNode(String(item[1])));
             content.appendChild(row);
         });
-        return content;
+        var photos = Array.isArray(properties.fotografias)
+            ? properties.fotografias.filter(function (photo) {
+                return photo && typeof photo === 'object'
+                    && isNonEmptyString(photo.url);
+            })
+            : [];
+        if (photos.length) {
+            var gallery = document.createElement('section');
+            gallery.className = 'occurrence-gallery';
+            var title = document.createElement('strong');
+            title.textContent = 'Fotografias (' + photos.length + ')';
+            var thumbnails = document.createElement('div');
+            thumbnails.className = 'occurrence-gallery__thumbnails';
+            photos.forEach(function (photo, index) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'occurrence-gallery__thumbnail';
+                button.setAttribute('aria-label', 'Abrir fotografia ' + (index + 1));
+                var image = document.createElement('img');
+                image.alt = 'Miniatura da fotografia ' + (index + 1);
+                image.loading = 'lazy';
+                image.dataset.photoUrl = photoApiUrl(photo.miniatura_url || photo.url)
+                    ? photo.miniatura_url || photo.url
+                    : '';
+                image.onerror = function () {
+                    image.removeAttribute('src');
+                    image.alt = 'Imagem indisponível';
+                    button.disabled = true;
+                };
+                button.appendChild(image);
+                button.disabled = !image.dataset.photoUrl || !photoApiUrl(photo.url);
+                button.addEventListener('click', function () {
+                    if (!button.disabled) {
+                        openPhotoViewer(photos, index);
+                    }
+                });
+                thumbnails.appendChild(button);
+            });
+            gallery.append(title, thumbnails);
+            content.appendChild(gallery);
+        }
+        return {
+            content: content,
+            activatePhotos: function () {
+                Array.from(content.querySelectorAll('img[data-photo-url]')).forEach(function (image) {
+                    if (!image.getAttribute('src')) {
+                        var imageUrl = photoApiUrl(image.dataset.photoUrl);
+                        if (imageUrl) {
+                            image.src = imageUrl;
+                        } else {
+                            image.alt = 'Imagem indisponível';
+                        }
+                    }
+                });
+            }
+        };
     }
 
     function createMarkerIcon(leaflet, visuals) {
@@ -250,6 +377,12 @@
         var locationButton = document.getElementById('occurrence-pick-location');
         var submitButton = document.getElementById('occurrence-submit');
         var cancelFormButton = document.getElementById('occurrence-cancel-form');
+        var photoCameraButton = document.getElementById('occurrence-photo-camera');
+        var photoGalleryButton = document.getElementById('occurrence-photo-gallery');
+        var photoCameraInput = document.getElementById('occurrence-photo-camera-input');
+        var photoGalleryInput = document.getElementById('occurrence-photo-gallery-input');
+        var photoPreviews = document.getElementById('occurrence-photo-previews');
+        var photoStatus = document.getElementById('occurrence-photo-status');
         var occurrenceLayer = null;
         var locationMarker = null;
         var selectedCoordinates = null;
@@ -260,6 +393,8 @@
         var loadError = null;
         var mutationVersion = 0;
         var submitting = false;
+        var selectedPhotos = [];
+        var selectingPhotos = false;
 
         initializedMaps.add(map);
 
@@ -461,9 +596,14 @@
             );
             var record = { feature: feature, properties: properties, marker: marker };
             marker.bindTooltip(label);
-            marker.bindPopup(popupContent(record, trailCollection, visuals), { maxWidth: 360 });
+            var popup = popupContent(record, trailCollection, visuals);
+            marker.bindPopup(popup.content, { maxWidth: 360 });
             marker.on('click', function () {
-                marker.setPopupContent(popupContent(record, trailCollection, visuals));
+                popup = popupContent(record, trailCollection, visuals);
+                marker.setPopupContent(popup.content);
+            });
+            marker.on('popupopen', function () {
+                popup.activatePhotos();
             });
             return record;
         }
@@ -549,8 +689,127 @@
                 + String(today.getDate()).padStart(2, '0');
         }
 
+        function clearSelectedPhotos() {
+            selectedPhotos.forEach(function (photo) {
+                if (photo.previewUrl && global.URL && typeof global.URL.revokeObjectURL === 'function') {
+                    global.URL.revokeObjectURL(photo.previewUrl);
+                }
+            });
+            selectedPhotos = [];
+            photoPreviews.replaceChildren();
+            photoCameraInput.value = '';
+            photoGalleryInput.value = '';
+            setStatus(photoStatus, '', '');
+        }
+
+        function renderPhotoPreviews() {
+            photoPreviews.replaceChildren();
+            selectedPhotos.forEach(function (photo, index) {
+                var item = document.createElement('li');
+                item.className = 'occurrence-photo-preview';
+                var image = document.createElement('img');
+                image.src = photo.previewUrl;
+                image.alt = 'Prévia da fotografia ' + (index + 1);
+                var removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.setAttribute('aria-label', 'Remover fotografia ' + (index + 1));
+                removeButton.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+                removeButton.addEventListener('click', function () {
+                    if (global.URL && typeof global.URL.revokeObjectURL === 'function') {
+                        global.URL.revokeObjectURL(photo.previewUrl);
+                    }
+                    selectedPhotos.splice(index, 1);
+                    renderPhotoPreviews();
+                    setStatus(photoStatus, selectedPhotos.length + ' fotografia(s) selecionada(s).', '');
+                });
+                item.append(image, removeButton);
+                photoPreviews.appendChild(item);
+            });
+        }
+
+        function makeThumbnail(file) {
+            if (typeof global.createImageBitmap !== 'function') {
+                return Promise.reject(new Error('Este navegador não consegue preparar miniaturas.'));
+            }
+            return global.createImageBitmap(file).then(function (bitmap) {
+                var canvas = document.createElement('canvas');
+                var scale = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
+                canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+                canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+                var context = canvas.getContext('2d');
+                if (!context) {
+                    bitmap.close();
+                    throw new Error('Não foi possível preparar a miniatura.');
+                }
+                context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                bitmap.close();
+                return new Promise(function (resolve, reject) {
+                    canvas.toBlob(function (blob) {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Não foi possível preparar a miniatura.'));
+                        }
+                    }, 'image/webp', 0.78);
+                });
+            });
+        }
+
+        function addSelectedPhotos(fileList) {
+            var files = Array.from(fileList || []);
+            if (!files.length || selectingPhotos) {
+                return;
+            }
+            if (selectedPhotos.length + files.length > 5) {
+                setStatus(photoStatus, 'É possível selecionar no máximo 5 fotografias.', 'error');
+                return;
+            }
+            if (files.some(function (file) {
+                return file.size < 1 || file.size > 5 * 1024 * 1024
+                    || ['image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) === -1;
+            })) {
+                setStatus(photoStatus, 'Selecione imagens JPEG, PNG ou WebP de até 5 MB.', 'error');
+                return;
+            }
+            selectingPhotos = true;
+            photoCameraButton.disabled = true;
+            photoGalleryButton.disabled = true;
+            setStatus(photoStatus, 'Preparando fotografias…', 'loading');
+            var createdPreviewUrls = [];
+            Promise.all(files.map(function (file) {
+                return makeThumbnail(file).then(function (thumbnail) {
+                    var previewUrl = global.URL.createObjectURL(file);
+                    createdPreviewUrls.push(previewUrl);
+                    return {
+                        file: file,
+                        thumbnail: thumbnail,
+                        previewUrl: previewUrl
+                    };
+                });
+            })).then(function (photos) {
+                selectedPhotos = selectedPhotos.concat(photos);
+                renderPhotoPreviews();
+                setStatus(photoStatus, selectedPhotos.length + ' fotografia(s) selecionada(s).', '');
+            }).catch(function (error) {
+                createdPreviewUrls.forEach(function (previewUrl) {
+                    if (global.URL && typeof global.URL.revokeObjectURL === 'function') {
+                        global.URL.revokeObjectURL(previewUrl);
+                    }
+                });
+                console.error('Falha ao preparar fotografias selecionadas.', error);
+                setStatus(photoStatus, error.message || 'Não foi possível preparar as fotografias.', 'error');
+            }).finally(function () {
+                selectingPhotos = false;
+                photoCameraButton.disabled = false;
+                photoGalleryButton.disabled = false;
+                photoCameraInput.value = '';
+                photoGalleryInput.value = '';
+            });
+        }
+
         function resetRegistration() {
             registrationForm.reset();
+            clearSelectedPhotos();
             registrationDate.value = localToday();
             registrationDescription.value = '';
             registrationTrail.value = '';
@@ -641,17 +900,28 @@
                 data_identificacao: registrationDate.value,
                 coordinates: selectedCoordinates.slice()
             };
+            var requestOptions = { method: 'POST' };
+            if (selectedPhotos.length) {
+                var formData = new global.FormData();
+                formData.append('occurrence', JSON.stringify(payload));
+                selectedPhotos.forEach(function (photo) {
+                    formData.append('photo', photo.file, photo.file.name);
+                    formData.append('thumbnail', photo.thumbnail, 'miniatura.webp');
+                });
+                requestOptions.body = formData;
+            } else {
+                requestOptions.headers = { 'Content-Type': 'application/json' };
+                requestOptions.body = JSON.stringify(payload);
+            }
             submitting = true;
             submitButton.disabled = true;
             cancelFormButton.disabled = true;
             locationButton.disabled = true;
+            photoCameraButton.disabled = true;
+            photoGalleryButton.disabled = true;
             setStatus(formStatus, 'Enviando cadastro…', 'loading');
 
-            fetchJson(API_BASE_URL + '/api/ocorrencias', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(function (feature) {
+            fetchJson(API_BASE_URL + '/api/ocorrencias', requestOptions).then(function (feature) {
                 upsertRecord(feature);
                 mutationVersion += 1;
                 if (loadState === 'loading') {
@@ -667,9 +937,23 @@
                 submitButton.disabled = false;
                 cancelFormButton.disabled = false;
                 locationButton.disabled = false;
+                photoCameraButton.disabled = false;
+                photoGalleryButton.disabled = false;
             });
         }
 
+        photoCameraButton.addEventListener('click', function () {
+            photoCameraInput.click();
+        });
+        photoGalleryButton.addEventListener('click', function () {
+            photoGalleryInput.click();
+        });
+        photoCameraInput.addEventListener('change', function (event) {
+            addSelectedPhotos(event.target.files);
+        });
+        photoGalleryInput.addEventListener('change', function (event) {
+            addSelectedPhotos(event.target.files);
+        });
         document.getElementById('occurrence-open-form').addEventListener('click', showRegistration);
         cancelFormButton.addEventListener('click', function () {
             showQuery();

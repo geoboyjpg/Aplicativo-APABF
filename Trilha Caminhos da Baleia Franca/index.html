@@ -415,6 +415,25 @@
                                 placeholder="Descreva o que foi observado (opcional)."></textarea>
                             <label for="occurrence-registration-date">Data de identificação <span aria-hidden="true">*</span></label>
                             <input id="occurrence-registration-date" type="date" required>
+                            <fieldset class="occurrence-photo-fieldset">
+                                <legend>Fotografias</legend>
+                                <p>Adicione até 5 imagens JPEG, PNG ou WebP (máximo de 5 MB cada).</p>
+                                <div class="occurrence-photo-actions">
+                                    <button id="occurrence-photo-camera" class="occurrence-cancel-button" type="button">
+                                        <i class="fas fa-camera" aria-hidden="true"></i> Tirar fotografia
+                                    </button>
+                                    <button id="occurrence-photo-gallery" class="occurrence-cancel-button" type="button">
+                                        <i class="fas fa-images" aria-hidden="true"></i> Escolher da galeria
+                                    </button>
+                                </div>
+                                <input id="occurrence-photo-camera-input" class="occurrence-photo-input" type="file"
+                                    accept="image/jpeg,image/png,image/webp" capture="environment">
+                                <input id="occurrence-photo-gallery-input" class="occurrence-photo-input" type="file"
+                                    accept="image/jpeg,image/png,image/webp" multiple>
+                                <ul id="occurrence-photo-previews" class="occurrence-photo-previews"
+                                    aria-label="Fotografias selecionadas"></ul>
+                                <p id="occurrence-photo-status" class="occurrence-status" role="status" aria-live="polite"></p>
+                            </fieldset>
                             <div class="occurrence-location-control">
                                 <span class="occurrence-form-label">Localização <span aria-hidden="true">*</span></span>
                                 <button id="occurrence-pick-location" class="occurrence-pick-location" type="button"

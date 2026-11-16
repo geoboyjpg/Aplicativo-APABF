@@ -66,7 +66,7 @@ export function validateOccurrenceInput(body) {
   ['fotos', 'fotografias'].forEach((key) => {
     if (Object.hasOwn(body, key)
         && (!Array.isArray(body[key]) || body[key].length > 0)) {
-      throw new OccurrenceInputError('O cadastro ainda não aceita fotografias.');
+      throw new OccurrenceInputError('As fotografias devem ser enviadas como arquivos.');
     }
   });
 
@@ -144,7 +144,21 @@ export async function getOccurrences(sql) {
       o.descricao,
       to_char(o.data_identificacao, 'YYYY-MM-DD') AS data_identificacao,
       o.situacao,
-      COALESCE(o.fotos, '[]'::jsonb) AS fotografias,
+      COALESCE(o.fotos, '[]'::jsonb) || COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'foto_id', f.foto_id::text,
+            'url', '/api/ocorrencias/' || o.ocorrencia_id::text || '/fotografias/' || f.foto_id::text,
+            'miniatura_url', CASE
+              WHEN f.miniatura IS NULL THEN NULL
+              ELSE '/api/ocorrencias/' || o.ocorrencia_id::text || '/fotografias/' || f.foto_id::text || '/miniatura'
+            END
+          )
+          ORDER BY f.data_upload, f.foto_id
+        )
+        FROM public.ocorrencias_trilhas_fotografias AS f
+        WHERE f.ocorrencia_id = o.ocorrencia_id
+      ), '[]'::jsonb) AS fotografias,
       ST_AsGeoJSON(o.geom, 15, 0) AS geometry
     FROM public.ocorrencias_trilhas AS o
     JOIN public.trilhas_apabf AS t

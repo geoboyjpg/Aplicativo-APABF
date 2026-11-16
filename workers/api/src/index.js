@@ -5,11 +5,19 @@ import {
   OccurrenceInputError,
   validateOccurrenceInput
 } from './ocorrencias.js';
+import {
+  getOccurrencePhoto,
+  PhotoInputError,
+  saveOccurrencePhotos,
+  validatePhotoFiles
+} from './fotografias.js';
 import { getTrails } from './trilhas.js';
 
 const TRAILS_PATH = '/api/trilhas';
 const OCCURRENCES_PATH = '/api/ocorrencias';
-const MAX_BODY_BYTES = 8192;
+const MAX_JSON_BODY_BYTES = 8192;
+const MAX_MULTIPART_BODY_BYTES = 30 * 1024 * 1024;
+const PHOTO_PATH = /^\/api\/ocorrencias\/([^/]+)\/fotografias\/([0-9a-f-]{36})(\/miniatura)?$/i;
 
 class RequestError extends Error {
   constructor(status, message) {
@@ -45,21 +53,14 @@ function validOrigin(value) {
   }
 }
 
-async function readJsonBody(request) {
-  const contentType = request.headers.get('Content-Type');
-  if (!contentType || contentType.split(';', 1)[0].trim().toLowerCase() !== 'application/json') {
-    throw new RequestError(415, 'Envie os dados como application/json.');
-  }
-
+async function readBodyBytes(request, maxBytes) {
   const contentLength = Number(request.headers.get('Content-Length'));
-  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
     throw new RequestError(413, 'O corpo da requisição excede o limite permitido.');
   }
-
   if (!request.body) {
-    throw new RequestError(400, 'O corpo JSON da requisição está vazio.');
+    throw new RequestError(400, 'O corpo da requisição está vazio.');
   }
-
   const reader = request.body.getReader();
   const chunks = [];
   let totalBytes = 0;
@@ -69,7 +70,7 @@ async function readJsonBody(request) {
       break;
     }
     totalBytes += part.value.byteLength;
-    if (totalBytes > MAX_BODY_BYTES) {
+    if (totalBytes > maxBytes) {
       await reader.cancel();
       throw new RequestError(413, 'O corpo da requisição excede o limite permitido.');
     }
@@ -83,11 +84,59 @@ async function readJsonBody(request) {
     offset += chunk.byteLength;
   });
 
+  return bytes;
+}
+
+async function readJsonBody(request) {
+  const contentType = request.headers.get('Content-Type');
+  if (!contentType || contentType.split(';', 1)[0].trim().toLowerCase() !== 'application/json') {
+    throw new RequestError(415, 'Envie os dados como application/json ou multipart/form-data.');
+  }
+  const bytes = await readBodyBytes(request, MAX_JSON_BODY_BYTES);
   try {
     return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   } catch {
-    throw new RequestError(400, 'O corpo da requisição não contém JSON válido.');
+    throw new RequestError(400, 'O corpo JSON da requisição não é válido.');
   }
+}
+
+async function readMultipartBody(request) {
+  const contentType = request.headers.get('Content-Type') || '';
+  if (!/^multipart\/form-data\s*;/i.test(contentType)) {
+    throw new RequestError(415, 'Envie os dados como multipart/form-data.');
+  }
+  const bytes = await readBodyBytes(request, MAX_MULTIPART_BODY_BYTES);
+  let form;
+  try {
+    form = await new Request(request.url, {
+      method: 'POST',
+      headers: { 'Content-Type': contentType },
+      body: bytes
+    }).formData();
+  } catch {
+    throw new RequestError(400, 'O formulário enviado não contém multipart válido.');
+  }
+
+  const occurrenceText = form.get('occurrence');
+  if (typeof occurrenceText !== 'string') {
+    throw new RequestError(400, 'Os dados da ocorrência não foram informados.');
+  }
+  let body;
+  try {
+    body = JSON.parse(occurrenceText);
+  } catch {
+    throw new RequestError(400, 'Os dados da ocorrência não contêm JSON válido.');
+  }
+  const files = form.getAll('photo');
+  const thumbnails = form.getAll('thumbnail');
+  if (files.some((file) => typeof file === 'string')
+      || thumbnails.some((file) => typeof file === 'string')) {
+    throw new RequestError(400, 'Envie fotografias como arquivos.');
+  }
+  return {
+    input: validateOccurrenceInput(body),
+    photos: await validatePhotoFiles(files, thumbnails)
+  };
 }
 
 async function checkPostRateLimit(request, env, origin) {
@@ -113,14 +162,48 @@ async function checkPostRateLimit(request, env, origin) {
 }
 
 function supportedMethods(pathname) {
-  return pathname === TRAILS_PATH ? ['GET', 'OPTIONS'] : ['GET', 'POST', 'OPTIONS'];
+  if (pathname === TRAILS_PATH) {
+    return ['GET', 'OPTIONS'];
+  }
+  if (pathname === OCCURRENCES_PATH) {
+    return ['GET', 'POST', 'OPTIONS'];
+  }
+  return ['GET', 'OPTIONS'];
+}
+
+function photoResponse(object, origin) {
+  if (!object) {
+    return jsonResponse({ error: 'Fotografia não encontrada.' }, 404, origin);
+  }
+  const headers = new Headers({
+    'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
+    'Content-Disposition': 'inline',
+    'Cache-Control': 'public, max-age=300',
+    'X-Content-Type-Options': 'nosniff',
+    'Vary': 'Origin'
+  });
+  if (object.httpEtag) {
+    headers.set('ETag', object.httpEtag);
+  }
+  if (object.writeHttpMetadata) {
+    object.writeHttpMetadata(headers);
+    headers.set('Content-Disposition', 'inline');
+    headers.set('X-Content-Type-Options', 'nosniff');
+    headers.set('Cache-Control', 'public, max-age=300');
+    headers.set('Vary', 'Origin');
+  }
+  if (origin) {
+    headers.set('Access-Control-Allow-Origin', origin);
+  }
+  return new Response(object.body, { status: 200, headers });
 }
 
 export function createWorker(databaseFactory = createDatabase) {
   return {
     async fetch(request, env) {
       const url = new URL(request.url);
-      if (url.pathname !== TRAILS_PATH && url.pathname !== OCCURRENCES_PATH) {
+      const photoMatch = url.pathname.match(PHOTO_PATH);
+      if (url.pathname !== TRAILS_PATH && url.pathname !== OCCURRENCES_PATH && !photoMatch) {
         return jsonResponse({ error: 'Rota não encontrada.' }, 404);
       }
 
@@ -163,11 +246,24 @@ export function createWorker(databaseFactory = createDatabase) {
       }
 
       let input;
+      let photos = [];
       if (url.pathname === OCCURRENCES_PATH && request.method === 'POST') {
         try {
-          input = validateOccurrenceInput(await readJsonBody(request));
+          const contentType = request.headers.get('Content-Type') || '';
+          if (/^multipart\/form-data\s*;/i.test(contentType)) {
+            const multipart = await readMultipartBody(request);
+            input = multipart.input;
+            photos = multipart.photos;
+          } else {
+            input = validateOccurrenceInput(await readJsonBody(request));
+          }
+          if (photos.length && (!env.OCCURRENCE_PHOTOS
+              || typeof env.OCCURRENCE_PHOTOS.put !== 'function')) {
+            return jsonResponse({ error: 'O armazenamento de fotografias não está configurado.' }, 503, corsOrigin);
+          }
         } catch (error) {
-          if (error instanceof RequestError || error instanceof OccurrenceInputError) {
+          if (error instanceof RequestError || error instanceof OccurrenceInputError
+              || error instanceof PhotoInputError) {
             return jsonResponse({ error: error.message }, error.status || 400, corsOrigin);
           }
           console.error('Falha ao ler o corpo do cadastro de ocorrência.');
@@ -186,6 +282,20 @@ export function createWorker(databaseFactory = createDatabase) {
           return jsonResponse(collection, 200, corsOrigin);
         }
         if (request.method === 'GET') {
+          if (photoMatch) {
+            if (!env.OCCURRENCE_PHOTOS || typeof env.OCCURRENCE_PHOTOS.get !== 'function') {
+              return jsonResponse({ error: 'O armazenamento de fotografias não está configurado.' }, 503, corsOrigin);
+            }
+            const occurrenceId = decodeURIComponent(photoMatch[1]);
+            const object = await getOccurrencePhoto(
+              sql,
+              env.OCCURRENCE_PHOTOS,
+              occurrenceId,
+              photoMatch[2],
+              Boolean(photoMatch[3])
+            );
+            return photoResponse(object, corsOrigin);
+          }
           const collection = await getOccurrences(sql);
           return jsonResponse(collection, 200, corsOrigin);
         }
@@ -196,6 +306,14 @@ export function createWorker(databaseFactory = createDatabase) {
             { error: 'A trilha informada não existe ou seu identificador não é único.' },
             422,
             corsOrigin
+          );
+        }
+        if (photos.length) {
+          feature.properties.fotografias = await saveOccurrencePhotos(
+            sql,
+            env.OCCURRENCE_PHOTOS,
+            feature.properties.ocorrencia_id,
+            photos
           );
         }
         return jsonResponse(feature, 201, corsOrigin);

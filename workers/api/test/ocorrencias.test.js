@@ -6,6 +6,7 @@ import {
   getOccurrences,
   validateOccurrenceInput
 } from '../src/ocorrencias.js';
+import { getOccurrencePhoto, validatePhotoFiles } from '../src/fotografias.js';
 import { getTrails } from '../src/trilhas.js';
 
 const APP_ORIGIN = 'https://geoboyjpg.github.io';
@@ -80,6 +81,24 @@ test('rejects invalid trail, category, date, coordinates, and photograph payload
   });
 });
 
+test('validates image signatures, MIME types, sizes, and the five-photo limit', async function () {
+  const jpeg = new Blob([Uint8Array.from([0xff, 0xd8, 0xff, 0x00])], { type: 'image/jpeg' });
+  const webp = new Blob([
+    Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
+  ], { type: 'image/webp' });
+
+  assert.equal((await validatePhotoFiles([jpeg], [webp])).length, 1);
+  await assert.rejects(
+    validatePhotoFiles([new Blob(['not an image'], { type: 'image/jpeg' })], []),
+    /JPEG, PNG ou WebP válida/
+  );
+  await assert.rejects(
+    validatePhotoFiles([new Blob([new Uint8Array(5 * 1024 * 1024 + 1)], { type: 'image/jpeg' })], []),
+    /até 5 MB/
+  );
+  await assert.rejects(validatePhotoFiles([jpeg, jpeg, jpeg, jpeg, jpeg, jpeg], []), /no máximo 5/);
+});
+
 test('reads existing occurrence rows as a GeoJSON FeatureCollection', async function () {
   const sql = createSql([occurrenceRow]);
   const collection = await getOccurrences(sql);
@@ -119,6 +138,38 @@ test('GET /api/ocorrencias returns the database rows with the app CORS origin', 
   assert.equal(response.headers.get('Access-Control-Allow-Origin'), APP_ORIGIN);
   assert.equal(body.type, 'FeatureCollection');
   assert.equal(body.features[0].properties.ocorrencia_id, '42');
+});
+
+test('GET photo route serves only the object returned from registered photo metadata', async function () {
+  let queriedKey;
+  const sql = createSql((query) => {
+    assert.match(query, /ocorrencias_trilhas_fotografias/);
+    return [{ arquivo: 'ocorrencias/42/registered.png', tipo_mime: 'image/png' }];
+  });
+  const app = createWorker(() => sql);
+  const response = await app.fetch(
+    new Request('https://api.example.test/api/ocorrencias/42/fotografias/12345678-1234-1234-1234-123456789abc', {
+      headers: { Origin: APP_ORIGIN }
+    }),
+    {
+      ...createEnvironment(sql),
+      OCCURRENCE_PHOTOS: {
+        get: async (key) => {
+          queriedKey = key;
+          return {
+            body: new Blob(['image']),
+            httpMetadata: { contentType: 'image/png' }
+          };
+        }
+      }
+    }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'image/png');
+  assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), APP_ORIGIN);
+  assert.equal(queriedKey, 'ocorrencias/42/registered.png');
 });
 
 test('inserts with parameters, server-assigned pending status, and database defaults', async function () {
@@ -168,6 +219,48 @@ test('POST /api/ocorrencias creates one feature and assigns pending status on th
   assert.equal(body.type, 'Feature');
   assert.equal(body.properties.situacao, 'pendente_avaliacao');
   assert.equal(sql.calls.length, 1);
+});
+
+test('multipart occurrence creation stores photo and thumbnail under generated R2 keys', async function () {
+  const sql = createSql([occurrenceRow]);
+  const objects = new Map();
+  const app = createWorker(() => sql);
+  const form = new FormData();
+  form.append('occurrence', JSON.stringify(validPayload));
+  form.append('photo', new Blob([
+    Uint8Array.from([0xff, 0xd8, 0xff, 0x00])
+  ], { type: 'image/jpeg' }), 'user-supplied-name.jpg');
+  form.append('thumbnail', new Blob([
+    Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
+  ], { type: 'image/webp' }), 'thumbnail.webp');
+  const response = await app.fetch(
+    new Request('https://api.example.test/api/ocorrencias', {
+      method: 'POST',
+      headers: {
+        Origin: APP_ORIGIN,
+        'CF-Connecting-IP': '192.0.2.13'
+      },
+      body: form
+    }),
+    {
+      ...createEnvironment(sql),
+      OCCURRENCE_PHOTOS: {
+        put: async (key, body, options) => {
+          objects.set(key, { body, options });
+        },
+        delete: async (key) => objects.delete(key)
+      }
+    }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.properties.fotografias.length, 1);
+  assert.match(body.properties.fotografias[0].url, /\/api\/ocorrencias\/42\/fotografias\/[0-9a-f-]{36}$/);
+  assert.equal(objects.size, 2);
+  assert.ok(Array.from(objects.keys()).every((key) => key.startsWith('ocorrencias/42/')));
+  assert.ok(Array.from(objects.keys()).every((key) => !key.includes('user-supplied-name')));
+  assert.ok(sql.calls.some((call) => call.query.includes('ocorrencias_trilhas_fotografias')));
 });
 
 test('returns no inserted feature when a trail identifier is absent or ambiguous', async function () {

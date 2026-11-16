@@ -115,6 +115,7 @@ function createMockElement(tagName) {
         removeAttribute: function (name) {
             delete this.attributes[name];
         },
+        click: function () {},
         reset: function () {
             this.children.forEach(function (child) {
                 if ('value' in child) {
@@ -200,6 +201,12 @@ function createInterfaceHarness(settings) {
         ['occurrence-registration-category', 'select'],
         ['occurrence-registration-description', 'textarea'],
         ['occurrence-registration-date', 'input'],
+        ['occurrence-photo-camera', 'button'],
+        ['occurrence-photo-gallery', 'button'],
+        ['occurrence-photo-camera-input', 'input'],
+        ['occurrence-photo-gallery-input', 'input'],
+        ['occurrence-photo-previews', 'ul'],
+        ['occurrence-photo-status', 'p'],
         ['occurrence-pick-location', 'button'],
         ['occurrence-submit', 'button'],
         ['occurrence-cancel-form', 'button']
@@ -469,6 +476,9 @@ test('opens the registration form, pre-fills the date, and blocks incomplete sub
         assert.match(html, /id="occurrence-registration-trail" required/);
         assert.match(html, /id="occurrence-registration-category" required/);
         assert.match(html, /id="occurrence-registration-date" type="date" required/);
+        assert.match(html, /id="occurrence-photo-camera-input"[^>]*capture="environment"/);
+        assert.match(html, /id="occurrence-photo-gallery-input"[^>]*multiple/);
+        assert.match(html, /id="occurrence-photo-previews"/);
     } finally {
         harness.restoreDocument();
     }
