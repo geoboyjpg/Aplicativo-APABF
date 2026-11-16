@@ -224,7 +224,25 @@ export async function occurrenceExists(sql, occurrenceId) {
 
 export async function createOccurrence(sql, input) {
   const rows = await sql`
-    WITH selected_trail AS (
+    WITH occurrence_lock AS MATERIALIZED (
+      SELECT pg_advisory_xact_lock(hashtext('apabf'), hashtext('ocorrencias_trilhas'))
+    ),
+    sequence_reset AS MATERIALIZED (
+      SELECT CASE
+        WHEN NOT EXISTS (SELECT 1 FROM public.ocorrencias_trilhas)
+          THEN setval(
+            pg_get_serial_sequence(
+              'public.ocorrencias_trilhas',
+              'ocorrencia_id'
+            )::regclass,
+            1,
+            false
+          )
+        ELSE NULL::bigint
+      END AS sequence_value
+      FROM occurrence_lock
+    ),
+    selected_trail AS (
       SELECT ogc_fid, nome
       FROM public.trilhas_apabf
       WHERE fid::text = ${input.trailId}
@@ -247,6 +265,7 @@ export async function createOccurrence(sql, input) {
         ${input.date}::date,
         ${INITIAL_SITUATION}
       FROM selected_trail
+      CROSS JOIN sequence_reset
       WHERE (SELECT COUNT(*) FROM selected_trail) = 1
       RETURNING
         ocorrencia_id::text AS ocorrencia_id,
@@ -412,11 +431,15 @@ export async function updateOccurrence(
 
 export async function deleteOccurrence(sql, occurrenceId) {
   const rows = await sql`
-    WITH target AS MATERIALIZED (
+    WITH occurrence_lock AS MATERIALIZED (
+      SELECT pg_advisory_xact_lock(hashtext('apabf'), hashtext('ocorrencias_trilhas'))
+    ),
+    target AS MATERIALIZED (
       SELECT occurrence.ocorrencia_id
-      FROM public.ocorrencias_trilhas AS occurrence
+      FROM occurrence_lock
+      CROSS JOIN public.ocorrencias_trilhas AS occurrence
       WHERE occurrence.ocorrencia_id::text = ${occurrenceId}
-      FOR UPDATE
+      FOR UPDATE OF occurrence
     ),
     photo_objects AS MATERIALIZED (
       SELECT

@@ -516,7 +516,6 @@ export function createWorker(databaseFactory = createDatabase) {
             try {
               uploaded = await uploadOccurrencePhotoObjects(
                 env.OCCURRENCE_PHOTOS,
-                occurrenceId,
                 photos,
                 trailName
               );

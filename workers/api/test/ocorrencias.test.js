@@ -7,7 +7,7 @@ import {
   validateOccurrenceInput
 } from '../src/ocorrencias.js';
 import {
-  formatUploadTimestamp,
+  formatUploadDate,
   getOccurrencePhoto,
   validatePhotoFiles
 } from '../src/fotografias.js';
@@ -74,7 +74,7 @@ function createAdminSql(initialRow, initialPhotos = [], initialCleanup = []) {
     if (query.includes('UPDATE public.ocorrencias_trilhas_fotografias_cleanup')) {
       return [];
     }
-    if (query.includes('WITH target AS MATERIALIZED')) {
+    if (query.includes('target AS MATERIALIZED')) {
       if (!exists) {
         return [];
       }
@@ -243,11 +243,19 @@ function adminRequest(method, path, body) {
   });
 }
 
-function photoBucket(objects, failAtPut, failAtDelete) {
+function photoBucket(objects, failAtPut, failAtDelete, failAtHead) {
   let putCount = 0;
   let deleteCount = 0;
+  let headCount = 0;
   const deletedKeys = [];
   return {
+    head: async (key) => {
+      headCount += 1;
+      if (headCount === failAtHead) {
+        return {};
+      }
+      return objects.has(key) ? {} : null;
+    },
     put: async (key, body, options) => {
       putCount += 1;
       if (putCount === failAtPut) {
@@ -274,13 +282,6 @@ test('validates required occurrence fields and allows an omitted description', f
     situacao: 'resolvida'
   });
 
-  test('formats photo timestamps in the Brasília timezone', function () {
-    assert.equal(
-      formatUploadTimestamp(new Date('2026-11-16T13:35:30.000Z')),
-      '2026-11-16_103530'
-    );
-  });
-
   assert.equal(input.trailId, '1');
   assert.equal(input.description, null);
   assert.equal(input.category, 'erosao_solo');
@@ -288,6 +289,13 @@ test('validates required occurrence fields and allows an omitted description', f
   assert.equal(input.longitude, -49.2);
   assert.equal(input.latitude, -28.8);
   assert.equal(Object.hasOwn(input, 'situation'), false);
+});
+
+test('formats photo dates in the Brasília timezone', function () {
+  assert.equal(
+    formatUploadDate(new Date('2026-11-17T02:30:00.000Z')),
+    '2026-11-16'
+  );
 });
 
 test('rejects invalid trail, category, date, coordinates, and photograph payloads', function () {
@@ -406,6 +414,10 @@ test('inserts with parameters, server-assigned pending status, and database defa
   assert.equal(feature.type, 'Feature');
   assert.equal(feature.properties.situacao, 'pendente_avaliacao');
   assert.match(call.query, /INSERT INTO public\.ocorrencias_trilhas/);
+  assert.match(call.query, /pg_advisory_xact_lock/);
+  assert.match(call.query, /pg_get_serial_sequence/);
+  assert.match(call.query, /setval\([\s\S]*1,[\s\S]*false/);
+  assert.match(call.query, /WHEN NOT EXISTS \(SELECT 1 FROM public\.ocorrencias_trilhas\)/);
   assert.match(call.query, /WHERE fid::text = \?/);
   assert.match(call.query, /ST_SetSRID\(ST_MakePoint\(\?, \?\), 4326\)/);
   const insertedColumns = call.query.match(
@@ -457,7 +469,7 @@ test('multipart occurrence creation stores photo and thumbnail under generated R
     request,
     {
       ...createEnvironment(sql),
-      OCCURRENCE_PHOTOS: photoBucket(objects)
+      OCCURRENCE_PHOTOS: photoBucket(objects, undefined, undefined, 1)
     }
   );
   const body = await response.json();
@@ -467,15 +479,30 @@ test('multipart occurrence creation stores photo and thumbnail under generated R
   assert.equal(body.properties.fotografias.length, 1);
   assert.match(body.properties.fotografias[0].url, /\/api\/ocorrencias\/42\/fotografias\/[0-9a-f-]{36}$/);
   assert.equal(objects.size, 2);
-  assert.ok(Array.from(objects.keys()).every((key) => key.startsWith('ocorrencias/42/')));
+  const keys = Array.from(objects.keys());
+  assert.ok(keys.every((key) => key.startsWith('ocorrencias/praia-do-rosa/')));
   assert.ok(Array.from(objects.keys()).every((key) => !key.includes('user-supplied-name')));
-  assert.ok(Array.from(objects.keys()).every((key) =>
-    /ocorrencias\/42\/praia-do-rosa_\d{4}-\d{2}-\d{2}_\d{6}_[0-9a-f-]{36}(?:_thumb)?\.(?:jpg|webp)$/.test(key)
+  assert.ok(keys.every((key) =>
+    /^ocorrencias\/praia-do-rosa\/praia-do-rosa_\d{4}-\d{2}-\d{2}_[0-9a-f]{12}(?:_thumb)?\.(?:jpg|webp)$/.test(key)
   ));
-  assert.ok(sql.calls.some((call) => call.query.includes('ocorrencias_trilhas_fotografias')));
-  assert.ok(sql.calls.some((call) => call.values.some((value) =>
-    typeof value === 'string' && value.includes('foto-1.jpg')
-  )));
+  const originalKey = keys.find((key) => key.endsWith('.jpg'));
+  const thumbnailKey = keys.find((key) => key.endsWith('_thumb.webp'));
+  assert.ok(originalKey);
+  assert.ok(thumbnailKey);
+  assert.equal(
+    thumbnailKey,
+    `${originalKey.slice(0, -'.jpg'.length)}_thumb.webp`
+  );
+  const insertCall = sql.calls.find((call) =>
+    call.query.includes('INSERT INTO public.ocorrencias_trilhas_fotografias')
+  );
+  assert.ok(insertCall);
+  const records = JSON.parse(insertCall.values.find((value) =>
+    typeof value === 'string' && value.startsWith('[')
+  ));
+  assert.equal(records[0].arquivo, originalKey);
+  assert.equal(records[0].miniatura, thumbnailKey);
+  assert.equal(records[0].nome_original, 'foto-1.jpg');
 });
 
 test('multipart occurrence creation accepts five photographs', async function () {
@@ -494,6 +521,12 @@ test('multipart occurrence creation accepts five photographs', async function ()
   assert.equal(response.status, 201);
   assert.equal(body.properties.fotografias.length, 5);
   assert.equal(objects.size, 10);
+  const keys = Array.from(objects.keys());
+  const originals = keys.filter((key) => key.endsWith('.jpg'));
+  const stems = originals.map((key) => key.slice(0, -'.jpg'.length));
+  assert.equal(new Set(stems).size, 5);
+  assert.ok(keys.every((key) => key.startsWith('ocorrencias/praia-do-rosa/')));
+  stems.forEach((stem) => assert.ok(objects.has(`${stem}_thumb.webp`)));
   const insertCall = sql.calls.find((call) =>
     call.query.includes('INSERT INTO public.ocorrencias_trilhas_fotografias')
   );
@@ -608,7 +641,7 @@ test('PATCH edits an occurrence in place, changes geometry and adds photos with 
   assert.ok(sql.calls.some((call) => /UPDATE public\.ocorrencias_trilhas AS occurrence/.test(call.query)));
   assert.ok(sql.calls.every((call) => !/INSERT INTO public\.ocorrencias_trilhas\s*\(/.test(call.query)));
   assert.ok(Array.from(objects.keys()).some((key) =>
-    /praia-do-rosa_\d{4}-\d{2}-\d{2}_\d{6}_[0-9a-f-]{36}\.jpg$/.test(key)
+    /ocorrencias\/praia-do-rosa\/praia-do-rosa_\d{4}-\d{2}-\d{2}_[0-9a-f]{12}\.jpg$/.test(key)
   ));
   assert.ok(Array.from(objects.keys()).some((key) => /_thumb\.webp$/.test(key)));
   assert.equal(objects.has(sql.state.photos[1].arquivo), true);
@@ -839,7 +872,7 @@ test('DELETE is idempotent and reports pending R2 cleanup until an authorized re
 
 test('does not report deletion when Neon fails before the occurrence is removed', async function () {
   const sql = createSql((query) => {
-    if (query.includes('WITH target AS MATERIALIZED')) {
+    if (query.includes('target AS MATERIALIZED')) {
       throw new Error('Neon unavailable');
     }
     return [];
@@ -852,6 +885,7 @@ test('does not report deletion when Neon fails before the occurrence is removed'
 
   assert.equal(response.status, 500);
   assert.equal(bucket.deletedKeys.length, 0);
+  assert.ok(sql.calls[0].query.includes('pg_advisory_xact_lock'));
 });
 
 test('returns no inserted feature when a trail identifier is absent or ambiguous', async function () {

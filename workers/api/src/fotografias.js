@@ -75,7 +75,7 @@ export async function validatePhotoFiles(files, thumbnails) {
   return validated;
 }
 
-function safeTrailSlug(name, occurrenceId) {
+function safeTrailSlug(name) {
   const slug = String(name || '')
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -84,22 +84,18 @@ function safeTrailSlug(name, occurrenceId) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 80)
     .replace(/-+$/g, '');
-  return slug || `trilha-${occurrenceId}`;
+  return slug || 'trilha';
 }
 
-export function formatUploadTimestamp(date) {
+export function formatUploadDate(date) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23'
+    day: '2-digit'
   }).formatToParts(date);
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${values.year}-${values.month}-${values.day}_${values.hour}${values.minute}${values.second}`;
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function photoUrls(occurrenceId, photoId) {
@@ -107,20 +103,42 @@ function photoUrls(occurrenceId, photoId) {
   return { url: base, miniatura_url: `${base}/miniatura` };
 }
 
-export async function uploadOccurrencePhotoObjects(bucket, occurrenceId, photos, trailName) {
+async function findAvailablePhotoKeys(bucket, slug, date, photo) {
+  if (typeof bucket.head !== 'function') {
+    throw new Error('O binding R2 não permite verificar chaves de fotografia existentes.');
+  }
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const suffix = crypto.randomUUID().replaceAll('-', '').slice(0, 12);
+    const fileStem = `${slug}_${date}_${suffix}`;
+    const originalKey = `ocorrencias/${slug}/${fileStem}.${photo.image.type.extension}`;
+    const thumbnailKey = photo.thumbnail
+      ? `ocorrencias/${slug}/${fileStem}_thumb.${photo.thumbnail.type.extension}`
+      : null;
+    const existing = await Promise.all(
+      [originalKey, thumbnailKey].filter(Boolean).map((key) => bucket.head(key))
+    );
+    if (existing.every((object) => object === null)) {
+      return { originalKey, thumbnailKey };
+    }
+  }
+  throw new Error('Não foi possível gerar uma chave única para a fotografia.');
+}
+
+export async function uploadOccurrencePhotoObjects(bucket, photos, trailName) {
   const storedKeys = [];
   const records = [];
-  const slug = safeTrailSlug(trailName, occurrenceId);
-  const timestamp = formatUploadTimestamp(new Date());
+  const slug = safeTrailSlug(trailName);
+  const date = formatUploadDate(new Date());
 
   try {
     for (const photo of photos) {
       const photoId = crypto.randomUUID();
-      const fileStem = `${slug}_${timestamp}_${photoId}`;
-      const originalKey = `ocorrencias/${occurrenceId}/${fileStem}.${photo.image.type.extension}`;
-      const thumbnailKey = photo.thumbnail
-        ? `ocorrencias/${occurrenceId}/${fileStem}_thumb.${photo.thumbnail.type.extension}`
-        : null;
+      const { originalKey, thumbnailKey } = await findAvailablePhotoKeys(
+        bucket,
+        slug,
+        date,
+        photo
+      );
 
       storedKeys.push(originalKey);
       await bucket.put(originalKey, photo.image.bytes, {
@@ -157,7 +175,7 @@ export async function uploadOccurrencePhotoObjects(bucket, occurrenceId, photos,
 export async function saveOccurrencePhotos(sql, bucket, occurrenceId, photos, trailName) {
   let uploaded = { records: [], storedKeys: [] };
   try {
-    uploaded = await uploadOccurrencePhotoObjects(bucket, occurrenceId, photos, trailName);
+    uploaded = await uploadOccurrencePhotoObjects(bucket, photos, trailName);
     const records = JSON.stringify(uploaded.records);
     await sql`
       INSERT INTO public.ocorrencias_trilhas_fotografias (
