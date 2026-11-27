@@ -1,30 +1,62 @@
 (function (global) {
     'use strict';
 
-    var legislationDocuments = new Map([
-        ['instrução normativa interministerial mpa mma nº 02/2009',
-            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA.pdf'],
-        ['plano de manejo apabf, 2018 - normas zmult', 'Plano de Manejo APABF.pdf'],
-        ['plano de manejo apabf, 2018 - normas zcon', 'Plano de Manejo APABF.pdf'],
-        ['portaria ibama n° 115 n/1993', 'Portaria IBAMA n115 N1993.pdf'],
-        ['portaria interministerial sg-pr/mma nº 24 de 15 de maio de 2018',
-            '1611893586_PORTARIA Nº 24, DE 15 DE MAIO DE 2018 - Diário Oficial da União - Imprensa Nacional.pdf'],
-        ['portaria ibama n° 27-n de 1999', 'PORTARIA Nº 27, DE 10 DE MARÇO DE 1999.pdf'],
-        ['in interministerial mpa/mma n° 12 de 2012',
-            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
-        ['instrução normativa interministerial mpa-mma nº 12/2012',
-            'INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
-        ['portaria ibama/sc n° 54-n, de 9 de junho de 1999',
-            'PORTARIA IBAMA_SC N° 54-N DE 9 DE JUNHO DE 1999.pdf'],
-        ['portaria sudepe n° n-26 de 1983', 'Portaria SUDEPE N° N-26 de 1983.pdf'],
-        ['portaria ibama n° 107-n de 1992', 'Portaria n° 107-N de 29 de setembro de 1992.pdf'],
-        ['portaria sudepe n° 51-n de 26 de outubro de 1983',
-            'Portaria n° N-51 de 26 de outubro de 1983.pdf'],
-        ['portaria ibama n° 5-n/1994', 'Portaria n° 5-N, de 27 de janeiro de 1994.pdf']
-    ]);
+    var DOCUMENTS_WORKER_URL = 'https://apabf-documentos.gerhard-henrique23.workers.dev';
 
-    function normalizeLegalName(value) {
-        return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+    function normalizeComparisonText(value) {
+        return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]/g, '');
+    }
+
+    function buildDocumentUrl(filePath) {
+        var path = String(filePath || '');
+        var segments = path.split('/');
+        if (segments[0] !== 'documentos' || segments.length < 2 ||
+            segments.some(function (segment) {
+                return !segment || segment === '.' || segment === '..' || segment.indexOf('\\') !== -1;
+            })) {
+            throw new Error('O catálogo contém um caminho de documento inválido.');
+        }
+        return DOCUMENTS_WORKER_URL + '/' + segments.map(encodeURIComponent).join('/');
+    }
+
+    function validateDocumentCatalog(catalog) {
+        if (!catalog || !Array.isArray(catalog.documentos)) {
+            throw new Error('O catálogo de documentos possui um formato inválido.');
+        }
+        catalog.documentos.forEach(function (item) {
+            if (!item || item.id === undefined || typeof item.titulo !== 'string' ||
+                typeof item.categoria !== 'string' ||
+                (item.ano !== null && (typeof item.ano !== 'number' || !Number.isFinite(item.ano))) ||
+                typeof item.arquivo !== 'string') {
+                throw new Error('O catálogo contém um documento incompleto.');
+            }
+            buildDocumentUrl(item.arquivo);
+        });
+        return catalog.documentos;
+    }
+
+    function findDocumentForRecord(record, documents) {
+        var legalName = normalizeComparisonText(record.legalName);
+        if (!legalName) {
+            return null;
+        }
+        var match = null;
+        var matchLength = 0;
+        documents.forEach(function (item) {
+            var title = normalizeComparisonText(item.titulo);
+            if (title.length >= 12 && (legalName.indexOf(title) !== -1 || title.indexOf(legalName) !== -1) &&
+                title.length > matchLength) {
+                match = item;
+                matchLength = title.length;
+            }
+        });
+        return match;
+    }
+
+    function getDocumentSearchText(item) {
+        return [item.titulo, item.categoria, item.ano === null ? '' : item.ano, item.arquivo]
+            .join(' ').toLocaleLowerCase('pt-BR');
     }
 
     function featureValue(feature, keys) {
@@ -57,6 +89,10 @@
         var locationMarker = null;
         var locationCircle = null;
         var locationRequestInProgress = false;
+        var catalogDocuments = [];
+        var catalogState = 'loading';
+        var locationResultRecords = null;
+        var catalogErrorMessage = 'Não foi possível carregar os documentos. A lista de instrumentos continua disponível; tente novamente mais tarde.';
 
         function focusRecord(record) {
             try {
@@ -67,7 +103,7 @@
             }
         }
 
-        function renderRecords(records) {
+        function renderRecords(records, documents, unmatchedDocuments) {
             tableBody.replaceChildren();
             records.forEach(function (record) {
                 var feature = record.feature;
@@ -80,11 +116,11 @@
                 var locateButton = document.createElement('button');
 
                 legalCell.style.fontWeight = '600';
-                var documentFile = legislationDocuments.get(normalizeLegalName(record.legalName));
-                if (documentFile) {
+                var catalogDocument = findDocumentForRecord(record, documents);
+                if (catalogDocument) {
                     var legalLink = document.createElement('a');
                     legalLink.className = 'instrument-legal-link';
-                    legalLink.href = '../Legislações%20PDFs/' + encodeURIComponent(documentFile);
+                    legalLink.href = buildDocumentUrl(catalogDocument.arquivo);
                     legalLink.target = '_blank';
                     legalLink.rel = 'noopener';
                     legalLink.textContent = record.legalName;
@@ -98,7 +134,9 @@
                 descriptionCell.textContent = featureValue(feature, ['Descrição', 'Descricao', 'Legenda 2', 'Legenda']);
                 coverageCell.textContent = featureValue(feature, ['Abrangência', 'Agrangência', 'Abrangencia']) ||
                     record.category;
-                row.dataset.searchText = (record.category + ' ' + JSON.stringify(properties))
+                row.dataset.searchText = (record.category + ' ' + record.legalName + ' ' +
+                    JSON.stringify(properties) + ' ' +
+                    (catalogDocument ? getDocumentSearchText(catalogDocument) : ''))
                     .toLocaleLowerCase('pt-BR');
                 row.addEventListener('click', function () {
                     focusRecord(record);
@@ -121,6 +159,30 @@
                 row.append(legalCell, descriptionCell, coverageCell, actionCell);
                 tableBody.appendChild(row);
             });
+
+            unmatchedDocuments.forEach(function (item) {
+                var row = document.createElement('tr');
+                var titleCell = document.createElement('td');
+                var categoryCell = document.createElement('td');
+                var yearCell = document.createElement('td');
+                var actionCell = document.createElement('td');
+                var legalLink = document.createElement('a');
+
+                legalLink.className = 'instrument-legal-link';
+                legalLink.href = buildDocumentUrl(item.arquivo);
+                legalLink.target = '_blank';
+                legalLink.rel = 'noopener';
+                legalLink.textContent = item.titulo;
+                legalLink.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+                titleCell.appendChild(legalLink);
+                categoryCell.textContent = item.categoria;
+                yearCell.textContent = item.ano === null ? '—' : String(item.ano);
+                row.dataset.searchText = getDocumentSearchText(item);
+                row.append(titleCell, categoryCell, yearCell, actionCell);
+                tableBody.appendChild(row);
+            });
         }
 
         function filterRecords() {
@@ -131,13 +193,54 @@
             );
             var query = searchInput.value.trim().toLocaleLowerCase('pt-BR');
             var matches = legalLayers.records.filter(function (record) {
-                return !query || (record.category + ' ' + JSON.stringify(record.feature.properties || {}))
-                    .toLocaleLowerCase('pt-BR').indexOf(query) !== -1;
+                var document = findDocumentForRecord(record, catalogDocuments);
+                var searchText = record.category + ' ' + record.legalName + ' ' +
+                    JSON.stringify(record.feature.properties || {}) + ' ' +
+                    (document ? getDocumentSearchText(document) : '');
+                return !query || searchText.toLocaleLowerCase('pt-BR').indexOf(query) !== -1;
             });
-            renderRecords(matches);
-            searchStatus.textContent = query
-                ? matches.length + (matches.length === 1 ? ' feição encontrada.' : ' feições encontradas.')
-                : '';
+            var visibleDocuments = catalogDocuments.filter(function (item) {
+                var matchedRecord = legalLayers.records.some(function (record) {
+                    return findDocumentForRecord(record, [item]) !== null;
+                });
+                return !matchedRecord &&
+                    (!query || getDocumentSearchText(item).indexOf(query) !== -1);
+            });
+            renderRecords(matches, catalogDocuments, visibleDocuments);
+
+            var statusMessages = [];
+            if (catalogState === 'loading') {
+                statusMessages.push('Carregando catálogo de documentos…');
+            } else if (catalogState === 'error') {
+                statusMessages.push(catalogErrorMessage);
+            }
+            if (query) {
+                var visibleDocumentIds = new Set(visibleDocuments.map(function (item) {
+                    return item.id;
+                }));
+                matches.forEach(function (record) {
+                    var item = findDocumentForRecord(record, catalogDocuments);
+                    if (item) {
+                        visibleDocumentIds.add(item.id);
+                    }
+                });
+                statusMessages.push(matches.length + (matches.length === 1 ? ' feição e ' : ' feições e ') +
+                    visibleDocumentIds.size + (visibleDocumentIds.size === 1
+                        ? ' documento encontrado.'
+                        : ' documentos encontrados.'));
+            }
+            searchStatus.textContent = statusMessages.join(' ');
+        }
+
+        function refreshCurrentRecords() {
+            if (locationResultRecords === null) {
+                filterRecords();
+                return;
+            }
+            renderRecords(locationResultRecords, catalogDocuments, []);
+            if (catalogState === 'error') {
+                searchStatus.textContent += ' ' + catalogErrorMessage;
+            }
         }
 
         function buildLocationPopup(event, results) {
@@ -291,7 +394,8 @@
             legalLayers.activateRecords(results.applicableRecords);
             initialPopup.style.display = 'none';
             searchInput.value = '';
-            renderRecords(results.applicableRecords);
+            locationResultRecords = results.applicableRecords;
+            renderRecords(locationResultRecords, catalogDocuments, []);
             if (results.applicableRecords.length) {
                 searchStatus.className = 'map-popup__status map-popup__status--success';
                 searchStatus.textContent = results.applicableRecords.length +
@@ -416,7 +520,10 @@
             });
         });
 
-        searchInput.addEventListener('input', filterRecords);
+        searchInput.addEventListener('input', function () {
+            locationResultRecords = null;
+            filterRecords();
+        });
         document.getElementById('restore-all-btn').addEventListener('click', function () {
             legalLayers.restoreAll();
         });
@@ -458,7 +565,25 @@
             global.map.invalidateSize();
         };
 
-        renderRecords(legalLayers.records);
+        filterRecords();
+        fetch(DOCUMENTS_WORKER_URL + '/catalogo.json')
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('O Worker respondeu com status ' + response.status + '.');
+                }
+                return response.json();
+            })
+            .then(validateDocumentCatalog)
+            .then(function (documents) {
+                catalogDocuments = documents;
+                catalogState = 'loaded';
+                refreshCurrentRecords();
+            })
+            .catch(function (error) {
+                catalogState = 'error';
+                console.error('Não foi possível carregar o catálogo de documentos:', error);
+                refreshCurrentRecords();
+            });
         document.getElementById('popupInicial').style.display = 'flex';
     }
 
