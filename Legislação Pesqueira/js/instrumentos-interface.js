@@ -103,7 +103,7 @@
             }
         }
 
-        function renderRecords(records, documents, unmatchedDocuments) {
+        function renderRecords(records, documents) {
             tableBody.replaceChildren();
             records.forEach(function (record) {
                 var feature = record.feature;
@@ -160,29 +160,6 @@
                 tableBody.appendChild(row);
             });
 
-            unmatchedDocuments.forEach(function (item) {
-                var row = document.createElement('tr');
-                var titleCell = document.createElement('td');
-                var categoryCell = document.createElement('td');
-                var yearCell = document.createElement('td');
-                var actionCell = document.createElement('td');
-                var legalLink = document.createElement('a');
-
-                legalLink.className = 'instrument-legal-link';
-                legalLink.href = buildDocumentUrl(item.arquivo);
-                legalLink.target = '_blank';
-                legalLink.rel = 'noopener';
-                legalLink.textContent = item.titulo;
-                legalLink.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                });
-                titleCell.appendChild(legalLink);
-                categoryCell.textContent = item.categoria;
-                yearCell.textContent = item.ano === null ? '—' : String(item.ano);
-                row.dataset.searchText = getDocumentSearchText(item);
-                row.append(titleCell, categoryCell, yearCell, actionCell);
-                tableBody.appendChild(row);
-            });
         }
 
         function filterRecords() {
@@ -199,14 +176,7 @@
                     (document ? getDocumentSearchText(document) : '');
                 return !query || searchText.toLocaleLowerCase('pt-BR').indexOf(query) !== -1;
             });
-            var visibleDocuments = catalogDocuments.filter(function (item) {
-                var matchedRecord = legalLayers.records.some(function (record) {
-                    return findDocumentForRecord(record, [item]) !== null;
-                });
-                return !matchedRecord &&
-                    (!query || getDocumentSearchText(item).indexOf(query) !== -1);
-            });
-            renderRecords(matches, catalogDocuments, visibleDocuments);
+            renderRecords(matches, catalogDocuments);
 
             var statusMessages = [];
             if (catalogState === 'loading') {
@@ -215,19 +185,8 @@
                 statusMessages.push(catalogErrorMessage);
             }
             if (query) {
-                var visibleDocumentIds = new Set(visibleDocuments.map(function (item) {
-                    return item.id;
-                }));
-                matches.forEach(function (record) {
-                    var item = findDocumentForRecord(record, catalogDocuments);
-                    if (item) {
-                        visibleDocumentIds.add(item.id);
-                    }
-                });
-                statusMessages.push(matches.length + (matches.length === 1 ? ' feição e ' : ' feições e ') +
-                    visibleDocumentIds.size + (visibleDocumentIds.size === 1
-                        ? ' documento encontrado.'
-                        : ' documentos encontrados.'));
+                statusMessages.push(matches.length +
+                    (matches.length === 1 ? ' feição encontrada.' : ' feições encontradas.'));
             }
             searchStatus.textContent = statusMessages.join(' ');
         }
@@ -237,7 +196,7 @@
                 filterRecords();
                 return;
             }
-            renderRecords(locationResultRecords, catalogDocuments, []);
+            renderRecords(locationResultRecords, catalogDocuments);
             if (catalogState === 'error') {
                 searchStatus.textContent += ' ' + catalogErrorMessage;
             }
@@ -395,7 +354,7 @@
             initialPopup.style.display = 'none';
             searchInput.value = '';
             locationResultRecords = results.applicableRecords;
-            renderRecords(locationResultRecords, catalogDocuments, []);
+            renderRecords(locationResultRecords, catalogDocuments);
             if (results.applicableRecords.length) {
                 searchStatus.className = 'map-popup__status map-popup__status--success';
                 searchStatus.textContent = results.applicableRecords.length +
