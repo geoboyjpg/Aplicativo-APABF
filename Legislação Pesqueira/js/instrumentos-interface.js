@@ -3,9 +3,46 @@
 
     var DOCUMENTS_WORKER_URL = 'https://apabf-documentos.gerhard-henrique23.workers.dev';
 
-    function normalizeComparisonText(value) {
-        return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]/g, '');
+    function normalizeInstrumentKey(value) {
+        return String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase('pt-BR').replace(/\bno(?=\s*\.?\s*\d)/g, 'n')
+            .replace(/[^a-z0-9]/g, '');
+    }
+
+    var instrumentDocumentPaths = new Map([
+        [normalizeInstrumentKey('Instrução Normativa Interministerial MPA MMA nº 02/2009'),
+            'documentos/INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA.pdf'],
+        [normalizeInstrumentKey('Plano de Manejo APABF, 2018 - Normas ZCON'),
+            'documentos/Plano de Manejo APABF.pdf'],
+        [normalizeInstrumentKey('Plano de Manejo APABF, 2018 - Normas ZMULT'),
+            'documentos/Plano de Manejo APABF.pdf'],
+        [normalizeInstrumentKey('Portaria IBAMA n° 115 N/1993'),
+            'documentos/Portaria IBAMA n115 N1993.pdf'],
+        [normalizeInstrumentKey('Portaria IBAMA N° 27-N de 1999'),
+            'documentos/PORTARIA Nº 27, DE 10 DE MARÇO DE 1999.pdf'],
+        [normalizeInstrumentKey('Portaria Interministerial SG-PR/MMA Nº 24 de 15 de maio de 2018'),
+            'documentos/PORTARIA Nº 24, DE 15 DE MAIO DE 2018 - Diário Oficial da União - Imprensa Nacional.pdf'],
+        [normalizeInstrumentKey('Portaria SUDEPE N° N-26 de 1983'),
+            'documentos/Portaria SUDEPE N° N-26 de 1983.pdf'],
+        [normalizeInstrumentKey('Portaria IBAMA N° 107-N de 1992'),
+            'documentos/Portaria n° 107-N de 29 de setembro de 1992.pdf'],
+        [normalizeInstrumentKey('Portaria SUDEPE N° 51-N de 26 de outubro de 1983'),
+            'documentos/Portaria n° N-51 de 26 de outubro de 1983.pdf'],
+        [normalizeInstrumentKey('Instrução Normativa MMA n° 41/2005'),
+            'documentos/INSTRUÇÃO NORMATIVA MMA n° 41_2005.pdf'],
+        [normalizeInstrumentKey('Portaria IBAMA n° 5-N/1994'),
+            'documentos/Portaria n° 5-N, de 27 de janeiro de 1994.pdf'],
+        [normalizeInstrumentKey('IN Interministerial MPA/MMA N° 12 de 2012'),
+            'documentos/INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
+        [normalizeInstrumentKey('Instrução Normativa Interministerial MPA-MMA nº 12/2012'),
+            'documentos/INSTRUÇÃO NORMATIVA INTERMINISTERIAL MPA_MMA N° 12.pdf'],
+        [normalizeInstrumentKey('PORTARIA IBAMA/SC N° 54-N, DE 9 DE JUNHO DE 1999'),
+            'documentos/PORTARIA IBAMA_SC N° 54-N DE 9 DE JUNHO DE 1999.pdf']
+    ]);
+
+    function getDocumentForRecord(record, documentsByPath) {
+        var filePath = instrumentDocumentPaths.get(normalizeInstrumentKey(record.legalName));
+        return filePath ? documentsByPath.get(filePath) || null : null;
     }
 
     function buildDocumentUrl(filePath) {
@@ -34,24 +71,6 @@
             buildDocumentUrl(item.arquivo);
         });
         return catalog.documentos;
-    }
-
-    function findDocumentForRecord(record, documents) {
-        var legalName = normalizeComparisonText(record.legalName);
-        if (!legalName) {
-            return null;
-        }
-        var match = null;
-        var matchLength = 0;
-        documents.forEach(function (item) {
-            var title = normalizeComparisonText(item.titulo);
-            if (title.length >= 12 && (legalName.indexOf(title) !== -1 || title.indexOf(legalName) !== -1) &&
-                title.length > matchLength) {
-                match = item;
-                matchLength = title.length;
-            }
-        });
-        return match;
     }
 
     function getDocumentSearchText(item) {
@@ -89,7 +108,7 @@
         var locationMarker = null;
         var locationCircle = null;
         var locationRequestInProgress = false;
-        var catalogDocuments = [];
+        var documentsByPath = new Map();
         var catalogState = 'loading';
         var locationResultRecords = null;
         var catalogErrorMessage = 'Não foi possível carregar os documentos. A lista de instrumentos continua disponível; tente novamente mais tarde.';
@@ -103,7 +122,7 @@
             }
         }
 
-        function renderRecords(records, documents) {
+        function renderRecords(records) {
             tableBody.replaceChildren();
             records.forEach(function (record) {
                 var feature = record.feature;
@@ -116,7 +135,7 @@
                 var locateButton = document.createElement('button');
 
                 legalCell.style.fontWeight = '600';
-                var catalogDocument = findDocumentForRecord(record, documents);
+                var catalogDocument = getDocumentForRecord(record, documentsByPath);
                 if (catalogDocument) {
                     var legalLink = document.createElement('a');
                     legalLink.className = 'instrument-legal-link';
@@ -170,13 +189,13 @@
             );
             var query = searchInput.value.trim().toLocaleLowerCase('pt-BR');
             var matches = legalLayers.records.filter(function (record) {
-                var document = findDocumentForRecord(record, catalogDocuments);
+                var document = getDocumentForRecord(record, documentsByPath);
                 var searchText = record.category + ' ' + record.legalName + ' ' +
                     JSON.stringify(record.feature.properties || {}) + ' ' +
                     (document ? getDocumentSearchText(document) : '');
                 return !query || searchText.toLocaleLowerCase('pt-BR').indexOf(query) !== -1;
             });
-            renderRecords(matches, catalogDocuments);
+            renderRecords(matches);
 
             var statusMessages = [];
             if (catalogState === 'loading') {
@@ -196,7 +215,7 @@
                 filterRecords();
                 return;
             }
-            renderRecords(locationResultRecords, catalogDocuments);
+            renderRecords(locationResultRecords);
             if (catalogState === 'error') {
                 searchStatus.textContent += ' ' + catalogErrorMessage;
             }
@@ -354,7 +373,7 @@
             initialPopup.style.display = 'none';
             searchInput.value = '';
             locationResultRecords = results.applicableRecords;
-            renderRecords(locationResultRecords, catalogDocuments);
+            renderRecords(locationResultRecords);
             if (results.applicableRecords.length) {
                 searchStatus.className = 'map-popup__status map-popup__status--success';
                 searchStatus.textContent = results.applicableRecords.length +
@@ -534,7 +553,9 @@
             })
             .then(validateDocumentCatalog)
             .then(function (documents) {
-                catalogDocuments = documents;
+                documentsByPath = new Map(documents.map(function (item) {
+                    return [item.arquivo, item];
+                }));
                 catalogState = 'loaded';
                 refreshCurrentRecords();
             })
